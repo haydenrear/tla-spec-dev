@@ -42,7 +42,7 @@ resolve. That placeholder is the measured cause of two field failures: one agent
 ran the wrong script, another concluded it had to write its own (git-issue#4).
 
 ```bash
-WT="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts/wt"
+WT="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/wt"
 ```
 
 `SKILL_MANAGER_HOME` is exported by the launch shims every agent starts through;
@@ -62,7 +62,7 @@ the `:-` fallback is what makes the same line work from a bare shell.
 ## The instruction to embed in the issue
 
 ```bash
-WT="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts/wt"
+WT="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/wt"
 
 # from anywhere inside the repo
 "$WT" new <issue-number>-<slug>
@@ -141,7 +141,7 @@ State it concretely rather than in the abstract, e.g.:
 ## Worktree & branch
 Create the worktree AND its own Skill Manager home with ONE command, from the
 repo root. Same command for a plain repo and an integration repo:
-`WT="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts/wt"`
+`WT="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/wt"`
 `"$WT" new <issue-number>-<slug>`
 
 It prints `created worktree <path>` — cd to that path (it is
@@ -180,7 +180,7 @@ worktree — but **the home is checked first**, because the removal is what dest
 it:
 
 ```bash
-WT="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts/wt"
+WT="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/wt"
 "$WT" close <issue-number>-<slug>
 ```
 

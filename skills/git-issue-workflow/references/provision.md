@@ -91,7 +91,7 @@ asks you to report, not a route this section offers.
 ```bash
 # The front door. An installed unit's files live at $SKILL_MANAGER_HOME/skills/<unit>/;
 # the :- fallback is what makes this line work from a bare shell too.
-WT="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts/wt"
+WT="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/wt"
 
 git fetch origin
 test -z "$(git status --porcelain)" || { echo "dirty tree — reconcile first"; exit 1; }

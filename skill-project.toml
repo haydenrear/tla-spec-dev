@@ -34,26 +34,40 @@ name = "tla-spec-dev"
 version = "0.1.0"
 description = "Generate and maintain Python spec doubles from constrained, annotated TLA+ specifications, validated by a Test Graph project and the specs/program_model adapters."
 
-# --- validation: the test_graph project at test_graph/ is composed from this
-#     unit's Gradle SDK and build-logic, vendored below. Its three graphs
+# --- validation: the test_graph project at test_graph/ is composed from the
+#     test-graph Gradle SDK and build-logic, vendored below. Its three graphs
 #     (specWorkflow, cliWorkflow, effectProviderExamples) are the repository's
 #     integration surface ---
-
-[skills.test-graph]
-source = "github:haydenrear/test_graph_skill"
+#
+# SI-02: `[skills.test-graph]` IS GONE, and its absence is the point.
+#
+# test-graph is now a CONTAINED SKILL of this plugin, at skills/test-graph/. A
+# contained skill is not a separately installable unit, so there is nothing for
+# `[skills.test-graph]` to resolve to; and the coord it used to carry
+# (github:haydenrear/test_graph_skill) still resolves, which is worse than an
+# error — it would install a SECOND, standalone copy of a skill this repository
+# already carries, at its own version, change-managed separately. That is the
+# exact incoherence the bundle exists to prevent
+# (plugin-repository/references/imports.md § "silently duplicates").
+#
+# This repository IS the tla-spec-dev plugin, so it does not declare itself
+# here for test-graph any more than it does for spec-double-2.
 
 # --- required BY this unit's own SKILL.md, not chosen here. Its `skill-imports`
-#     name both units (skill-manager references/cli.md for how the declared
-#     tlc2/pytest/jinja2 CLI tools are exposed; skill-publisher
-#     references/skills.md for installable-unit layout), and `project resolve`
-#     refuses the whole resolve with "references missing unit" until they are
-#     declared. Unit `skill_references` are followed automatically —
-#     skill-manager.toml here declares none — but `skill-imports` are not ---
+#     name skill-manager references/cli.md (how the declared tlc2/pytest/jinja2
+#     CLI tools are exposed) and references/skills.md (installable-unit layout),
+#     and `project resolve` refuses the whole resolve with "references missing
+#     unit" until the unit carrying them is declared ---
+#
+# SI-02: `[skills.skill-manager]` and `[skills.unit-authoring]` are GONE for the
+# same reason, one tier up. Both are contained skills of the `skt` PLUGIN, and
+# `references/projects.md` is explicit: "A plugin declared as `[skills.<name>]`
+# is refused by `project resolve`, and a unit that skt now provides
+# (skill-manager, skill-publisher) is deleted from the manifest rather than
+# re-declared." `skt status` in this checkout's home had been printing that same
+# remedy for the `[skills.skill-manager]` block on every run.
 
-[skills.skill-manager]
-source = "github:haydenrear/skt"
-
-[skills.unit-authoring]
+[plugins.skt]
 source = "github:haydenrear/skt"
 
 # --- vendored: paths under test_graph/ whose content is the test-graph unit's
@@ -71,9 +85,15 @@ source = "github:haydenrear/skt"
 #     (test_graph/provider-bindings.json); they are generated and gitignored,
 #     not tracked. This block stays as the validator that says what must hold. ---
 
+#     SI-02 moved `from_unit`. `test-graph` is no longer an installed unit — it
+#     is a contained skill of the `tla-spec-dev` plugin, whose bytes land at
+#     `<home>/plugins/tla-spec-dev/skills/test-graph/`. So the unit that owns
+#     this content is the PLUGIN, and the subpath grows the `skills/test-graph/`
+#     rung that the move added.
+
 [[vendored]]
 name = "test-graph-sdk"
 paths = ["test_graph/sdk", "test_graph/build-logic", "test_graph/standard-nodes"]
-from_unit = "test-graph"
-from_subpath = "project_sdk_sources"
+from_unit = "tla-spec-dev"
+from_subpath = "skills/test-graph/project_sdk_sources"
 on_invalid = "error"

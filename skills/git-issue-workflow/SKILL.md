@@ -29,17 +29,17 @@ description: >-
   integration change".
   Also use when receiving an agent-tagged PR from an integration MR.
 skill-imports:
-  - unit: git-issue
-    path: SKILL.md
+  - unit: tla-spec-dev
+    path: skills/git-issue/SKILL.md
     reason: This skill executes the worktree/spec/close-out moves that a git-issue work order names; the issue body is the input to provisioning.
-  - unit: git-epic-workflow
-    path: references/goals-and-evaluation.md
+  - unit: tla-spec-dev
+    path: skills/git-epic-workflow/references/goals-and-evaluation.md
     reason: Source of truth for goal field names and semantics — goal kinds, contribution kinds, baselines, and the evaluation-ticket contract this skill consumes from the assignment's `goals:` block.
-  - unit: spec-double-compiler
-    path: SKILL.md
+  - unit: tla-spec-dev
+    path: skills/spec-double-2/SKILL.md
     reason: The spec workflow — open/close ticket, spec-unit-tests, current→desired promotion — runs through the tla-spec-dev CLI this skill installs.
-  - unit: test-graph
-    path: SKILL.md
+  - unit: tla-spec-dev
+    path: skills/test-graph/SKILL.md
     reason: The validation loop runs named test_graph graphs (incl. the spec graph) via the test-graph scripts and its smart failure loop.
   - unit: deploy-helm
     path: SKILL.md
@@ -57,7 +57,7 @@ Before anything else, because it is the first thing every ticket does and the
 last thing every ticket does:
 
 ```bash
-WT="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts/wt"
+WT="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/wt"
 
 "$WT" new   <ticket>     # worktree + its OWN Skill Manager home, launchable
 "$WT" close <ticket>     # teardown, through the close-out gate
@@ -107,8 +107,8 @@ Only if that prints nothing, use this skill's own script, from the checkout's
 project home first and the operator's home second:
 
 ```bash
-WT=./.skill-manager/skills/git-issue-workflow/scripts/wt
-[ -x "$WT" ] || WT="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts/wt"
+WT=$(for d in "./.skill-manager"/skills/git-issue-workflow "./.skill-manager"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/wt
+[ -x "$WT" ] || WT="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/wt"
 ```
 
 **Do not substitute `git worktree add`.** It produces a worktree with no Skill
@@ -357,7 +357,7 @@ are in `references/epic-ticket.md`.
    #     verdict, removes the worktree. Prefer it to spelling the two steps out —
    #     two commands on separate lines run the removal whatever the gate
    #     returned, which is exactly the loss the gate exists to prevent.
-   WT="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts/wt"
+   WT="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/wt"
    "$WT" close <ticket>
 
    # 4b. Only once that succeeded:
@@ -420,7 +420,7 @@ Full flow in `references/provision.md`. In short:
    creates the worktree and its own Skill Manager home together, which a bare
    `git worktree add` does not:
    ```bash
-   WT="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts/wt"
+   WT="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/wt"
    "$WT" new <ticket> "$commit_oid"      # prints: created worktree <path>
    ```
    `cd` to the path it printed — it is `<parent>/<repo>-<ticket>`, not

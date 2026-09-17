@@ -11,7 +11,7 @@ worktree, but no submodules** — the worktree is just files.
 ## If you are here to create a worktree, you do not need this page
 
 ```bash
-S="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts"
+S="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts"
 
 "$S/wt" new   TICKET-123
 "$S/wt" close TICKET-123
@@ -153,7 +153,7 @@ only visible if some *earlier* fetch already recorded it.
 same `KEY  value` contract as before, by any of:
 
 ```bash
-S="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts"
+S="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts"
 
 "$S/wt" info TICKET-123              # a worktree that exists; creates and removes nothing
 "$S/wt" new TICKET-123 --verbose     # on the run that creates it
@@ -356,7 +356,7 @@ Written out in full, with the prose kept. `wt new TICKET-123` is steps 1 and 1b
 in one command with the narration suppressed, and `wt close TICKET-123` is 4b.
 
 ```bash
-S="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts"
+S="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts"
 
 # 1. Start the change. Requires a clean tree in the repo it picks — and it
 #    prints which repo that is, and of what kind, before doing anything.

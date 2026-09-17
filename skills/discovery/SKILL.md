@@ -2,17 +2,17 @@
 name: discovery
 description: 'Use when kicking off work in a repository — starting a new issue or ticket, performing discovery to plan or create issues, or any other time the agent needs to discover how a repo works before changing it. Assumes the repo carries a spec-double-compiler specs/ tree (specs/program_model, append-only specs/.history) and a scaffolded test_graph project; discovery starts from those semantic maps, not from raw source. Trigger on "start this ticket", "pick up this issue", "do discovery", "create issues for this repo", "how does this codebase work", or landing in an unfamiliar repo.'
 skill-imports:
-  - unit: spec-double-compiler
-    path: SKILL.md
+  - unit: tla-spec-dev
+    path: skills/spec-double-2/SKILL.md
     reason: Canonical semantics of the specs/ tree — program_model, current/desired workflow directories, tickets, and the append-only history this skill mines.
-  - unit: spec-double-compiler
-    path: references/ai_retrieval.md
+  - unit: tla-spec-dev
+    path: skills/spec-double-2/references/ai_retrieval.md
     reason: How to select the smallest executable contract from the spec tree as context for a change.
-  - unit: spec-double-compiler
-    path: references/spec_evolution.md
+  - unit: tla-spec-dev
+    path: skills/spec-double-2/references/spec_evolution.md
     reason: How specs/.history entries are structured and how to search them.
-  - unit: test-graph
-    path: references/workflows.md
+  - unit: tla-spec-dev
+    path: skills/test-graph/references/workflows.md
     reason: How to discover, plan, and read reports from the repository test_graph project during discovery.
 ---
 

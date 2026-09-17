@@ -116,7 +116,7 @@ before the local home exists that is the operator's global home:
 
 ```bash
 # the skt path above already did this; by hand it is:
-"${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts/bootstrap-home.sh" \
+"$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/bootstrap-home.sh" \
   --root ../wt-epic-<slug>
 ```
 

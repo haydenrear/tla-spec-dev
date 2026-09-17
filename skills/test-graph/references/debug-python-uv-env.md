@@ -37,9 +37,9 @@ If an agent uses `python ...` and it fails oddly, retry the wrapper command with
 Examples:
 
 ```bash
-python3 $SKILL_MANAGER_HOME/skills/test-graph/scripts/discover.py <graph>
-python3 $SKILL_MANAGER_HOME/skills/test-graph/scripts/run.py <graph>
-python3 $SKILL_MANAGER_HOME/skills/test-graph/scripts/run.py --all
+python3 $(for d in "$SKILL_MANAGER_HOME"/skills/test-graph "$SKILL_MANAGER_HOME"/plugins/*/skills/test-graph; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/discover.py <graph>
+python3 $(for d in "$SKILL_MANAGER_HOME"/skills/test-graph "$SKILL_MANAGER_HOME"/plugins/*/skills/test-graph; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/run.py <graph>
+python3 $(for d in "$SKILL_MANAGER_HOME"/skills/test-graph "$SKILL_MANAGER_HOME"/plugins/*/skills/test-graph; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/run.py --all
 ```
 
 Use the actual installed skill path if `$SKILL_MANAGER_HOME` is not set.
@@ -51,8 +51,8 @@ graph still shows inconsistent fail-then-pass behavior, disable the Gradle
 daemon while debugging:
 
 ```bash
-GRADLE_OPTS='-Dorg.gradle.daemon=false' python3 $SKILL_MANAGER_HOME/skills/test-graph/scripts/discover.py <graph>
-GRADLE_OPTS='-Dorg.gradle.daemon=false' python3 $SKILL_MANAGER_HOME/skills/test-graph/scripts/run.py <graph>
+GRADLE_OPTS='-Dorg.gradle.daemon=false' python3 $(for d in "$SKILL_MANAGER_HOME"/skills/test-graph "$SKILL_MANAGER_HOME"/plugins/*/skills/test-graph; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/discover.py <graph>
+GRADLE_OPTS='-Dorg.gradle.daemon=false' python3 $(for d in "$SKILL_MANAGER_HOME"/skills/test-graph "$SKILL_MANAGER_HOME"/plugins/*/skills/test-graph; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/run.py <graph>
 ```
 
 This avoids reusing a daemon that may have inherited stale environment variables,

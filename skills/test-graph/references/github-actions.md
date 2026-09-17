@@ -80,9 +80,9 @@ workspace candidates fall back to the installed skill at
 symlinks in the Actions workspace to point at:
 
 ```text
-$SKILL_MANAGER_HOME/skills/test-graph/project_sdk_sources/sdk
-$SKILL_MANAGER_HOME/skills/test-graph/project_sdk_sources/build-logic
-$SKILL_MANAGER_HOME/skills/test-graph/project_sdk_sources/standard-nodes
+$(for d in "$SKILL_MANAGER_HOME"/skills/test-graph "$SKILL_MANAGER_HOME"/plugins/*/skills/test-graph; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/project_sdk_sources/sdk
+$(for d in "$SKILL_MANAGER_HOME"/skills/test-graph "$SKILL_MANAGER_HOME"/plugins/*/skills/test-graph; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/project_sdk_sources/build-logic
+$(for d in "$SKILL_MANAGER_HOME"/skills/test-graph "$SKILL_MANAGER_HOME"/plugins/*/skills/test-graph; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/project_sdk_sources/standard-nodes
 ```
 
 This is the portable mode because it does not require committed symlink targets

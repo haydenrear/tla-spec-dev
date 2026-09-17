@@ -132,7 +132,7 @@ git update-ref "refs/index-bases/$(basename "$(git rev-parse --show-toplevel)")/
 # add and stopping, so the two halves are not separable here:
 git worktree add ../wt-<issue-number>-<slug> \
   -b feature/<issue-number>-<slug> "$commit_oid" \
-  && "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts/bootstrap-home.sh" \
+  && "$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/bootstrap-home.sh" \
        --root ../wt-<issue-number>-<slug>
 
 cd ../wt-<issue-number>-<slug>

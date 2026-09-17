@@ -209,7 +209,7 @@ front-door defect to report on the PR (`SKILL.md` §*Reaching a by-hand route is
 itself a finding*).
 
 ```bash
-WT="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts/wt"
+WT="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/wt"
 "$WT" close <ticket>                       # add --dry-run to just ask
 ```
 

@@ -15,7 +15,7 @@ Usage:
 By default the generated workflow repairs the checkout's symlinks to
 the runner's installed test-graph skill. Use ``--symlink-mode preserve``
 when the checked-in symlink target already points under a fixed
-``$SKILL_MANAGER_HOME/skills/test-graph/project_sdk_sources`` path and
+``$(for d in "$SKILL_MANAGER_HOME"/skills/test-graph "$SKILL_MANAGER_HOME"/plugins/*/skills/test-graph; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/project_sdk_sources`` path and
 you want the runner to create that same home.
 
 Preserve mode is legacy-only, and legacy scaffolds vary: some point at a

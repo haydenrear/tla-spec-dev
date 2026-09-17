@@ -15,11 +15,11 @@ description: >-
   ticket", "open a GitHub issue", scheduling an issue in an epic branch, or
   planning work that another agent will implement.
 skill-imports:
-  - unit: spec-double-compiler
-    path: SKILL.md
+  - unit: tla-spec-dev
+    path: skills/spec-double-2/SKILL.md
     reason: When an issue needs a spec workflow, it drives Internal.tla/External.tla spec doubles and spec unit tests via the tla-spec-dev CLI.
-  - unit: test-graph
-    path: SKILL.md
+  - unit: tla-spec-dev
+    path: skills/test-graph/SKILL.md
     reason: The issue's regression section names test_graph graphs to run for regression, including tla-spec-dev spec-graph integrations.
   - unit: deploy-helm
     path: SKILL.md
@@ -196,7 +196,7 @@ open questions the implementer should resolve first>
 ## Worktree & branch
 Create the worktree AND its own Skill Manager home with ONE command, from the
 repo root. It is the same command for a plain repo and an integration repo:
-`WT="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts/wt"`
+`WT="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/wt"`
 `"$WT" new <issue-number>-<slug>`
 It prints one line — `created worktree <path>`. **cd to the path it printed.**
 That path is `<parent>/<repo-name>-<issue-number>-<slug>`, not `../wt-...`, so

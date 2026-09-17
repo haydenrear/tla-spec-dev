@@ -25,17 +25,17 @@ description: >-
   one pass once the epic's merge is verified, so the disk cost of an epic goes
   back to zero instead of onto the next one.
 skill-imports:
-  - unit: git-issue
-    path: SKILL.md
+  - unit: tla-spec-dev
+    path: skills/git-issue/SKILL.md
     reason: Epic issues retain the discovery, references, spec decision, and validation work-order structure authored by git-issue.
-  - unit: git-issue-workflow
-    path: SKILL.md
+  - unit: tla-spec-dev
+    path: skills/git-issue-workflow/SKILL.md
     reason: Ticket agents execute epic assignments through the implementer workflow with the epic overrides defined here.
-  - unit: spec-double-compiler
-    path: references/spec_evolution.md
+  - unit: tla-spec-dev
+    path: skills/spec-double-2/references/spec_evolution.md
     reason: Defines ticket-local current/desired state, append-only ticket close history, promotion, and whole-workflow closeout.
-  - unit: test-graph
-    path: references/workflows.md
+  - unit: tla-spec-dev
+    path: skills/test-graph/references/workflows.md
     reason: Defines graph discovery, execution, evidence, and the smart failure loop used by every ticket and by epic finalization.
   - unit: skt
     path: skills/skill-manager/references/workflows.md
@@ -161,7 +161,7 @@ This skill has three roles:
     writing the operator's global home:
 
     ```bash
-    SKILLS="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts"
+    SKILLS="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts"
 
     # ONE chained command, deliberately: the add alone produces a worktree
     # with NO home — the exact hazard measured live in the W2 eval.

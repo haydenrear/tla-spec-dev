@@ -10,7 +10,7 @@ slice *is* the measurement — how to run and report the goal itself.
 The authoring half lives upstream and is the source of truth for field names and
 semantics: `git-epic-workflow/references/goals-and-evaluation.md` (kinds,
 baselines, contribution kinds, warn-vs-error rules) and its
-`$SKILL_MANAGER_HOME/skills/git-epic-workflow/scripts/validate_epic_plan.py`
+`$(for d in "$SKILL_MANAGER_HOME"/skills/git-epic-workflow "$SKILL_MANAGER_HOME"/plugins/*/skills/git-epic-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/validate_epic_plan.py`
 (the plan schema, shipped by that unit). Never invent a goal, a
 baseline, or a target here. If the work order declares none, this reference does
 not apply; say so at close-out and move on.

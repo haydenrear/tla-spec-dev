@@ -278,7 +278,7 @@ prefer an explicit `python3` invocation for the skill wrapper and disable the
 Gradle daemon while debugging:
 
 ```bash
-GRADLE_OPTS='-Dorg.gradle.daemon=false' python3 $SKILL_MANAGER_HOME/skills/test-graph/scripts/run.py <graph>
+GRADLE_OPTS='-Dorg.gradle.daemon=false' python3 $(for d in "$SKILL_MANAGER_HOME"/skills/test-graph "$SKILL_MANAGER_HOME"/plugins/*/skills/test-graph; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/run.py <graph>
 ```
 
 ### Resume a graph from a saved build

@@ -1846,6 +1846,11 @@ step "agent-home.sh refuses a stale bootstrap copy, and names the one it runs"
 
 LOC="$SCRATCH/locator"
 LOC_HOME="$SCRATCH/locator-home"
+# A STANDALONE-layout fixture, deliberately: this exercises candidate rung 5.
+# The bundled layout a plugin install produces is
+# "$LOC_HOME/.skill-manager/plugins/<plugin>/skills/git-issue-workflow/scripts/bootstrap-home.sh"
+# (rung 5b, added in SI-02); this fixture does not build one, so rung 5b is
+# covered by the live homes rather than here.
 LOC_GLOBAL="$LOC_HOME/.skill-manager/skills/git-issue-workflow/scripts/bootstrap-home.sh"
 LOC_REPO="$LOC/scripts/bootstrap-home.sh"
 mkdir -p "$LOC/scripts" "$LOC_HOME"

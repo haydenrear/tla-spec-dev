@@ -1,0 +1,86 @@
+# Integration repository manifest — machine-read by the git-integration-repo and
+# plugin-repository skill scripts (`verify.sh`, `refresh.sh`, `propagate.sh`).
+#
+# This repository is BOTH halves of a plugin repository:
+#   .claude-plugin/plugin.json  -> it is a skill-manager PLUGIN
+#   integration.toml (this file) -> it is an INTEGRATION REPO
+# The two markers are different files and the two resolvers never collide; see
+# plugin-repository/references/layout.md.
+#
+# HOW THE CONSTITUENTS GOT HERE, AND WHY IT IS NOT `add-skill.sh`
+# ---------------------------------------------------------------
+# SI-02 nested the five workflow skills with `git subtree add --prefix=skills/<name>
+# <remote> main`, FULL HISTORY, no `--squash` (owner decision, 2026-09-17; the
+# recipe and the reasoning are in
+# specs/results/epic-self-improvement-substrate/migration/pulling-upstream.md).
+#
+# That reaches the same end state `add-skill.sh` does — ordinary tracked files,
+# no submodule, no gitlink — by a route that additionally leaves a PULL path
+# open: `git subtree pull --prefix=skills/<name> <remote> main` integrates
+# upstream work until the owner declares the freeze. The five remotes below are
+# configured on this repository, so every command runs from the repo root.
+#
+# Consequence for `finalize.sh`: there is nothing to finalize. That script
+# restores a `.git` inside each constituent after its files are committed;
+# subtree never created one, so each `skills/<name>/` is already plain tracked
+# files and `verify.sh` reports them as such. Do not run it to "complete" the
+# onboarding — it would be restoring state the subtree model does not use.
+
+[integration]
+name = "tla-spec-dev"
+# github -> propagate.sh picks `gh` for branches, MRs and the tracking issue.
+host = "github"
+# Where the one fan-out tracking issue is filed. Unset, `propagate.sh --mr`
+# writes the issue body to .integration/tmp/ and reports "no tracker
+# configured", which reads like a flag error and is not one.
+tracker = "haydenrear/tla-spec-dev"
+
+[compositions]
+# This repository IS the spec-double-compiler toolchain: it carries specs/,
+# the program model, the append-only specs/.history, and the spec-unit
+# adapters at the PARENT level, not per constituent.
+spec_double_compiler = true
+# test_graph/ at the parent root composes specWorkflow, cliWorkflow and
+# effectProviderExamples.
+test_graph = true
+# This repo ships skills, not deployable apps.
+deploy_helm = false
+
+# One block per constituent. `path` is relative to the repo root and MUST be
+# under skills/ — that is where skill-manager and the plugin runtime look for a
+# contained skill, and it is what makes each one invocable as
+# `tla-spec-dev:<name>`.
+#
+# `skills/spec-double-2` is deliberately NOT a constituent: it has no upstream
+# repository of its own, it is bundle-owned (this repository IS its history).
+# refresh/propagate skip it, and verify.sh reports that as a note.
+
+[[constituent]]
+name = "git-epic-workflow"
+path = "skills/git-epic-workflow"
+remote = "https://github.com/haydenrear/git-epic-skill.git"
+default_branch = "main"
+
+[[constituent]]
+name = "git-issue-workflow"
+path = "skills/git-issue-workflow"
+remote = "https://github.com/haydenrear/git-issue-workflow-skill.git"
+default_branch = "main"
+
+[[constituent]]
+name = "git-issue"
+path = "skills/git-issue"
+remote = "https://github.com/haydenrear/git-issue-skill.git"
+default_branch = "main"
+
+[[constituent]]
+name = "discovery"
+path = "skills/discovery"
+remote = "https://github.com/haydenrear/discovery-skill.git"
+default_branch = "main"
+
+[[constituent]]
+name = "test-graph"
+path = "skills/test-graph"
+remote = "https://github.com/haydenrear/test_graph_skill.git"
+default_branch = "main"

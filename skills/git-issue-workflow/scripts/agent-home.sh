@@ -42,9 +42,16 @@
 #                                             skill as a constituent — the copy
 #                                             that is reviewed alongside the repo
 #   4. $SKILL_MANAGER_HOME/skills/git-issue-workflow/scripts/bootstrap-home.sh
+#   4b. $SKILL_MANAGER_HOME/plugins/*/skills/git-issue-workflow/scripts/bootstrap-home.sh
 #   5. $HOME/.skill-manager/skills/git-issue-workflow/scripts/bootstrap-home.sh
+#   5b. $HOME/.skill-manager/plugins/*/skills/git-issue-workflow/scripts/bootstrap-home.sh
 #
 # where <repo> is the CHECKOUT BEING BOOTSTRAPPED (see below), not this file's.
+#
+# Rungs 4b and 5b are the same two homes for a BUNDLED install: a contained
+# skill's bytes live at plugins/<plugin>/skills/<unit>/, never at
+# skills/<unit>/. SI-02 bundled this skill into the tla-spec-dev plugin, so
+# without them the installed copy is simply not found.
 #
 # Rungs 4 and 5 are the installed skill, read and never written. The last is the
 # operator's GLOBAL home and is deliberately last: on a fresh machine it is the
@@ -275,8 +282,26 @@ add_candidate "$ROOT/constituents/git-issue-workflow/scripts/bootstrap-home.sh" 
   "$ROOT's git-issue-workflow constituent"
 add_candidate "$ACTIVE_HOME/skills/git-issue-workflow/scripts/bootstrap-home.sh" \
   "$(home_label "$ACTIVE_HOME"): $ACTIVE_HOME"
+# Rung 4b. The SAME home, for the layout where this skill is a CONTAINED SKILL
+# of a plugin: its bytes are at plugins/<plugin>/skills/git-issue-workflow/, not
+# at skills/git-issue-workflow/. A resolver written only against the standalone
+# path stops finding the implementation the day the skill is bundled, and it
+# fails at SOURCE TIME, mid-bootstrap, in the one script whose whole job is to
+# be findable. SI-02 bundled this skill into the tla-spec-dev plugin, which is
+# what turned this rung from hypothetical into load-bearing.
+for _c in "$ACTIVE_HOME"/plugins/*/skills/git-issue-workflow/scripts/bootstrap-home.sh; do
+  if [ -f "$_c" ]; then
+    add_candidate "$_c" "$(home_label "$ACTIVE_HOME"), plugin-contained: $_c"
+  fi
+done
 add_candidate "$HOME/.skill-manager/skills/git-issue-workflow/scripts/bootstrap-home.sh" \
   "the operator's GLOBAL home: $HOME/.skill-manager"
+# Rung 5b — the global home, same bundled layout, same reason.
+for _c in "$HOME"/.skill-manager/plugins/*/skills/git-issue-workflow/scripts/bootstrap-home.sh; do
+  if [ -f "$_c" ]; then
+    add_candidate "$_c" "the operator's GLOBAL home, plugin-contained: $_c"
+  fi
+done
 
 # Ask a candidate whether it can do the job, under a time bound.
 #

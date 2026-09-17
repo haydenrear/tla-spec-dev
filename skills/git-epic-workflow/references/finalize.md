@@ -353,7 +353,7 @@ you left standing.
 skt ticket close <ticket>
 
 # Where skt is not installed, the same door by its resolved path:
-WT="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts/wt"
+WT="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/wt"
 "$WT" close <ticket>
 
 # The two steps it wraps, if you need a flag it does not forward. Keep the `&&`:

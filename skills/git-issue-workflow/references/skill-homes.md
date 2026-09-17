@@ -27,7 +27,7 @@ So each checkout gets its **own** home:
 One script does this, for both the repo root and every worktree:
 
 ```bash
-"${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts/bootstrap-home.sh" --root <checkout>
+"$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/bootstrap-home.sh" --root <checkout>
 ```
 
 **An agent does not need that path memorised, and does not need a copy of
@@ -39,7 +39,7 @@ not a prerequisite for anything.
 A repo *may* additionally carry `scripts/agent-home.sh`, purely so a human in
 the checkout can type `scripts/agent-home.sh` instead of the long path. **This
 skill ships that file**: copy
-`${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts/agent-home.sh`
+`$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/agent-home.sh`
 into the target repo's own `scripts/` directory. It holds no policy — it finds
 the `bootstrap-home.sh` above and `exec`s it with `--root <repo>`, so a copy of
 it is never a copy of the ordering rules. It is a convenience, not a rung the
@@ -599,7 +599,7 @@ Tear a worktree down with `close-change.sh`, never with a bare
 
 ```bash
 # The gate runs BEFORE anything is deleted.
-"${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts/close-change.sh" TICKET-123
+"$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/close-change.sh" TICKET-123
 
 # At epic close, list what is left and close each one deliberately.
 git -C <repo-root> worktree list
@@ -728,7 +728,7 @@ forgot. The gate makes it a mechanism.
 ### The override, and why it exists
 
 ```bash
-"${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts/close-change.sh" TICKET-123 --force
+"$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/close-change.sh" TICKET-123 --force
 ```
 
 `--force` still runs the gate and still prints the blockers; it only declines to
@@ -915,14 +915,14 @@ Two measured consequences worth knowing before you rely on the in-repo copy:
 3. Write a `skill-project.toml` at the root declaring the units this repo's
    agents need. It is portable intent — the realized state is the home.
 4. Give the main tree its home, once:
-   `${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts/bootstrap-home.sh --root <repo>`.
+   `$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/bootstrap-home.sh --root <repo>`.
    This is the whole step. It is also exactly the `fix:` line `wt new` prints, in
    full and already absolute, when it meets a repository with no home — so an
    agent that never read this page arrives at the same command.
 5. *Optional convenience:* copy this skill's `scripts/agent-home.sh` (the
    locator) into the repo's own `scripts/` so a human can type
    `scripts/agent-home.sh` instead of the path in step 4:
-   `cp ${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts/agent-home.sh scripts/`.
+   `cp $(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/agent-home.sh scripts/`.
    Skip it freely — nothing downstream requires the copy, and an agent should
    never have to check whether a given repo has one.
 6. From then on, `new-change.sh` gives every worktree its own home. Nothing to
