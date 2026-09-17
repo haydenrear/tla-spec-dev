@@ -2073,3 +2073,92 @@ findings:
     disposition_ticket: null
     disposition_note: >-
       Filed by the owner from the round-4 report.
+
+  - id: SIS-KICKOFF-F-01
+    found_by: "epic kickoff (self-improvement-substrate)"
+    found_at_commit: "f896fce5"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      Three-way schema drift on the evaluation-ticket assignment. The schema
+      owner (git-epic-workflow references/epic-ticket.md, "Evaluation-ticket
+      variant") and the renderer (git-issue references/epic-assignment.md) both
+      SHOW `contribution: "guard"` in their evaluation-ticket examples, and the
+      canonical plan requires a contribution on every ticket goal relation --
+      but validate_assignment.py warns that "contribution is set on an
+      evaluation ticket; an evaluation ticket decides goals rather than
+      contributing to them". Every conforming evaluation assignment therefore
+      warns, once per owned goal.
+    reproduction: >-
+      gh issue view 341 --json body -q .body | uv run --script
+      <git-epic-workflow>/scripts/validate_assignment.py --expect-ticket SI-08
+      --expect-epic-branch epic/self-improvement-substrate --verbose
+      -> 7 WARNING lines, exit 0. The assignment was rendered from the canonical
+      plan, so the plan, the two templates and the checker cannot all be right.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/baseline/kickoff.md"
+    why_out_of_scope: >-
+      Found while scaffolding this epic, before any ticket exists to own it. The
+      fix lands in git-epic-workflow, which is SI-07's exclusive conflict key.
+    suggested_fix: >-
+      Decide which of the three is authoritative and make the other two agree:
+      either the checker stops warning when the evaluation ticket also carries
+      harness and evidence_root, or both templates drop contribution from the
+      evaluation variant and the plan schema stops requiring it there.
+    blast_radius: >-
+      Advisory only -- exit 0, nothing blocks. The cost is that a real warning on
+      an evaluation assignment is now hidden in seven false ones, which is the
+      failure mode this epic's no-new-gates goal cares about.
+    disposition: pending
+    disposition_ticket: null
+    disposition_note: >-
+      Natural home is SI-07 (#340), which already owns git-epic-workflow. Not
+      retrofitted into it: the owner triages at the wave boundary.
+
+  - id: SIS-KICKOFF-F-02
+    found_by: "epic kickoff (self-improvement-substrate)"
+    found_at_commit: "f896fce5"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      `command -v tla-spec-dev` in this checkout resolves to the operator's ROOT
+      home shim (/Users/hayde/.skill-manager/bin/cli/tla-spec-dev), not to this
+      repository's code. An agent that runs the bare command name therefore
+      exercises, and reports on, an installed clone rather than the working
+      tree it was asked about.
+    reproduction: >-
+      cd <repo>; command -v tla-spec-dev
+      -> /Users/hayde/.skill-manager/bin/cli/tla-spec-dev
+      The repository's own convention (skill-project.toml) says the spec
+      lifecycle runs `python3 scripts/tla_spec_dev.py`, never the installed
+      clone.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/baseline/kickoff.md"
+      - "examples/agent_integration/eval-plugin/README.md"
+    why_out_of_scope: >-
+      Not a defect in any planned slice. The eval harness already documents the
+      same hazard for eval runs (PATH="$BIN:$PATH" is load-bearing there); what
+      is new is that it is live in an ordinary working tree too.
+    suggested_fix: >-
+      State it once in references/plugin_evals.md for both audiences, and have
+      the assignment's validation matrix name a checkout-relative command rather
+      than a bare shim name -- which this epic's assignments already do.
+    blast_radius: >-
+      Any measurement taken with the bare command name, including a local signal
+      a ticket agent reports, may describe the installed clone. It silently
+      weakens evidence rather than failing.
+    disposition: pending
+    disposition_ticket: null
+    disposition_note: >-
+      Candidate home is SI-10 (#343), which owns references/plugin_evals.md.
+      Owner triages at the wave boundary.
