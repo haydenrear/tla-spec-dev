@@ -1,0 +1,107 @@
+# Skill project manifest for git-epic-workflow.
+#
+# What this declares: the units an agent working IN THIS CHECKOUT needs. Almost
+# every tracked file here — SKILL.md, its frontmatter and description,
+# references/, agents/openai.yaml, skill-manager.toml — is skill-unit content,
+# so the work done here is unit authoring and the declared units are the
+# authorities for that work.
+#
+# It deliberately does NOT declare `git-epic-workflow` itself. A repo is its own
+# source of truth; installing it into its own home would give an agent two
+# copies of the same skill with no rule about which one it is editing.
+#
+# How the home is produced — read this before running `project resolve`
+# ---------------------------------------------------------------------
+# `project resolve` writes into whatever `SKILL_MANAGER_HOME` names. Run it
+# before this checkout has its own home and it mutates the operator's global
+# ~/.skill-manager. Create the local home first, point `SKILL_MANAGER_HOME` at
+# it, and only then resolve:
+#
+#   mkdir -p .skill-manager/skills
+#   SKILL_MANAGER_CLI=<epic skill-manager> \
+#     bash <git-integration-repo>/scripts/bootstrap-home.sh --root "$PWD" --force
+#   export SKILL_MANAGER_HOME="$PWD/.skill-manager"
+#   skill-manager project resolve --project-dir "$PWD" --skip-gateway
+#
+# `SKILL_MANAGER_HOME` alone does not redirect the agent-home projections;
+# export `CLAUDE_CONFIG_DIR`, `CLAUDE_HOME`, `CODEX_HOME` and `GEMINI_HOME` at
+# this checkout's own `.claude/`, `.codex/` and `.gemini/` as well. Those are
+# the paths `home describe --json`'s `env` block names and the launch shims in
+# `.skill-manager/bin/launch/` export for you.
+#
+# `--allow-same-home` is NOT needed. This project's home IS its own parent home,
+# and `project resolve` used to refuse that layout (skill-manager #32). The
+# refusal was wrong and has been replaced by a warning naming the layout; the
+# flag is still accepted and does nothing.
+#
+# Coords are git-only (no registry is configured) and they name the REPO, not
+# the installed unit — see skill-publisher's references/coords-and-distribution.md.
+# The table key is the installed unit name, which is what
+# `.skill-manager/skills/<name>` uses.
+
+[project]
+name = "git-epic-workflow"
+version = "0.2.0"
+description = "Plan, schedule, resume and finalize multi-ticket Git epics on an epic/* branch backed by one shared spec-double-compiler workflow, with dependency-aware parallel tickets and serialized integration."
+
+# --- authoring: `skt:unit-authoring` is the authority on SKILL.md frontmatter,
+#     the description field, skill-manager.toml, references/ pages, and on the
+#     install/bind/sync round trip that ships an edit into a store. Its sibling
+#     `skt` skill is the lifecycle front door — home tier, staleness checks, and
+#     the `skt ticket new|close` worktree pair this unit's own SKILL.md and
+#     references instruct epics to use.
+#
+#     THIS WAS `[skills.unit-authoring]` AND IT NO LONGER RESOLVES. The repo
+#     `haydenrear/skill-publisher-skill` now ships ONE unit and it is a PLUGIN
+#     named `skt` (installed metadata: unitKind PLUGIN, 0.2.0), which carries
+#     both skills plus the `skt` CLI. Declared as a skill, `project resolve`
+#     stops the whole realization with
+#
+#         project dependency skill-publisher expected SKILL but installed PLUGIN
+#
+#     so the table it is declared in is load-bearing, not cosmetic. ---
+
+[plugins.skt]
+source = "github:haydenrear/skt"
+
+# --- required BY the authoring unit, not chosen here: its SKILL.md `skill-imports`
+#     names `skill-manager` (references/skill-imports.md), and `project resolve`
+#     refuses the whole resolve with "references missing unit" until the
+#     imported unit is declared. Unit `skill_references` are followed
+#     automatically; markdown `skill-imports` are not.
+#
+#     Substantive here too: issue #37 wants this skill to say when a ticket's
+#     home syncs back up a tier and what epic close-out requires of the tickets'
+#     homes, and `skill-manager` is the authority on `home sync` and
+#     `home close-out` ---
+
+[skills.skill-manager]
+source = "github:haydenrear/skt"
+
+# --- REPO-SPECIFIC DECISION: git-issue, git-issue-workflow,
+#     spec-double-compiler and test-graph are deliberately NOT declared, though
+#     this unit's SKILL.md `skill-imports` names all four and skill-manager.toml
+#     lists them (plus skill-publisher and skill-manager) as hard
+#     `skill_references`.
+#
+#     Those are the skills an epic COMPOSES while it is being run in someone
+#     else's repository. They are not what an agent EDITING this skill needs.
+#     The only executable content in this repo is scripts/validate_epic_plan.py
+#     and scripts/validate_assignment.py, with their suites beside them in
+#     scripts/tests/; all four are PEP 723 single-file scripts depending only on
+#     PyYAML, and none imports another unit. There is no test_graph project and
+#     no specs/ tree here.
+#
+#     Confirmed empirically: `project resolve` validates `skill-imports` against
+#     INSTALLED units, and this repo's own unit is deliberately not installed
+#     into its own home, so its imports are not part of the resolve.
+#
+#     Cost of the alternative: test-graph references
+#     `github:haydenrear/deploy-cdc`, so declaring test-graph or
+#     spec-double-compiler transitively installs deploy-helm and its three
+#     ~555 MB skill-script venvs. Every onboarded home that pulls deploy-helm is
+#     ~1.8 GB; every one that does not is under 1 MB.
+
+# --- no [[vendored]] block: this repo tracks no symlinks and has no test_graph,
+#     so no path in the working tree holds content owned by another unit.
+#     Verified with `git ls-files -s | grep ^120000` -> 0 entries.
