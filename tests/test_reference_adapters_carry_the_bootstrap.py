@@ -26,8 +26,9 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT / "scripts") not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT / "scripts"))
+SKILL_ROOT = REPO_ROOT / "skills" / "spec-double-2"
+if str(SKILL_ROOT / "scripts") not in sys.path:
+    sys.path.insert(0, str(SKILL_ROOT / "scripts"))
 
 from scaffold_spec import SKILL_ROOT_BOOTSTRAP  # type: ignore[import-not-found]  # noqa: E402
 

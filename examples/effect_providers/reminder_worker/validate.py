@@ -18,6 +18,10 @@ from typing import Any
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 REPO_ROOT = PROJECT_ROOT.parents[2]
+# SI-01: the package moved to skills/spec-double-2/. REPO_ROOT stays on the
+# path for everything else; the skill root is what makes
+# `import spec_double_compiler` resolve.
+SKILL_ROOT = REPO_ROOT / "skills" / "spec-double-2"
 SPEC_ROOT = PROJECT_ROOT / "specs" / "program_model"
 RUNS_ROOT = PROJECT_ROOT / "evidence" / "validation-runs"
 USAGE_DESCRIPTOR = PROJECT_ROOT / "effect_provider_usage.yaml"
@@ -28,6 +32,7 @@ EXPECTED_FUZZ_RUNS = 25
 
 sys.path.insert(0, str(PROJECT_ROOT))
 sys.path.insert(0, str(REPO_ROOT))
+sys.path.insert(0, str(SKILL_ROOT))
 
 import run_experiment as campaign  # noqa: E402
 
@@ -342,7 +347,7 @@ def _run_campaign(run_root: Path, regeneration_output: str) -> dict[str, Any]:
 def _external_command(generated_root: Path, run_root: Path) -> list[str]:
     return [
         str(Path(sys.executable).absolute()),
-        str(REPO_ROOT / "scripts" / "run_generated_case_adapters.py"),
+        str(REPO_ROOT / "skills" / "spec-double-2" / "scripts" / "run_generated_case_adapters.py"),
         str(generated_root / "cases" / "testgraph" / "reminder_external_cases"),
         "--mapping",
         str(SPEC_ROOT / "testgraph_bindings.yml"),

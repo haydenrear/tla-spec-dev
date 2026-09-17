@@ -42,8 +42,9 @@ import pathlib
 import pytest
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
-CARD = REPO_ROOT / "references" / "eval_scorecard.md"
-GENERATOR = REPO_ROOT / "scripts" / "candidate_note_bar.py"
+SKILL_ROOT = REPO_ROOT / "skills" / "spec-double-2"
+CARD = SKILL_ROOT / "references" / "eval_scorecard.md"
+GENERATOR = SKILL_ROOT / "scripts" / "candidate_note_bar.py"
 SCORE_TOOLS = REPO_ROOT / "examples" / "validation" / "scorecards" / "score_tools.py"
 
 #: The two real sealed cards that were served the CURRENT bar. Named rather than

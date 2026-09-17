@@ -52,7 +52,7 @@ def main() -> int:
     run(
         [
             sys.executable,
-            str(REPO_ROOT / "scripts" / "generate_python.py"),
+            str(REPO_ROOT / "skills" / "spec-double-2" / "scripts" / "generate_python.py"),
             str(SPEC_ROOT / "spec_manifest.yaml"),
             "--out",
             str(generated_root),
@@ -85,7 +85,7 @@ def main() -> int:
         run(
             [
                 sys.executable,
-                str(REPO_ROOT / "scripts" / "generate_cases_from_tlc_dump.py"),
+                str(REPO_ROOT / "skills" / "spec-double-2" / "scripts" / "generate_cases_from_tlc_dump.py"),
                 str(SPEC_ROOT / "Internal.tla"),
                 str(SPEC_ROOT / "Internal.cfg"),
                 "--out",
@@ -105,7 +105,7 @@ def main() -> int:
         run(
             [
                 sys.executable,
-                str(REPO_ROOT / "scripts" / "generate_cases_from_tlc_dump.py"),
+                str(REPO_ROOT / "skills" / "spec-double-2" / "scripts" / "generate_cases_from_tlc_dump.py"),
                 str(SPEC_ROOT / "External.tla"),
                 str(SPEC_ROOT / "External.cfg"),
                 "--out",

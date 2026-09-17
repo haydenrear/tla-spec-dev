@@ -94,7 +94,7 @@ from __future__ import annotations
 
 import sys as _sys
 from pathlib import Path as _Path
-_sys.path.insert(0, str(_Path(__file__).resolve().parents[3] / "scripts"))
+_sys.path.insert(0, str(_Path(__file__).resolve().parents[3] / "skills/spec-double-2" / "scripts"))
 import verdict  # noqa: E402
 
 import argparse
@@ -273,7 +273,7 @@ def top_score(dim: str, version: int) -> int:
 HERE = pathlib.Path(__file__).resolve()
 
 #: Where the one home of the card sits, relative to the tree root.
-CARD_PATH = "references/eval_scorecard.md"
+CARD_PATH = "skills/spec-double-2/references/eval_scorecard.md"
 
 
 def repo_root(start: pathlib.Path) -> pathlib.Path:

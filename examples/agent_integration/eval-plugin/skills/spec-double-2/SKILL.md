@@ -1,0 +1,1 @@
+../../../../../skills/spec-double-2/SKILL.md

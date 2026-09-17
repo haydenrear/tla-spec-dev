@@ -229,7 +229,8 @@ def test_the_checker_gates_nothing_in_the_toolchain() -> None:
     sealing the file."""
 
     consumers = []
-    for tree in ("scripts", "skill-scripts", "spec_double_compiler", "templates",
+    for tree in ("skills/spec-double-2/scripts", "skills/spec-double-2/skill-scripts",
+                 "skills/spec-double-2/spec_double_compiler", "skills/spec-double-2/templates",
                  "test_graph"):
         root = REPO_ROOT / tree
         if not root.exists():

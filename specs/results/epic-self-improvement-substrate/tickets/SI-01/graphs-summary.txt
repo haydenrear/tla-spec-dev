@@ -1,0 +1,19 @@
+# SI-01 — the three declared graphs
+
+specWorkflow            BUILD SUCCESSFUL (first run)
+cliWorkflow             BUILD SUCCESSFUL (first run)
+effectProviderExamples  BUILD SUCCESSFUL (third run; see below)
+
+effectProviderExamples failed twice before passing, and the first failure was
+MINE: examples/effect_providers/*/providers.py and external_adapter.py import
+spec_double_compiler directly, and every runner put REPO_ROOT on sys.path to
+make that resolve. The package moved to skills/spec-double-2/, so the import
+died with ModuleNotFoundError. Fixed by adding the skill root at each
+injection site (9 files).
+
+A baseline run of the same validation on a PRISTINE checkout of 4d563e2d
+(effect-providers-baseline-at-4d563e2d.txt) failed at reminder_worker with
+'effect campaign, replay, or cleanup gate failed' -- a failure this branch does
+NOT reproduce. Recorded rather than explained: it is most likely a
+fresh-checkout regeneration artifact or a flake, and it is not evidence about
+this migration either way.

@@ -56,6 +56,7 @@ import pytest
 import yaml
 
 REPO = Path(__file__).resolve().parents[1]
+SKILL_ROOT = REPO / "skills" / "spec-double-2"
 sys.path.insert(0, str(REPO))
 
 from scripts.close_tickets import close_ticket_workflow  # noqa: E402
@@ -64,7 +65,7 @@ WORKFLOW = "cut-the-apparatus-epic"
 EPIC = "cut-the-apparatus"
 LEDGER_NAME = "deferred_findings.yaml"
 LIVE_LEDGER = Path("specs") / "desired_program_model" / LEDGER_NAME
-DISPOSITION = REPO / "scripts" / "disposition.py"
+DISPOSITION = SKILL_ROOT / "scripts" / "disposition.py"
 
 #: `ticket-<index>-<TICKET-ID>[-<qualifier>]`.
 #:
@@ -241,7 +242,7 @@ def test_an_unfilled_template_transition_diff_is_still_treated_as_absent(tmp_pat
     # A PLAIN IMPORT. spec_from_file_location without registering the module in
     # sys.modules makes @dataclass die on sys.modules[cls.__module__].__dict__ --
     # the same trap the eval verifier hit, met a second time in one session.
-    scripts = Path(__file__).resolve().parents[1] / "scripts"
+    scripts = Path(__file__).resolve().parents[1] / "skills" / "spec-double-2" / "scripts"
     sys.path.insert(0, str(scripts))
     try:
         import complexity_ledger as module

@@ -98,7 +98,7 @@ def run(ctx):
     ]
     command = [
         sys.executable,
-        str(repo / "scripts" / "run_generated_case_adapters.py"),
+        str(repo / "skills" / "spec-double-2" / "scripts" / "run_generated_case_adapters.py"),
         str(generated_root / "testgraph" / "ecommerce_external_cases"),
         "--mapping",
         str(root / "specs" / "program_model" / "testgraph_bindings.yml"),

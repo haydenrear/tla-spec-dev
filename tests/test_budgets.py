@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+SKILL_ROOT = REPO_ROOT / "skills" / "spec-double-2"
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
@@ -38,7 +39,7 @@ def test_defaults_match_the_documented_reference() -> None:
 
 def test_reference_doc_and_defaults_stay_in_sync() -> None:
     """references/modular_fuzzing.md is the prose source for these values."""
-    text = (REPO_ROOT / "references" / "modular_fuzzing.md").read_text()
+    text = (SKILL_ROOT / "references" / "modular_fuzzing.md").read_text()
     for key, value in DOCUMENTED.items():
         assert f"{key}: {value}" in text, f"{key} drifted from references/modular_fuzzing.md"
 
@@ -149,7 +150,7 @@ def test_budget_prompt_does_not_stop_the_agent_to_negotiate() -> None:
 
 def _scaffold(tmp_path: Path, *args: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        [sys.executable, str(REPO_ROOT / "scripts" / "tla_spec_dev.py"), *args],
+        [sys.executable, str(SKILL_ROOT / "scripts" / "tla_spec_dev.py"), *args],
         cwd=tmp_path,
         text=True,
         capture_output=True,

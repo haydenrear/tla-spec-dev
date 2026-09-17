@@ -251,7 +251,7 @@ def _validate(run_id: str, run_root: Path, result: dict[str, Any]) -> None:
         "external-56-cases",
         [
             sys.executable,
-            str(REPO_ROOT / "scripts" / "run_generated_case_adapters.py"),
+            str(REPO_ROOT / "skills" / "spec-double-2" / "scripts" / "run_generated_case_adapters.py"),
             str(external_cases),
             "--mapping",
             str(PROJECT_ROOT / "specs" / "program_model" / "testgraph_bindings.yml"),

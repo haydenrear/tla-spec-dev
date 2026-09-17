@@ -26,7 +26,7 @@ from pathlib import Path
 
 import pytest
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "skills" / "spec-double-2" / "scripts"))
 
 from effect_conformance import (  # noqa: E402
     BOUNDARY_EFFECT_TYPES,
@@ -388,7 +388,7 @@ class TestShippedManifestDeclarations:
     """
 
     def test_promoted_manifest_effects_block_is_well_formed(self):
-        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "skills" / "spec-double-2" / "scripts"))
         from extract_spec_manifest import load_manifest
 
         path = Path(__file__).resolve().parents[1] / "specs" / "current" / "spec_manifest.yaml"
@@ -774,7 +774,7 @@ class TestNothingDowngradesAnUnobservableVerdict:
     def test_cli_exposes_no_downgrade_flag(self):
         """The reporting command must not grow an opt-out flag."""
         source = (
-            Path(__file__).resolve().parents[1] / "scripts" / "effect_conformance_report.py"
+            Path(__file__).resolve().parents[1] / "skills" / "spec-double-2" / "scripts" / "effect_conformance_report.py"
         ).read_text(encoding="utf-8")
         for forbidden in (
             "--allow-unobservable",

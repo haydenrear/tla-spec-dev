@@ -30,21 +30,23 @@ def main(ctx):
         os.environ.get("TLA_SPEC_DEV_SOURCE_REPO")
         or Path(__file__).resolve().parents[2]
     )
+    # SI-01: SKILL_DIR is the SKILL surface, which is no longer the repo root.
+    skill_dir = source_repo / "skills" / "spec-double-2"
     bin_dir = ctx.report_dir / "tla-spec-dev-bin"
     cache_dir = ctx.report_dir / "tla-spec-dev-cache"
     env = {
         **os.environ,
         "SKILL_MANAGER_BIN_DIR": str(bin_dir),
         "SKILL_MANAGER_CACHE_DIR": str(cache_dir),
-        "SKILL_DIR": str(source_repo),
-        "SKILL_NAME": "spec-double-compiler",
+        "SKILL_DIR": str(skill_dir),
+        "SKILL_NAME": "spec-double-2",
     }
 
     result = NodeResult.pass_(SPEC.id)
     record = procs.run(
         ctx,
         "install-tla-spec-dev",
-        ["bash", str(source_repo / "skill-scripts" / "install-tla-spec-dev.sh")],
+        ["bash", str(skill_dir / "skill-scripts" / "install-tla-spec-dev.sh")],
         cwd=source_repo,
         env=env,
     )

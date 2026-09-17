@@ -1,0 +1,25 @@
+# SI-01 — the eval plugin still resolves after the move
+
+The eval plugin carries the skill surface BY SYMLINK so it cannot drift (E-14),
+and its bin/ shim must exec the checkout rather than falling through to an
+installed copy. Both were repointed by SI-01; this is the check.
+
+## contained skill directory
+spec-double-2
+
+## symlinks
+references               -> ../../../../../skills/spec-double-2/references       OK
+scripts                  -> ../../../../../skills/spec-double-2/scripts          OK
+SKILL.md                 -> ../../../../../skills/spec-double-2/SKILL.md         OK
+spec_double_compiler     -> ../../../../../skills/spec-double-2/spec_double_compiler OK
+templates                -> ../../../../../skills/spec-double-2/templates        OK
+
+## the shim runs THIS checkout
+$ examples/agent_integration/eval-plugin/bin/tla-spec-dev --version
+tla-spec-dev 0.1.0
+exit=0
+
+## the refusal path is intact (it exits 127 rather than using an installed copy)
+28:    exit 127
+25:test -f "$repo/skills/spec-double-2/scripts/tla_spec_dev.py" || {
+30:exec python3 "$repo/skills/spec-double-2/scripts/tla_spec_dev.py" "$@"

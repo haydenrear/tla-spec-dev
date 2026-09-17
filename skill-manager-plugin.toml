@@ -1,0 +1,20 @@
+# The plugin half of this repository.
+#
+# The repo root is a skill-manager PLUGIN; the skill surface lives at
+# `skills/spec-double-2/`. The root keeps what is NOT skill surface:
+# `specs/` (append-only model and history), `tests/`, `examples/`,
+# `test_graph/`.
+#
+# Dependencies stay on the CONTAINED SKILL (`skills/spec-double-2/
+# skill-manager.toml`) rather than here. Plugin-level deps exist to
+# deduplicate a CLI or MCP server shared by several contained skills; there is
+# one contained skill today, and `tlc2` / `tla-spec-dev` are its own. Both are
+# `skill-script:` installers resolved under `<skill>/skill-scripts/`, which is
+# where they now live.
+#
+# `[plugin] name` and `version` MUST agree with `.claude-plugin/plugin.json`.
+
+[plugin]
+name = "tla-spec-dev"
+version = "0.1.0"
+description = "The TLA+ program-model toolchain: the spec-double-2 skill, the tla-spec-dev CLI, and the workflow skills that drive them, versioned and improved as one unit."

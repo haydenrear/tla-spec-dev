@@ -19,7 +19,8 @@ from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(REPO_ROOT / "scripts"))
+SKILL_ROOT = REPO_ROOT / "skills" / "spec-double-2"
+sys.path.insert(0, str(SKILL_ROOT / "scripts"))
 
 import skill_feedback as sf  # noqa: E402
 

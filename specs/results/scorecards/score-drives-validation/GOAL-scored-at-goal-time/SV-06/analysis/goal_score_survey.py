@@ -39,8 +39,14 @@ CARD_TERMS = re.compile(r"scorecard|score_tools|rubric", re.IGNORECASE)
 def repo_root() -> Path:
     here = Path(__file__).resolve()
     for parent in here.parents:
-        if (parent / "references" / "eval_scorecard.md").exists():
-            return parent
+        # Either layout: the card was at <root>/references/ when this analysis
+        # was sealed, and SI-01 moved the skill surface (and the card with it)
+        # under skills/spec-double-2/. Both are accepted so the sealed script
+        # still runs in the tree that exists now.
+        for card in ("references/eval_scorecard.md",
+                     "skills/spec-double-2/references/eval_scorecard.md"):
+            if (parent / card).exists():
+                return parent
     sys.exit("could not find the repository root (no references/eval_scorecard.md above me)")
 
 

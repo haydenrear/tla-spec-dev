@@ -70,7 +70,7 @@ silently omitted.
 # siblings are invisible to the scan and are registered by hand. That is a real
 # remaining hole and it is written here rather than left for the next sweep.
 [registry.enumeration]
-roots = ["scripts", "examples/validation"]
+roots = ["skills/spec-double-2/scripts", "examples/validation"]
 
   [[registry.enumeration.exclude]]
   path = "examples/validation/runs"
@@ -100,7 +100,7 @@ denominator of a count about the measuring equipment.
 [[instrument]]
 id = "corpus-runner"
 name = "generated-case corpus runner"
-paths = ["scripts/run_generated_case_adapters.py"]
+paths = ["skills/spec-double-2/scripts/run_generated_case_adapters.py"]
 family = "measurement"
 watches = "every generated case's output and projected after-state against the model"
 verdict_surface = "exit code 1 with the per-case diff"
@@ -113,7 +113,7 @@ any row of it is a re-runnable perturbation of the SUBJECT, not of the runner.
 
   [instrument.failing]
   summary = "a checked-out order is persisted with status 'pending' instead of 'accepted' (kill_mutants.toml store-order_store, verbatim)"
-  argv = ["{python}", "{repo}/scripts/run_generated_case_adapters.py",
+  argv = ["{python}", "{repo}/skills/spec-double-2/scripts/run_generated_case_adapters.py",
           "{tree}/dh/specs/generated/spec-unit/ecommerce_internal_cases",
           "--mapping", "{tree}/dh/specs/program_model/case_adapters.toml",
           "--view", "internal", "--batch", "--import-root", "{tree}/dh"]
@@ -132,7 +132,7 @@ any row of it is a re-runnable perturbation of the SUBJECT, not of the runner.
 
   [instrument.passing]
   summary = "the same corpus against the same tree, unmutated"
-  argv = ["{python}", "{repo}/scripts/run_generated_case_adapters.py",
+  argv = ["{python}", "{repo}/skills/spec-double-2/scripts/run_generated_case_adapters.py",
           "{tree}/dh/specs/generated/spec-unit/ecommerce_internal_cases",
           "--mapping", "{tree}/dh/specs/program_model/case_adapters.toml",
           "--view", "internal", "--batch", "--import-root", "{tree}/dh"]
@@ -147,7 +147,7 @@ any row of it is a re-runnable perturbation of the SUBJECT, not of the runner.
 [[instrument]]
 id = "effect-oracle"
 name = "MF-013 effect conformance oracle"
-paths = ["scripts/effect_conformance.py", "scripts/effect_conformance_report.py"]
+paths = ["skills/spec-double-2/scripts/effect_conformance.py", "skills/spec-double-2/scripts/effect_conformance_report.py"]
 family = "measurement"
 watches = "observed filesystem/network/process effects against the ports the model declares"
 verdict_surface = "exit 1 (gap, dead surface, unobservable), exit 2 (malformed declarations)"
@@ -186,7 +186,7 @@ decides a run.
 [[instrument]]
 id = "corpus-diagnostics"
 name = "corpus case-cap diagnostics"
-paths = ["scripts/corpus_diagnostics.py"]
+paths = ["skills/spec-double-2/scripts/corpus_diagnostics.py"]
 family = "measurement"
 watches = "the per-component and per-action case distribution against declared caps"
 verdict_surface = "exit 1 over cap; exit 2 via enforce_case_cap inside generation"
@@ -200,7 +200,7 @@ classification = "demonstrated-can-fail"
   # correct demonstration began reporting a working instrument broken. The path
   # was stale too -- `spec_unit` predates the `spec-unit` rename (E-06/#313) --
   # which is that rename's fourth orphaned consumer.
-  argv = ["{python}", "{repo}/scripts/corpus_diagnostics.py",
+  argv = ["{python}", "{repo}/skills/spec-double-2/scripts/corpus_diagnostics.py",
           "{tree}/dh/specs/generated/spec-unit/ecommerce_internal_cases",
           "--manifest", "{tree}/dh/specs/program_model/spec_manifest.yaml",
           "--verdict-json", "{verdict}"]
@@ -219,7 +219,7 @@ classification = "demonstrated-can-fail"
 
   [instrument.passing]
   summary = "the same corpus under the caps it was generated against"
-  argv = ["{python}", "{repo}/scripts/corpus_diagnostics.py",
+  argv = ["{python}", "{repo}/skills/spec-double-2/scripts/corpus_diagnostics.py",
           "{tree}/dh/specs/generated/spec-unit/ecommerce_internal_cases",
           "--manifest", "{tree}/dh/specs/program_model/spec_manifest.yaml",
           "--verdict-json", "{verdict}"]
@@ -234,7 +234,7 @@ classification = "demonstrated-can-fail"
 [[instrument]]
 id = "tla-complexity-descriptor"
 name = "TLA+ complexity descriptor (analyze complexity)"
-paths = ["scripts/analyze_complexity.py"]
+paths = ["skills/spec-double-2/scripts/analyze_complexity.py"]
 family = "measurement"
 watches = "model dimension, state-space bound, per-component variables and actions, the R/W matrix"
 verdict_surface = "exit 1 ONLY when the model cannot be analyzed; complexity itself is advisory"
@@ -248,7 +248,7 @@ finding.
 
   [instrument.failing]
   summary = "a module hierarchy the analyzer cannot resolve -- an INSTANCE it does not model, so it fails closed rather than under-report the bound"
-  argv = ["{python}", "{repo}/scripts/analyze_complexity.py",
+  argv = ["{python}", "{repo}/skills/spec-double-2/scripts/analyze_complexity.py",
           "{tree}/model/QuotaLedger.tla", "{tree}/model/QuotaLedger.cfg"]
   expect_exit = 1
   expect_output = ["could not analyze this model"]
@@ -264,7 +264,7 @@ finding.
 
   [instrument.passing]
   summary = "the same model, resolvable"
-  argv = ["{python}", "{repo}/scripts/analyze_complexity.py",
+  argv = ["{python}", "{repo}/skills/spec-double-2/scripts/analyze_complexity.py",
           "{tree}/model/QuotaLedger.tla", "{tree}/model/QuotaLedger.cfg"]
   expect_exit = 0
 
@@ -274,7 +274,7 @@ finding.
 
   [instrument.blind_spot]
   summary = "a model 432x over its own declared state-space bound and 5x over its per-component variable bound: WARNINGS, and exit 0. There is no input that makes this instrument refuse on complexity, deliberately (MF-036, and CD-01: a tool that picks the boundary makes every edge legal by construction)."
-  argv = ["{python}", "{repo}/scripts/analyze_complexity.py",
+  argv = ["{python}", "{repo}/skills/spec-double-2/scripts/analyze_complexity.py",
           "{tree}/model/QuotaLedger.tla", "{tree}/model/QuotaLedger.cfg"]
   expect_exit = 0
   expect_output = ["exceeds max_state_space_bound", "COMPLEXITY WARNINGS"]
@@ -297,7 +297,7 @@ budgets:
 [[instrument]]
 id = "produced-code-instrument"
 name = "produced-code complexity thermometer"
-paths = ["scripts/code_complexity.py"]
+paths = ["skills/spec-double-2/scripts/code_complexity.py"]
 family = "measurement"
 watches = "the shape of produced Python: branch points, depth, state, effectful calls, declared interfaces"
 verdict_surface = "none -- it prints figures and exits 0 on every input"
@@ -315,7 +315,7 @@ inability rather than asserting it.
 
   [instrument.passing]
   summary = "two implementations of one spec, told apart"
-  argv = ["{python}", "{repo}/scripts/code_complexity.py",
+  argv = ["{python}", "{repo}/skills/spec-double-2/scripts/code_complexity.py",
           "{repo}/examples/validation/ab/reference",
           "{repo}/examples/validation/ab/reference_ports"]
   cwd = "{repo}"
@@ -324,7 +324,7 @@ inability rather than asserting it.
 
   [instrument.blind_spot]
   summary = "a tree with a file that does not parse, a path that is not there, and a module 12 branches deep in every method: exit 0, every time. Nothing you can put in front of this instrument makes it refuse."
-  argv = ["{python}", "{repo}/scripts/code_complexity.py",
+  argv = ["{python}", "{repo}/skills/spec-double-2/scripts/code_complexity.py",
           "{tree}/subject", "{tree}/no-such-tree"]
   expect_exit = 0
 
@@ -677,7 +677,7 @@ it is what the failing input below exercises.
   expect_output = ["with no check here", "1 violation(s)"]
 
     [[instrument.failing.stage]]
-    from = "references/eval_scorecard.md"
+    from = "skills/spec-double-2/references/eval_scorecard.md"
     to = "eval_scorecard.md"
 
     # The id here MUST be one `score_tools.AUDIT_CHECKS` does not implement, or
@@ -735,7 +735,7 @@ classification = "demonstrated-can-fail"
 [[instrument]]
 id = "candidate-note-bar"
 name = "candidate-bar generator for the recorded-note prompt (SV-07)"
-paths = ["scripts/candidate_note_bar.py"]
+paths = ["skills/spec-double-2/scripts/candidate_note_bar.py"]
 family = "measurement"
 watches = "the card, for the one shape a candidate bar can be derived from -- one recorded-note bullet, one version declaration, one version-history row for the declared version"
 verdict_surface = "exit 2, REFUSED"
@@ -1093,15 +1093,15 @@ Byte-identical: nothing in the tripwire was refactored to make this possible.
   # import in one-home-tripwire: a module was introduced, a test grew an import
   # of it, and the staged tree that demonstrates the test was never told.
   [[instrument.failing.stage]]
-    from = "scripts/check_citations.py"
-    to = "scripts/check_citations.py"
+    from = "skills/spec-double-2/scripts/check_citations.py"
+    to = "skills/spec-double-2/scripts/check_citations.py"
 
     [[instrument.failing.stage]]
-    from = "scripts/budgets.py"
-    to = "scripts/budgets.py"
+    from = "skills/spec-double-2/scripts/budgets.py"
+    to = "skills/spec-double-2/scripts/budgets.py"
 
     [[instrument.failing.mutate]]
-    file = "scripts/budgets.py"
+    file = "skills/spec-double-2/scripts/budgets.py"
     append = """
 
 # SM-03: a deliberately stale citation -- scripts/budgets.py:3 (sm_03_anchor_not_on_line_3)
@@ -1196,8 +1196,8 @@ packet and was M2. A sixth carve-out should be argued for, not added.
     to = "tests/test_score_tools.py"
 
     [[instrument.failing.stage]]
-    from = "references/eval_scorecard.md"
-    to = "references/eval_scorecard.md"
+    from = "skills/spec-double-2/references/eval_scorecard.md"
+    to = "skills/spec-double-2/references/eval_scorecard.md"
 
     [[instrument.failing.stage]]
     from = "examples/validation/scorecards/score_tools.py"
@@ -1210,8 +1210,8 @@ packet and was M2. A sixth carve-out should be argued for, not added.
   # scripts/verdict.py was introduced and score_tools grew the import: this
   # slot broke, and nothing said so because the slow tier is not run.
   [[instrument.failing.stage]]
-    from = "scripts/verdict.py"
-    to = "scripts/verdict.py"
+    from = "skills/spec-double-2/scripts/verdict.py"
+    to = "skills/spec-double-2/scripts/verdict.py"
 
   # And the two frozen rubrics GUARDED names. Without them
   # `test_every_guarded_entry_still_restates_something` and
@@ -1227,7 +1227,7 @@ packet and was M2. A sixth carve-out should be argued for, not added.
     to = "examples/validation/scorecards/rubric_v4_frozen.md"
 
     [[instrument.failing.stage]]
-    from = "references/eval_scorecard.md"
+    from = "skills/spec-double-2/references/eval_scorecard.md"
     to = "THE-SECOND-HOME.md"
 
   [instrument.passing]
@@ -1368,7 +1368,7 @@ property of the instrument. `SM-03-DF-03`.
 [[instrument]]
 id = "citation-anchor"
 name = "line-citation checker and fixer"
-paths = ["scripts/check_citations.py"]
+paths = ["skills/spec-double-2/scripts/check_citations.py"]
 family = "repo-tripwire"
 watches = "every `FILE.EXT:LINE (ANCHOR)` citation in the scoped source, and whether the line still holds the anchor"
 verdict_surface = "exit 1 listing each stale or uncheckable citation; `--fix` rewrites the ones whose anchor resolves to exactly one line"
@@ -1488,7 +1488,7 @@ measurement stops being one.
 [[instrument]]
 id = "complexity-ledger"
 name = "MF-019 complexity ledger (close-path gate)"
-paths = ["scripts/complexity_ledger.py"]
+paths = ["skills/spec-double-2/scripts/complexity_ledger.py"]
 family = "workflow"
 watches = "that a complexity increase carries a justification, a decrease carries a verified refactor, and MF-020's transition-diff red flag carries a diff"
 verdict_surface = "SystemExit on the close path: 'close refused by the complexity ledger'"
@@ -1535,7 +1535,7 @@ classification = "demonstrated-can-fail"
 [[instrument]]
 id = "close-promotion-preconditions"
 name = "close / promotion preconditions"
-paths = ["scripts/spec_evolution.py"]
+paths = ["skills/spec-double-2/scripts/spec_evolution.py"]
 family = "workflow"
 watches = "current == desired, ticket status, append-only history, and that promotion never deletes a specs/current path the ticket was not given"
 verdict_surface = "SystemExit with the refusal"
@@ -1560,7 +1560,7 @@ classification = "demonstrated-can-fail"
 [[instrument]]
 id = "external-channel-enforcement"
 name = "MF-015 external channel enforcement"
-paths = ["scripts/testgraph_channels.py", "scripts/export_testgraph_cases.py"]
+paths = ["skills/spec-double-2/scripts/testgraph_channels.py", "skills/spec-double-2/scripts/export_testgraph_cases.py"]
 family = "workflow"
 watches = "that an external binding declares a channel, does not transitively import the production package, and is not wired all-doubles"
 verdict_surface = "ChannelEnforcementError -> SystemExit from the runner and the exporter"
@@ -1615,7 +1615,7 @@ note = "The single largest refusal surface in the repository and the easiest to 
 [[instrument]]
 id = "case-modules-validate"
 name = "case-module manifest validator"
-paths = ["scripts/case_modules.py"]
+paths = ["skills/spec-double-2/scripts/case_modules.py"]
 family = "workflow"
 watches = "the `case_modules:` block: that an `extends:` resolves and a declared module is well formed"
 verdict_surface = "exit 1 on an error, exit 2 on a missing manifest"
@@ -1676,7 +1676,7 @@ this repository that shipped one before FI-01.
 [[instrument]]
 id = "ticket-state-agreement"
 name = "ticket-state agreement between the plan and ticket.yaml"
-paths = ["scripts/start_ticket.py", "scripts/new_ticket_workflow.py"]
+paths = ["skills/spec-double-2/scripts/start_ticket.py", "skills/spec-double-2/scripts/new_ticket_workflow.py"]
 family = "workflow"
 watches = "nothing -- THIS INSTRUMENT DOES NOT EXIST"
 verdict_surface = "none"
@@ -1892,7 +1892,7 @@ declared here as an inability per R2 rather than counted as coverage.
 [[instrument]]
 id = "fitness-functions"
 name = "self-configured fitness functions"
-paths = ["scripts/fitness_functions.py"]
+paths = ["skills/spec-double-2/scripts/fitness_functions.py"]
 family = "not-an-instrument"
 watches = "user-declared rules over the complexity descriptor"
 verdict_surface = "none -- advisory text inside the descriptor report"
@@ -1902,7 +1902,7 @@ no_failing_demonstration = "Its own docstring: 'Never raises; never influences a
 [[instrument]]
 id = "budgets"
 name = "budget loader"
-paths = ["scripts/budgets.py"]
+paths = ["skills/spec-double-2/scripts/budgets.py"]
 family = "not-an-instrument"
 watches = "the manifest's budgets block"
 verdict_surface = "none -- warns on stderr and falls back to defaults"
@@ -1912,7 +1912,7 @@ no_failing_demonstration = "A missing manifest, a missing block, a missing key a
 [[instrument]]
 id = "skill-feedback"
 name = "skill feedback retro"
-paths = ["scripts/skill_feedback.py"]
+paths = ["skills/spec-double-2/scripts/skill_feedback.py"]
 family = "not-an-instrument"
 watches = "whether declared findings were filed"
 verdict_surface = "none -- prints 'feedback NOT yet filed' and proceeds"
@@ -1922,7 +1922,7 @@ no_failing_demonstration = "An unfilled retro with unfiled findings does not fai
 [[instrument]]
 id = "case-modules-coverage"
 name = "case-module coverage report"
-paths = ["scripts/case_modules.py"]
+paths = ["skills/spec-double-2/scripts/case_modules.py"]
 family = "not-an-instrument"
 watches = "which actions a corpus covers"
 verdict_surface = "none -- exit 0 whenever the report could be produced"
@@ -2030,7 +2030,7 @@ reason, and anything that measures the registry inherits that risk.
   argv = ["{python}", "{repo}/examples/validation/instruments/demonstrate.py",
           "--check-enumeration", "--root", "{tree}"]
   expect_exit = 1
-  expect_output = ["UNREGISTERED INSTRUMENTS: 1", "scripts/gap_probe_instrument.py"]
+  expect_output = ["UNREGISTERED INSTRUMENTS: 1", "skills/spec-double-2/scripts/gap_probe_instrument.py"]
 
     [[instrument.failing.stage]]
     # CA-02: was `examples/validation/gap_mutants/altered_score_probe.py`, which
@@ -2042,7 +2042,7 @@ reason, and anything that measures the registry inherits that risk.
     # instrument's own `paths` entry, so it cannot go stale independently of the
     # row that cites it -- the failure mode a re-point like this otherwise sets up.
     from = "examples/validation/instruments/demonstrate.py"
-    to = "scripts/gap_probe_instrument.py"
+    to = "skills/spec-double-2/scripts/gap_probe_instrument.py"
 
   [instrument.passing]
   summary = "THE SAME FILE, at a path the registry DOES declare. The scan discovers a candidate in both trees, so the red above is the missing ROW's doing and not the staging's -- a passing slot that staged an empty tree would only have proved that nothing was found."
@@ -2053,7 +2053,7 @@ reason, and anything that measures the registry inherits that risk.
 
     [[instrument.passing.stage]]
     from = "examples/validation/instruments/demonstrate.py"
-    to = "scripts/tla_spec_dev.py"
+    to = "skills/spec-double-2/scripts/tla_spec_dev.py"
 
   [instrument.blind_spot]
   kind = "pytest"
@@ -2067,7 +2067,7 @@ reason, and anything that measures the registry inherits that risk.
 [[instrument]]
 id = "manifest-validator"
 name = "spec manifest validator"
-paths = ["scripts/extract_spec_manifest.py"]
+paths = ["skills/spec-double-2/scripts/extract_spec_manifest.py"]
 family = "workflow"
 watches = "that a spec_manifest.yaml carries every required key and parses under the constrained YAML subset"
 verdict_surface = "exit 1 with `ERROR: missing required manifest key: ...`"
@@ -2136,7 +2136,7 @@ more to the next ticket than a quietly green one. `SM-03-DF-02`.
 [[instrument]]
 id = "cli-facade"
 name = "the tla-spec-dev CLI"
-paths = ["scripts/tla_spec_dev.py"]
+paths = ["skills/spec-double-2/scripts/tla_spec_dev.py"]
 family = "workflow"
 watches = "that a subcommand's preconditions hold -- spec tests exist, a target has validations, an --out path is covered by the evidence port"
 verdict_surface = "exit 2 with next-step guidance"
@@ -2171,7 +2171,7 @@ classification = "demonstrated-can-fail"
 [[instrument]]
 id = "generation-refusal"
 name = "spec-double generation"
-paths = ["scripts/generate_python.py"]
+paths = ["skills/spec-double-2/scripts/generate_python.py"]
 family = "workflow"
 watches = "the manifest it generates from -- it REFUSES to generate against one that does not validate"
 verdict_surface = "SystemExit with the manifest errors"
@@ -2187,7 +2187,7 @@ counted as covered by its neighbour.
 [[instrument]]
 id = "docs-generation-refusal"
 name = "docs.md generation"
-paths = ["scripts/generate_docs.py"]
+paths = ["skills/spec-double-2/scripts/generate_docs.py"]
 family = "workflow"
 watches = "the same manifest predicate, before writing docs.md"
 verdict_surface = "exit 1 with `ERROR: <manifest error>`"
@@ -2201,7 +2201,7 @@ Thirty-seven lines, no test file of its own.
 [[instrument]]
 id = "tlc-dump-case-generation"
 name = "TLC dump to generated cases"
-paths = ["scripts/generate_cases_from_tlc_dump.py"]
+paths = ["skills/spec-double-2/scripts/generate_cases_from_tlc_dump.py"]
 family = "workflow"
 watches = "the TLC DOT dump and the config it was produced from -- a missing config, an unparseable dump, or zero states parsed all refuse"
 verdict_surface = "SystemExit with the reason; return 2 when it could not measure"
@@ -2217,7 +2217,7 @@ covers the parsing, not the refusal.
 [[instrument]]
 id = "scaffold-overwrite-refusal"
 name = "tutorial spec scaffolder"
-paths = ["scripts/scaffold_spec.py"]
+paths = ["skills/spec-double-2/scripts/scaffold_spec.py"]
 family = "workflow"
 watches = "the target tree -- it refuses to overwrite an existing file, and refuses unsupported view names"
 verdict_surface = "SystemExit: `refusing to overwrite existing file: <path>`"
@@ -2232,7 +2232,7 @@ in the instrument, and saying so is more use than a row that implies otherwise.
 [[instrument]]
 id = "workflow-convergence"
 name = "ticket-workflow close preconditions"
-paths = ["scripts/close_tickets.py"]
+paths = ["skills/spec-double-2/scripts/close_tickets.py"]
 family = "workflow"
 watches = "that current, desired and the program model have converged before a workflow is closed"
 verdict_surface = "SystemExit: `cannot accept new workflow state: missing model directory`"
@@ -2266,7 +2266,7 @@ and must not be recorded as such.
 [[instrument]]
 id = "onboarding-scaffold"
 name = "whole-program model onboarding"
-paths = ["scripts/onboard_program_model.py"]
+paths = ["skills/spec-double-2/scripts/onboard_program_model.py"]
 family = "workflow"
 watches = "the repository it is onboarding, and refuses when the baseline it would create already exists"
 verdict_surface = "SystemExit from main()"
@@ -2292,7 +2292,7 @@ behaviour is untested.
 [[instrument]]
 id = "close-entrypoint-shims"
 name = "hyphenated close entrypoints"
-paths = ["scripts/close-ticket.py", "scripts/close-spec-workflow.py"]
+paths = ["skills/spec-double-2/scripts/close-ticket.py", "skills/spec-double-2/scripts/close-spec-workflow.py"]
 family = "not-an-instrument"
 watches = "nothing"
 verdict_surface = "none of its own"
@@ -2302,7 +2302,7 @@ no_failing_demonstration = "Eight lines each: `from close_ticket import main` an
 [[instrument]]
 id = "history-recorders"
 name = "append-only history recorders"
-paths = ["scripts/close_ticket.py", "scripts/close_spec_workflow.py"]
+paths = ["skills/spec-double-2/scripts/close_ticket.py", "skills/spec-double-2/scripts/close_spec_workflow.py"]
 family = "not-an-instrument"
 watches = "nothing -- it RECORDS a close that something else decided"
 verdict_surface = "none; `main()` returns 0 unconditionally"
@@ -2312,7 +2312,7 @@ no_failing_demonstration = "Both `main()` bodies end in `return 0` with no branc
 [[instrument]]
 id = "workflow-scaffold"
 name = "spec workflow scaffolder"
-paths = ["scripts/scaffold_spec_workflow.py"]
+paths = ["skills/spec-double-2/scripts/scaffold_spec_workflow.py"]
 family = "not-an-instrument"
 watches = "nothing"
 verdict_surface = "none; `main()` returns 0 unconditionally"
@@ -2322,7 +2322,7 @@ no_failing_demonstration = "Fifty-three lines that create directories with `writ
 [[instrument]]
 id = "action-parameter-recovery"
 name = "TLA+ action parameter recovery"
-paths = ["scripts/infer_action_params.py"]
+paths = ["skills/spec-double-2/scripts/infer_action_params.py"]
 family = "not-an-instrument"
 watches = "nothing -- it RECOVERS params from a case's own before/after pair"
 verdict_surface = "none; `main()` returns 0 unconditionally"
@@ -2627,7 +2627,7 @@ identity leak is not the standing objection this row once said it was.
 id = "kill-test-floor"
 retired_by = "CA-04, applied here by the #317 audit"
 retired_at = "6bf1687 cut the gate; these rows outlived it by three epics"
-paths = ["scripts/run_kill_test.py"]
+paths = ["skills/spec-double-2/scripts/run_kill_test.py"]
 reason = """
 RETIRED, NOT SILENTLY DROPPED, and the delay is the finding.
 
@@ -2665,7 +2665,7 @@ finding**, and the floor was never lowered to make it pass.
 id = "kill-test-boundary-coverage"
 retired_by = "CA-04, applied here by the #317 audit"
 retired_at = "6bf1687 cut the gate; these rows outlived it by three epics"
-paths = ["scripts/run_kill_test.py"]
+paths = ["skills/spec-double-2/scripts/run_kill_test.py"]
 reason = """
 Retires with `kill-test-floor`. Its subject was `--list-boundaries` on
 `scripts/run_kill_test.py`, which `CA-04` deleted. See that entry.
@@ -2834,7 +2834,7 @@ Reversible with `git checkout 37ab155 -- examples/validation/removal_census/`.
 [[instrument]]
 id = "epic-disposition"
 name = "CA-05 disposition requirement (epic close-out)"
-paths = ["scripts/disposition.py"]
+paths = ["skills/spec-double-2/scripts/disposition.py"]
 family = "workflow"
 watches = "every finding in `specs/desired_program_model/deferred_findings.yaml` filed by the epic being closed -- D1 a `disposition` from the closed vocabulary that is not `open`, D2 a `disposition_note` on a terminal disposition, D3 a `disposition_ticket` on a deferral"
 verdict_surface = "exit 1 with `REFUSED <scope>: N of M findings undisposed`, the count per failing clause, and the failing rows named"

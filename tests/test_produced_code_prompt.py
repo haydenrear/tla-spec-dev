@@ -42,15 +42,16 @@ from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+SKILL_ROOT = REPO_ROOT / "skills" / "spec-double-2"
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from tests.test_code_complexity import executable_references, refusing_uses  # noqa: E402
 
-PROMPTS = REPO_ROOT / "prompts"
+PROMPTS = SKILL_ROOT / "prompts"
 READING_PROMPT = PROMPTS / "produced_code_reading.md"
 HEXAGONAL = PROMPTS / "hexagonal_implementation.md"
-INTUITION = REPO_ROOT / "references" / "complexity_intuition.md"
+INTUITION = SKILL_ROOT / "references" / "complexity_intuition.md"
 
 ASK_BEGIN = "<!-- PRODUCED-CODE-READING:BEGIN -->"
 ASK_END = "<!-- PRODUCED-CODE-READING:END -->"
@@ -454,13 +455,13 @@ def test_the_prompt_mentions_it_only_as_prose() -> None:
 def test_the_instrument_still_exits_zero_on_the_artifacts_this_ticket_added() -> None:
     targets = [
         REPO_ROOT / "examples" / "validation" / "ab" / "dispatch",
-        REPO_ROOT / "prompts",
+        SKILL_ROOT / "prompts",
         REPO_ROOT / "examples" / "validation" / "check_prediction_seal.py",
         REPO_ROOT / "no" / "such" / "tree",
     ]
     for target in targets:
         proc = subprocess.run(
-            [sys.executable, str(REPO_ROOT / "scripts" / "code_complexity.py"), str(target)],
+            [sys.executable, str(SKILL_ROOT / "scripts" / "code_complexity.py"), str(target)],
             capture_output=True, text=True, check=False,
         )
         assert proc.returncode == 0, f"{target} produced exit {proc.returncode}"

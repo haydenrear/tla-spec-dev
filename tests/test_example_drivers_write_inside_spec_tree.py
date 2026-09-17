@@ -34,6 +34,7 @@ import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
+SKILL_ROOT = REPO_ROOT / "skills" / "spec-double-2"
 # (module path, the attribute holding its default generated-case root)
 #
 # E-08: this list held ONE driver and the test passed, while THREE more were
@@ -88,7 +89,7 @@ def test_driver_default_out_is_accepted_by_the_resolver(driver_path: Path, attr:
 
     import sys
 
-    sys.path.insert(0, str(REPO_ROOT / "scripts"))
+    sys.path.insert(0, str(SKILL_ROOT / "scripts"))
     try:
         from spec_paths import (  # type: ignore[import-not-found]
             SpecTreePathError,
@@ -231,7 +232,7 @@ def test_no_committed_corpus_sits_at_a_near_miss_of_a_view_root() -> None:
     """
     import sys
 
-    sys.path.insert(0, str(REPO_ROOT / "scripts"))
+    sys.path.insert(0, str(SKILL_ROOT / "scripts"))
     try:
         from generate_cases_from_tlc_dump import (  # type: ignore[import-not-found]
             VIEW_OUTPUT_DIRS,
@@ -321,7 +322,7 @@ def test_callers_that_override_a_driver_default_are_also_inside_the_spec_tree() 
     """
     import sys
 
-    sys.path.insert(0, str(REPO_ROOT / "scripts"))
+    sys.path.insert(0, str(SKILL_ROOT / "scripts"))
     try:
         from spec_paths import (  # type: ignore[import-not-found]
             SpecTreePathError,

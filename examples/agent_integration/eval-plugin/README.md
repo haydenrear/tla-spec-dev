@@ -58,13 +58,14 @@ scored 0 for a reason that was not the agent's:
   run's `which -a tla-spec-dev` returned
   `/Users/hayde/.skill-manager/bin/cli/tla-spec-dev` three times and nothing
   else, and a traceback resolved the code from
-  `~/.skill-manager/skills/spec-double-compiler/scripts/`. Three fixes that do
+  `~/.skill-manager/plugins/tla-spec-dev/skills/spec-double-2/scripts/`. Three fixes that do
   not work: a plugin `bin/` directory (documented to join the Bash tool's PATH;
   inside `plugin eval` it never appears), `execution.env: {PATH: ...}` in
   case.yaml (refused — *"only EVAL_\* keys can be set from case.yaml. Anything
   else must come from the operator's shell."*), and a shim under `/tmp` (the
   PATH reaches the run, but the sandbox cannot see `/private/tmp`). `bin/`
-  here holds a shim that execs this tree's `scripts/tla_spec_dev.py` and
+  here holds a shim that execs this tree's
+  `skills/spec-double-2/scripts/tla_spec_dev.py` and
   **exits 127 rather than falling through** to an installed copy. The
   `SessionStart` hook prints which one it got, so the trace answers the
   question without anyone reconstructing it.
@@ -228,8 +229,8 @@ with `--ablation none` until the fixture can be placed independently of the
 plugin.
 
 Related, and worth knowing before reading any delta: the sandbox is not
-hermetic. The first scored run read `/Users/hayde/.skill-manager/skills/
-spec-double-compiler/references/*` and the repository checkout directly. The
+hermetic. The first scored run read `/Users/hayde/.skill-manager/plugins/
+tla-spec-dev/skills/spec-double-2/references/*` and the repository checkout directly. The
 plugin arm and a hypothetical baseline arm can both reach the installed skill.
 
 ## What each grader can actually see

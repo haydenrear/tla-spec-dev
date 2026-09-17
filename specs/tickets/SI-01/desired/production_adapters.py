@@ -191,8 +191,8 @@ class BuildSkillCliAdapter:
 
     def apply(self) -> dict[str, object]:
         root = repo_root()
-        entrypoint = root / "scripts" / "tla_spec_dev.py"
-        installer = root / "skill-scripts" / "install-tla-spec-dev.sh"
+        entrypoint = root / "skills" / "spec-double-2" / "scripts" / "tla_spec_dev.py"
+        installer = root / "skills" / "spec-double-2" / "skill-scripts" / "install-tla-spec-dev.sh"
         return {
             "accepted": entrypoint.is_file() and installer.is_file(),
             "entrypoint": str(entrypoint),
@@ -253,11 +253,11 @@ class InstallLocalCliAdapter:
             **os.environ,
             "SKILL_MANAGER_BIN_DIR": str(bin_dir),
             "SKILL_MANAGER_CACHE_DIR": str(cache_dir),
-            "SKILL_DIR": str(root),
-            "SKILL_NAME": "spec-double-compiler",
+            "SKILL_DIR": str(root / "skills" / "spec-double-2"),
+            "SKILL_NAME": "spec-double-2",
         }
         install = subprocess.run(
-            ["bash", str(root / "skill-scripts" / "install-tla-spec-dev.sh")],
+            ["bash", str(root / "skills" / "spec-double-2" / "skill-scripts" / "install-tla-spec-dev.sh")],
             cwd=root,
             env=env,
             text=True,
@@ -344,7 +344,7 @@ class ScaffoldProjectAdapter:
         result = subprocess.run(
             [
                 sys.executable,
-                str(root / "scripts" / "tla_spec_dev.py"),
+                str(root / "skills" / "spec-double-2" / "scripts" / "tla_spec_dev.py"),
                 "--spec-root",
                 spec_root,
                 "scaffold",
@@ -455,7 +455,7 @@ class ScaffoldWorkflowAdapter:
         result = subprocess.run(
             [
                 sys.executable,
-                str(root / "scripts" / "tla_spec_dev.py"),
+                str(root / "skills" / "spec-double-2" / "scripts" / "tla_spec_dev.py"),
                 "--spec-root",
                 spec_root,
                 "scaffold",
@@ -1121,13 +1121,13 @@ class RecordBudgetsAdapter:
 
     def apply(self, target_repo: Path, *, spec_root: str = "specs", name: str = "BudgetProg") -> dict[str, object]:
         root = repo_root()
-        sys.path.insert(0, str(root))
+        sys.path.insert(0, str(root / "skills" / "spec-double-2"))
         from scripts.budgets import DEFAULT_BUDGETS, load_budgets
 
         result = subprocess.run(
             [
                 sys.executable,
-                str(root / "scripts" / "tla_spec_dev.py"),
+                str(root / "skills" / "spec-double-2" / "scripts" / "tla_spec_dev.py"),
                 "--spec-root",
                 spec_root,
                 "scaffold",
@@ -1377,7 +1377,7 @@ class AnalyzeComplexityAdapter:
 
         def cli(*args: str) -> subprocess.CompletedProcess:
             return subprocess.run(
-                [sys.executable, str(root / "scripts" / "tla_spec_dev.py"),
+                [sys.executable, str(root / "skills" / "spec-double-2" / "scripts" / "tla_spec_dev.py"),
                  "--spec-root", spec_root, "analyze", "complexity", *args],
                 cwd=target_repo, text=True, capture_output=True, check=False,
             )
@@ -1395,7 +1395,7 @@ class AnalyzeComplexityAdapter:
 
         def generate(*extra: str) -> subprocess.CompletedProcess:
             return subprocess.run(
-                [sys.executable, str(root / "scripts" / "generate_cases_from_tlc_dump.py"),
+                [sys.executable, str(root / "skills" / "spec-double-2" / "scripts" / "generate_cases_from_tlc_dump.py"),
                  # RC-02 (MF-026 round-3 N-2): `generate cases` refuses an --out that
                  # resolves outside a `specs/` directory -- the tree spec_tree and
                  # spec_tree_delete declare, and the tree the metadir rmtree is
@@ -1572,7 +1572,7 @@ class AnalyzeCorpusAdapter:
 
         def cli(pkg: Path, manifest: Path) -> subprocess.CompletedProcess:
             return subprocess.run(
-                [sys.executable, str(root / "scripts" / "tla_spec_dev.py"),
+                [sys.executable, str(root / "skills" / "spec-double-2" / "scripts" / "tla_spec_dev.py"),
                  "--spec-root", spec_root, "analyze", "corpus", str(pkg),
                  "--view", "external", "--manifest", str(manifest)],
                 cwd=target_repo, text=True, capture_output=True, check=False, timeout=180,
@@ -1702,7 +1702,7 @@ effects:
 
         def cli(spec_dir: Path, out: Path) -> subprocess.CompletedProcess:
             return subprocess.run(
-                [sys.executable, str(root / "scripts" / "tla_spec_dev.py"),
+                [sys.executable, str(root / "skills" / "spec-double-2" / "scripts" / "tla_spec_dev.py"),
                  "--spec-root", spec_root, "run", "effect-conformance",
                  "--target", str(spec_dir), "--out", str(out)],
                 cwd=target_repo, text=True, capture_output=True, check=False, timeout=180,
@@ -1995,7 +1995,7 @@ class GenerateCasesAdapter:
         result = subprocess.run(
             [
                 sys.executable,
-                str(root / "scripts" / "tla_spec_dev.py"),
+                str(root / "skills" / "spec-double-2" / "scripts" / "tla_spec_dev.py"),
                 "--spec-root",
                 spec_root,
                 "generate",
@@ -2021,7 +2021,7 @@ class GenerateCasesAdapter:
         stray = subprocess.run(
             [
                 sys.executable,
-                str(root / "scripts" / "tla_spec_dev.py"),
+                str(root / "skills" / "spec-double-2" / "scripts" / "tla_spec_dev.py"),
                 "--spec-root",
                 spec_root,
                 "generate",

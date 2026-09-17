@@ -9,6 +9,7 @@ import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
+SKILL_ROOT = ROOT / "skills" / "spec-double-2"
 sys.path.insert(0, str(ROOT))
 
 from scripts.close_tickets import close_ticket_workflow, validate_ticket_plan_closed
@@ -96,7 +97,7 @@ def write_plan(repo_root: Path, plan: dict[str, object] | None = None) -> Path:
 
 def run_cli(*args: str, cwd: Path) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        [sys.executable, str(ROOT / "scripts" / "tla_spec_dev.py"), *args],
+        [sys.executable, str(SKILL_ROOT / "scripts" / "tla_spec_dev.py"), *args],
         cwd=cwd,
         text=True,
         capture_output=True,

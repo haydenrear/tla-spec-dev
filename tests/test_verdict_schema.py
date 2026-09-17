@@ -30,8 +30,9 @@ from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT / "scripts") not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT / "scripts"))
+SKILL_ROOT = REPO_ROOT / "skills" / "spec-double-2"
+if str(SKILL_ROOT / "scripts") not in sys.path:
+    sys.path.insert(0, str(SKILL_ROOT / "scripts"))
 
 from verdict import SCHEMA_VERSION, VERDICTS, Verdict, read  # type: ignore  # noqa: E402
 
@@ -78,7 +79,7 @@ def test_the_corpus_gate_states_its_verdict_as_data(tmp_path) -> None:
     corpus = REPO_ROOT / "examples/distributed_history/specs/generated/testgraph/ecommerce_external_cases"
     out = tmp_path / "verdict.json"
     proc = subprocess.run(
-        [sys.executable, str(REPO_ROOT / "scripts" / "corpus_diagnostics.py"),
+        [sys.executable, str(SKILL_ROOT / "scripts" / "corpus_diagnostics.py"),
          str(corpus), "--verdict-json", str(out)],
         cwd=REPO_ROOT, text=True, capture_output=True, timeout=300,
     )

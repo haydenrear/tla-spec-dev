@@ -453,7 +453,7 @@ def adapter_internal_rows(rows: list[dict]) -> list[dict]:
 
 def load_catalogue(path: Path) -> tuple[list, list[dict], list[str]]:
     """Load via the SHIPPED parser, plus the raw rows for our extra fields."""
-    sys.path.insert(0, str(REPO_ROOT / "scripts"))
+    sys.path.insert(0, str(REPO_ROOT / "skills/spec-double-2" / "scripts"))
     import kill_test  # noqa: PLC0415
 
     try:

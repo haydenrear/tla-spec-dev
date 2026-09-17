@@ -8,13 +8,14 @@ from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(REPO_ROOT / "scripts"))
+SKILL_ROOT = REPO_ROOT / "skills" / "spec-double-2"
+sys.path.insert(0, str(SKILL_ROOT / "scripts"))
 
 from spec_paths import SpecTreePathError, resolve_spec_tree_out  # noqa: E402
 
 
 def _scaffolded_source() -> str:
-    text = (REPO_ROOT / "scripts" / "onboard_program_model.py").read_text(encoding="utf-8")
+    text = (SKILL_ROOT / "scripts" / "onboard_program_model.py").read_text(encoding="utf-8")
     marker = "SPEC_DIR = Path(__file__).resolve().parents[1]"
     assert marker in text, "the scaffolded spec-unit test template moved"
     return text

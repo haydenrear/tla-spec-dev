@@ -1,4 +1,4 @@
-# Skill project manifest for spec-double-compiler.
+# Skill project manifest for the tla-spec-dev PLUGIN.
 #
 # What this declares: the units this repository's own agents and its validation
 # surfaces need, and the paths in the working tree whose content belongs to one
@@ -22,13 +22,15 @@
 # The table key is the installed unit name, which is what `[[vendored]]`
 # `from_unit` and `.skill-manager/skills/<name>` both use.
 #
-# This repository IS the spec-double-compiler unit, so it does not declare
+# This repository IS the tla-spec-dev plugin (skill surface at
+# skills/spec-double-2/), so it does not declare
 # itself: `specs/program_model/production_adapters.py` and the pytest suite
 # import `spec_double_compiler` from this working tree, and the spec lifecycle
-# runs `python3 scripts/tla_spec_dev.py`, never the installed clone.
+# runs `python3 skills/spec-double-2/scripts/tla_spec_dev.py`, never the installed
+# clone.
 
 [project]
-name = "spec-double-compiler"
+name = "tla-spec-dev"
 version = "0.1.0"
 description = "Generate and maintain Python spec doubles from constrained, annotated TLA+ specifications, validated by a Test Graph project and the specs/program_model adapters."
 

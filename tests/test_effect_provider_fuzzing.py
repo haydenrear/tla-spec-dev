@@ -16,6 +16,7 @@ import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
+SKILL_ROOT = ROOT / "skills" / "spec-double-2"
 sys.path.insert(0, str(ROOT))
 
 from scripts.run_generated_case_adapters import (  # noqa: E402
@@ -142,7 +143,7 @@ def test_seed_protocol_is_stable_across_python_hash_seeds() -> None:
         env["PYTHONHASHSEED"] = hash_seed
         result = subprocess.run(
             [sys.executable, "-c", code],
-            cwd=ROOT,
+            cwd=SKILL_ROOT,
             env=env,
             text=True,
             capture_output=True,
@@ -1281,7 +1282,7 @@ provider = "replay_provider:filesystem_provider"
 
     command = [
         str(environment_python),
-        str(ROOT / "scripts" / "run_generated_case_adapters.py"),
+        str(SKILL_ROOT / "scripts" / "run_generated_case_adapters.py"),
         str(cases_dir),
         "--mapping",
         str(mapping),
@@ -1416,7 +1417,7 @@ def test_cli_scaffolded_project_selects_a_custom_project_provider_without_framew
     result = subprocess.run(
         [
             sys.executable,
-            str(ROOT / "scripts" / "tla_spec_dev.py"),
+            str(SKILL_ROOT / "scripts" / "tla_spec_dev.py"),
             "--spec-root",
             "specs",
             "scaffold",
@@ -1508,8 +1509,8 @@ class ExampleEffectPort(Protocol):
 
 
 def test_effect_provider_docs_state_the_unvalidated_boundary_honestly() -> None:
-    reference = (ROOT / "references" / "effect_providers.md").read_text(encoding="utf-8")
-    skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+    reference = (SKILL_ROOT / "references" / "effect_providers.md").read_text(encoding="utf-8")
+    skill = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
 
     for text in (
         "The framework ships one effect extension point",

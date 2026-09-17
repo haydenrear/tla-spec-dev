@@ -499,7 +499,7 @@ def test_the_enumeration_scope_is_declared_with_a_reason_for_every_exclusion(reg
     """
 
     enumeration = registry["registry"]["enumeration"]
-    assert enumeration["roots"] == ["scripts", "examples/validation"]
+    assert enumeration["roots"] == ["skills/spec-double-2/scripts", "examples/validation"]
     excluded = enumeration["exclude"]
     assert [entry["path"] for entry in excluded] == [
         "examples/validation/runs",
@@ -527,8 +527,8 @@ def test_the_derived_check_finds_an_instrument_that_was_never_added(tmp_path) ->
     """
 
     module = demonstrate_module()
-    (tmp_path / "scripts").mkdir()
-    (tmp_path / "scripts" / "gap_probe_instrument.py").write_text(
+    (tmp_path / "skills/spec-double-2" / "scripts").mkdir(parents=True)
+    (tmp_path / "skills/spec-double-2" / "scripts" / "gap_probe_instrument.py").write_text(
         "import argparse, sys\n"
         "def main(argv=None):\n"
         "    argparse.ArgumentParser().parse_args(argv)\n"
@@ -539,11 +539,11 @@ def test_the_derived_check_finds_an_instrument_that_was_never_added(tmp_path) ->
     )
     registry = tomllib.loads(REGISTRY.read_text(encoding="utf-8"))
 
-    assert module.unregistered(tmp_path, registry) == ["scripts/gap_probe_instrument.py"]
+    assert module.unregistered(tmp_path, registry) == ["skills/spec-double-2/scripts/gap_probe_instrument.py"]
 
     # And the same tree WITHOUT the unregistered file is clean, so the red
     # above is the file's doing and not the staging's.
-    (tmp_path / "scripts" / "gap_probe_instrument.py").unlink()
+    (tmp_path / "skills/spec-double-2" / "scripts" / "gap_probe_instrument.py").unlink()
     assert module.unregistered(tmp_path, registry) == []
 
 
@@ -557,8 +557,8 @@ def test_the_derived_check_still_catches_the_rename_the_literal_caught(tmp_path)
     """
 
     module = demonstrate_module()
-    (tmp_path / "scripts").mkdir()
-    (tmp_path / "scripts" / "code_complexity_renamed.py").write_text(
+    (tmp_path / "skills/spec-double-2" / "scripts").mkdir(parents=True)
+    (tmp_path / "skills/spec-double-2" / "scripts" / "code_complexity_renamed.py").write_text(
         "import sys\n"
         "def main():\n"
         "    return 1\n"
@@ -567,7 +567,7 @@ def test_the_derived_check_still_catches_the_rename_the_literal_caught(tmp_path)
         encoding="utf-8",
     )
     registry = tomllib.loads(REGISTRY.read_text(encoding="utf-8"))
-    assert module.unregistered(tmp_path, registry) == ["scripts/code_complexity_renamed.py"]
+    assert module.unregistered(tmp_path, registry) == ["skills/spec-double-2/scripts/code_complexity_renamed.py"]
 
 
 def test_the_derived_check_cannot_see_a_tripwire_that_is_a_test_file(tmp_path) -> None:
@@ -596,8 +596,8 @@ def test_the_derived_check_cannot_see_a_tripwire_that_is_a_test_file(tmp_path) -
 
     # And the shape it CAN see, side by side, so this is a statement about the
     # predicate rather than about the file happening to be uninteresting.
-    (tmp_path / "scripts").mkdir()
-    executable = tmp_path / "scripts" / "same_logic_but_executable.py"
+    (tmp_path / "skills/spec-double-2" / "scripts").mkdir(parents=True)
+    executable = tmp_path / "skills/spec-double-2" / "scripts" / "same_logic_but_executable.py"
     executable.write_text(
         tripwire.read_text(encoding="utf-8")
         + "\nimport sys\n"

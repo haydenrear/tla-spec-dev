@@ -122,7 +122,7 @@ CONSTANTS
 \*
 \* NOTE ON PLACEMENT: this comment sits ABOVE the VARIABLES block on purpose.
 \* Comments interleaved between names inside the block are not parsed by
-\* scripts/analyze_complexity.py, which silently dropped this variable from the
+\* skills/spec-double-2/scripts/analyze_complexity.py, which silently dropped this variable from the
 \* dimension table and the bound when it was written that way -- the declared
 \* bound stayed at the pre-MF-013 34,992 while TLC measured 38,241 distinct
 \* states, a bound below the measured reality. Keep declarations contiguous.
@@ -486,7 +486,7 @@ RunEffectConformance(root) ==
 \* performs no complexity check -- the descriptor is ADVISORY (MF-036/CD-01):
 \* the program proceeds on a failing scan with a warning and has no
 \* --allow-over-budget flag (generate_cases_from_tlc_dump.py, the scan-first
-\* generation path, proceeds-on-fail; scripts/tla_spec_dev.py
+\* generation path, proceeds-on-fail; skills/spec-double-2/scripts/tla_spec_dev.py
 \* run_spec_unit_tests reads no gate). The old guard
 \* `complexity_gate = "pass" \/ (complexity_gate = "fail" /\ override)`
 \* modeled the withdrawn blocking gate: doctrine withdrew the flag on
@@ -615,7 +615,7 @@ CloseTicket(root, ticket) ==
 \*                                              contract is what it wrote.
 \*
 \* A RECORDED LIMIT OF OBSERVATION, not of this model: the first three reach the
-\* close path and are recorded there (scripts/spec_evolution.py writes
+\* close path and are recorded there (skills/spec-double-2/scripts/spec_evolution.py writes
 \* `guard_weakening` into the append-only history entry, which is what makes
 \* this state externally observable at all). The last three weaken an EARLIER
 \* step, so a close that follows one of them is in fact one of these closes
@@ -646,8 +646,8 @@ CloseTicketWeakened(root, ticket) ==
 \* SpecUnitTestsRequireAnalyzedGate's tombstone follows: removed model surface
 \* must be distinguishable at review from lost model surface.
 \*
-\* WHAT WENT: `tla-spec-dev analyze architecture`, scripts/analyze_architecture.py
-\* (1,192 lines) and scripts/architecture_reflexion.py (2,325). The command
+\* WHAT WENT: `tla-spec-dev analyze architecture`, skills/spec-double-2/scripts/analyze_architecture.py
+\* (1,192 lines) and skills/spec-double-2/scripts/architecture_reflexion.py (2,325). The command
 \* recorded two advisory verdicts -- a model-side architecture descriptor and a
 \* code-side reflexion diff -- and no guard anywhere read either, so the model
 \* loses no precondition and no invariant with them. What it loses is the
@@ -684,9 +684,9 @@ CloseTicketWeakened(root, ticket) ==
 
 \* CLI: `tla-spec-dev --spec-root <root> generate cases <spec.tla> <cfg> --out <dir>`
 \* RC-01 (MF-026 G-6), the headline gap: CASE-MODULE GENERATION -- this epic's
-\* flagship feature -- was ENTIRELY UNREPRESENTED. scripts/case_modules.py
+\* flagship feature -- was ENTIRELY UNREPRESENTED. skills/spec-double-2/scripts/case_modules.py
 \* shipped a standalone main() unreachable from build_parser, and
-\* scripts/generate_cases_from_tlc_dump.py spawned java/TLC, rmtree'd its
+\* skills/spec-double-2/scripts/generate_cases_from_tlc_dump.py spawned java/TLC, rmtree'd its
 \* metadir and wrote generated packages with no action, no port and no CLI
 \* subcommand anywhere in the model. CM-01 and RP-03 BOTH CLOSED "ZERO MODEL
 \* DELTA" against surface the model does not contain, and all four oracles

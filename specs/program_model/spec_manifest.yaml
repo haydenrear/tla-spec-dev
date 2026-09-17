@@ -29,7 +29,7 @@ status:
 # Per-program complexity and case budgets. Scaffolding emits this block with
 # the documented defaults from references/modular_fuzzing.md and instructs the
 # agent to negotiate the values with the user, recording a one-line rationale
-# per changed value. Downstream gates read it through scripts/budgets.py.
+# per changed value. Downstream gates read it through skills/spec-double-2/scripts/budgets.py.
 budgets:
   tlc_seconds: 120                          # hard external timeout per TLC run
   # NEGOTIATED 2026-07-19 (owner decision), raised from the documented default
@@ -80,7 +80,7 @@ case_codegen:
 
 # CD-11 (audit run 4, ESC-R4-2): these three stanzas are GENERATED-CONTENT
 # PLACEHOLDERS owned by case codegen. They are scaffolded empty by
-# scripts/new_ticket_workflow.py and are filled only when
+# skills/spec-double-2/scripts/new_ticket_workflow.py and are filled only when
 # case_codegen.generation_status (above) reaches `generated`. Empty here
 # claims "no generated case index yet" -- generation_status is `planned` --
 # NOT "the model has no state, actions, or ports": this tree's model has 8
@@ -100,7 +100,7 @@ case_codegen:
 # fails if the two disagree, the durable form of the check RP-05 applied to
 # architecture_components.yaml. Same defect class as EV-01-DF-03. An empty stanza and an inapplicable
 # stanza are different claims; this comment, and the matching one at the
-# schema source (scripts/new_ticket_workflow.py), record which one is made.
+# schema source (skills/spec-double-2/scripts/new_ticket_workflow.py), record which one is made.
 #
 # 2026-08-04: the figure went DOWN for the first time in this project, to 9 and
 # 17, when architecture_scan, architecture_delta and AnalyzeArchitecture were
@@ -124,7 +124,7 @@ ports: {}
 # waiver, or allow-list key in this schema. Out-of-contract justifications were
 # WITHDRAWN on 2026-07-18 (references/architecture_tractability.md, "No
 # Degenerate Escapes", rules 3 and 4). Adding such a key here does not work:
-# scripts/effect_conformance.py scans for suppression-shaped keys and reports
+# skills/spec-double-2/scripts/effect_conformance.py scans for suppression-shaped keys and reports
 # them as IGNORED rather than honoring them, and
 # tests/test_effect_conformance.py asserts the verdict is identical with and
 # without one. Declare the port, or change the program so it stops emitting the
@@ -147,8 +147,8 @@ effects:
           target: "**/results/**"
         # RC-01 (MF-026 G-9), the verified dead port. This declared
         # `target: "**/.venv/**"` and was the ONLY port on both BuildSkillCli
-        # and InstallLocalCli, while `grep -rn '\.venv' scripts/*.py
-        # skill-scripts/*.sh` returns ZERO hits -- dead model surface by the
+        # and InstallLocalCli, while `grep -rn '\.venv' skills/spec-double-2/scripts/*.py
+        # skills/spec-double-2/skill-scripts/*.sh` returns ZERO hits -- dead model surface by the
         # rule this file states 30 lines above, declared, annotated in the
         # model, AND seeded as kill-test mutant `port-cli_artifact`, so a
         # kill-test slot was spent on a port nothing exercises. An effect
@@ -213,7 +213,7 @@ effects:
         # CD-09 (coverage-audit run 2, gap G4): tlc_process (process.spawn
         # *java*) REMOVED. It was declared for AnalyzeComplexity, but the
         # analyze path spawns nothing -- the descriptor scan is a static
-        # parser (scripts/analyze_complexity.py contains no subprocess), and
+        # parser (skills/spec-double-2/scripts/analyze_complexity.py contains no subprocess), and
         # no other modeled action spawns java. By this manifest's own rule a
         # declared port no case exercises is DEAD MODEL SURFACE. The
         # repository's real java spawn lives in case generation
@@ -238,13 +238,13 @@ effects:
           target: "*pytest*"
         # CD-10 (audit run 3, gap R3-3a): RunSpecUnitTests' shipped dispatch
         # spawns the generated-case runner (`python
-        # scripts/run_generated_case_adapters.py ...`, built at
-        # scripts/tla_spec_dev.py:395 (run_generated_case_adapters.py) and
-        # executed at scripts/tla_spec_dev.py:459 (subprocess.run) whenever a
+        # skills/spec-double-2/scripts/run_generated_case_adapters.py ...`, built at
+        # skills/spec-double-2/scripts/tla_spec_dev.py:395 (run_generated_case_adapters.py) and
+        # executed at skills/spec-double-2/scripts/tla_spec_dev.py:459 (subprocess.run) whenever a
         # target carries a generated case package.
         # That command line does not match test_process's `*pytest*` -- only
         # the `uv run --with pytest -m pytest` child at
-        # scripts/tla_spec_dev.py:369 (--with) does -- so the
+        # skills/spec-double-2/scripts/tla_spec_dev.py:369 (--with) does -- so the
         # runner spawn gets its own port rather than a widened, dishonest
         # test_process target.
         runner_process:
@@ -252,22 +252,22 @@ effects:
           target: "*run_generated_case_adapters*"
         # CD-10 (audit run 3, gap R3-2): CloseTicket's shipped close path
         # performs destructive deletes, all under the spec tree: rmtree of TLC
-        # `states/` dirs (scripts/spec_evolution.py:237 (shutil.rmtree) via
-        # scripts/spec_evolution.py:1998 (remove_state_directories) at ticket
-        # close and scripts/spec_evolution.py:2155 (remove_state_directories)
+        # `states/` dirs (skills/spec-double-2/scripts/spec_evolution.py:237 (shutil.rmtree) via
+        # skills/spec-double-2/scripts/spec_evolution.py:1998 (remove_state_directories) at ticket
+        # close and skills/spec-double-2/scripts/spec_evolution.py:2155 (remove_state_directories)
         # at workflow close), rmtree of project `current/` before promotion
-        # (scripts/spec_evolution.py:1088 (shutil.rmtree) via
-        # scripts/spec_evolution.py:1283 (replace_tree), the GitHub #22
+        # (skills/spec-double-2/scripts/spec_evolution.py:1088 (shutil.rmtree) via
+        # skills/spec-double-2/scripts/spec_evolution.py:1283 (replace_tree), the GitHub #22
         # data-loss mechanism), and unlink of seeded paths the ticket dropped
-        # (scripts/spec_evolution.py:1244 (target.unlink)). filesystem.write
+        # (skills/spec-double-2/scripts/spec_evolution.py:1244 (target.unlink)). filesystem.write
         # on spec_tree never covered these -- the schema distinguishes
         # filesystem.delete precisely so a delete cannot hide under a write.
         spec_tree_delete:
           type: filesystem.delete
           target: "**/specs/**"
         # MF-026 (hexagonal-prompting, gap G-1). RunEffectConformance resets a
-        # PER-CASE SCRATCH directory -- scripts/effect_conformance.py:1692 (shutil.rmtree)
-        # via scripts/effect_conformance.py:1816 (reset_case_work_dir)
+        # PER-CASE SCRATCH directory -- skills/spec-double-2/scripts/effect_conformance.py:1692 (shutil.rmtree)
+        # via skills/spec-double-2/scripts/effect_conformance.py:1816 (reset_case_work_dir)
         # -- and `--work-dir` is `type=Path` with no
         # resolver, so the caller can point it anywhere. HP-04 declared this
         # under spec_tree_delete (`**/specs/**`), which is true of the DEFAULT
@@ -283,7 +283,7 @@ effects:
         # MF-026 (hexagonal-prompting, gap G-2). PRE-EXISTING AT THE EPIC BASE
         # and surfaced by no previous audit round. RunSpecUnitTests --no-batch
         # spawns `<python> <work_dir>/programs/case_*.py` --
-        # scripts/run_generated_case_adapters.py:2187 (subprocess.run) -- which
+        # skills/spec-double-2/scripts/run_generated_case_adapters.py:2187 (subprocess.run) -- which
         # matches neither test_process (`*pytest*`) nor runner_process
         # (`*run_generated_case_adapters*`), and `work_dir` defaults to
         # tempfile.mkdtemp, outside spec_tree and evidence_report. Declared
@@ -294,19 +294,19 @@ effects:
           type: process.spawn
           target: "*programs/case-*"
         # MF-026 round 2, G-2 write half. With no --work-dir the runner writes
-        # into tempfile.mkdtemp -- scripts/run_generated_case_adapters.py:2356 (mkdtemp)
+        # into tempfile.mkdtemp -- skills/spec-double-2/scripts/run_generated_case_adapters.py:2356 (mkdtemp)
         # (mkdtemp) -- placing the per-case program at
-        # scripts/run_generated_case_adapters.py:1353 (program_path). No
+        # skills/spec-double-2/scripts/run_generated_case_adapters.py:1353 (program_path). No
         # declared write port accepted that path.
         case_program_write:
           type: filesystem.write
           target: "**/programs/case-*"
         # CD-10 (audit run 3, gap R3-3b): CloseTicket spawns `git rev-parse
         # ...` for history-entry provenance
-        # (scripts/spec_evolution.py:206 (subprocess.run), via
-        # scripts/spec_evolution.py:2191 (git_metadata) at ticket close,
-        # scripts/spec_evolution.py:2306 (git_metadata) at workflow close, and
-        # scripts/spec_evolution.py:1930 (git_metadata) on ticket
+        # (skills/spec-double-2/scripts/spec_evolution.py:206 (subprocess.run), via
+        # skills/spec-double-2/scripts/spec_evolution.py:2191 (git_metadata) at ticket close,
+        # skills/spec-double-2/scripts/spec_evolution.py:2306 (git_metadata) at workflow close, and
+        # skills/spec-double-2/scripts/spec_evolution.py:1930 (git_metadata) on ticket
         # retirement -- THREE call sites, not the two this sentence claimed
         # before #318's review counted them). The
         # fail-open branch on git error is out-of-model; the spawn itself is
@@ -339,7 +339,7 @@ effects:
     # WHY INSTALLLOCALCLI AND NOT BUILDSKILLCLI, decided from shipped
     # artifacts rather than from the prose:
     #   1. specs/*/production_adapters.py InstallLocalCliAdapter.apply()
-    #      literally runs `bash skill-scripts/install-tla-spec-dev.sh` and then
+    #      literally runs `bash skills/spec-double-2/skill-scripts/install-tla-spec-dev.sh` and then
     #      the installed wrapper. It is the only adapter that executes an
     #      installer at all.
     #   2. specs/*/kill_mutants.toml (removed by CA-04) seeded port-cli_download,
@@ -362,9 +362,9 @@ effects:
     # absent row claims "unmapped", an empty row claims "performs no distinct
     # effect", and only the second is true. The CLI records no budgets:
     # budget_prompt only prints negotiation instructions
-    # (scripts/budgets.py:74-94 (def budget_prompt), printed at
-    # scripts/tla_spec_dev.py:92 (budget_prompt) and
-    # scripts/tla_spec_dev.py:121 (budget_prompt)); the budgets block itself is
+    # (skills/spec-double-2/scripts/budgets.py:74-94 (def budget_prompt), printed at
+    # skills/spec-double-2/scripts/tla_spec_dev.py:92 (budget_prompt) and
+    # skills/spec-double-2/scripts/tla_spec_dev.py:121 (budget_prompt)); the budgets block itself is
     # emitted at scaffold time under ScaffoldProject/ScaffoldWorkflow's
     # spec_tree, and recording user-negotiated values is an agent edit, not a
     # program effect.
@@ -377,9 +377,9 @@ effects:
     # CD-11 (audit run 4, gap R4-3): evidence_report REMOVED -- a dead
     # declared port, the same class G4 removed for AnalyzeComplexity's
     # tlc_process. corpus_diagnostics.py has no --out flag (add_arguments
-    # scripts/corpus_diagnostics.py:847 (def add_arguments) registers
+    # skills/spec-double-2/scripts/corpus_diagnostics.py:847 (def add_arguments) registers
     # cases_dir/--view/--manifest only) and no file write anywhere; run()
-    # (scripts/corpus_diagnostics.py:915 (def run)) prints the report and
+    # (skills/spec-double-2/scripts/corpus_diagnostics.py:915 (def run)) prints the report and
     # returns. Removal
     # matches the shipped print-only behavior. Deliberately an EMPTY row, not
     # an absent one (the RecordBudgets rule above): the command reads and
@@ -390,7 +390,7 @@ effects:
     # with none at all, the only non-stutter action without one -- and the row
     # was correct while the command existed. `evidence_report` is not orphaned
     # by the removal: AnalyzeComplexity, RunEffectConformance and RunKillTest
-    # still declare it, and scripts/spec_paths.py resolve_evidence_out still
+    # still declare it, and skills/spec-double-2/scripts/spec_paths.py resolve_evidence_out still
     # constrains every `--out` that claims it.
     # RC-01 (MF-026 G-6): case-module generation, previously unrepresented in
     # its entirety -- no action, no port, no CLI subcommand -- while being this
@@ -412,11 +412,11 @@ effects:
     # CD-11 (audit run 4, gap R4-2): spec_tree ADDED, matching shipped
     # behavior. `run effect-conformance --cases-dir` creates its work tree
     # under the spec dir
-    # (scripts/effect_conformance.py:1772 (work_root.mkdir), default
+    # (skills/spec-double-2/scripts/effect_conformance.py:1772 (work_root.mkdir), default
     # spec_dir/.effect-conformance-work;
-    # scripts/effect_conformance.py:1693 (case_dir.mkdir) per-case dirs;
-    # scripts/effect_conformance.py:714 (self.root.mkdir) and
-    # scripts/effect_conformance.py:751 (path.mkdir) sandbox roots) -- writes
+    # skills/spec-double-2/scripts/effect_conformance.py:1693 (case_dir.mkdir) per-case dirs;
+    # skills/spec-double-2/scripts/effect_conformance.py:714 (self.root.mkdir) and
+    # skills/spec-double-2/scripts/effect_conformance.py:751 (path.mkdir) sandbox roots) -- writes
     # landing under
     # **/specs/**. DECLARED rather than relocated under results/: the same
     # physical sandbox writes on the spec-unit path are already declared as
@@ -435,7 +435,7 @@ effects:
     # rests on -- because the work tree survived between runs and an adapter
     # that materializes its own before-state writes a file on a cold run that
     # it finds already present on a warm one. Each case now starts from an
-    # EMPTY directory (scripts/effect_conformance.py:1692 (shutil.rmtree)),
+    # EMPTY directory (skills/spec-double-2/scripts/effect_conformance.py:1692 (shutil.rmtree)),
     # which is a filesystem.delete under **/specs/** and therefore owes a port
     # by this file's own rule -- the same rule that made CloseTicket declare
     # its TLC states/ rmtree rather than leave it undeclared.
@@ -463,7 +463,7 @@ effects:
 adapters: case_adapters.toml
 notes:
   package_from_program_model: tlaspecdevcli_program_cases
-  budgets_helper: scripts/budgets.py
+  budgets_helper: skills/spec-double-2/scripts/budgets.py
 
 # MF-011: per-variable justification table. Every element of the model earns
 # its place by supporting an invariant, carrying an effect, or killing a

@@ -98,7 +98,7 @@ def _nonnegative_counts(path: Path, value: Any, keys: tuple[str, ...]) -> None:
 
 
 def _validate_usage(project_root: Path, result: dict[str, Any]) -> None:
-    sys.path.insert(0, str(REPO_ROOT / "scripts"))
+    sys.path.insert(0, str(REPO_ROOT / "skills" / "spec-double-2" / "scripts"))
     from extract_spec_manifest import parse_simple_yaml
 
     usage = result["usage_descriptor"]

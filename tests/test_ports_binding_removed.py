@@ -38,8 +38,9 @@ from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-RUNNER = REPO_ROOT / "scripts/run_generated_case_adapters.py"
-sys.path.insert(0, str(REPO_ROOT / "scripts"))
+SKILL_ROOT = REPO_ROOT / "skills" / "spec-double-2"
+RUNNER = SKILL_ROOT / "scripts/run_generated_case_adapters.py"
+sys.path.insert(0, str(SKILL_ROOT / "scripts"))
 
 import run_generated_case_adapters as runner_module  # noqa: E402
 from run_generated_case_adapters import (  # noqa: E402
@@ -213,7 +214,7 @@ def test_the_port_corpus_generation_flag_survives_the_cut():
     It is generation, not binding, and SM-02 does not touch it.
     """
     helped = subprocess.run(
-        [sys.executable, str(REPO_ROOT / "scripts/generate_cases_from_tlc_dump.py"), "--help"],
+        [sys.executable, str(SKILL_ROOT / "scripts/generate_cases_from_tlc_dump.py"), "--help"],
         capture_output=True, text=True, check=True,
     )
     assert "--port-cases" in helped.stdout

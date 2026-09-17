@@ -14,6 +14,7 @@ import sys
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
+SKILL_ROOT = ROOT / "skills" / "spec-double-2"
 sys.path.insert(0, str(ROOT))
 
 from scripts.testgraph_channels import (  # noqa: E402
@@ -497,7 +498,7 @@ def _run_adapters(package_dir: Path, bindings: Path, tmp_path: Path, *view: str)
     return subprocess.run(
         [
             sys.executable,
-            str(ROOT / "scripts" / "run_generated_case_adapters.py"),
+            str(SKILL_ROOT / "scripts" / "run_generated_case_adapters.py"),
             str(package_dir),
             "--mapping",
             str(bindings),
@@ -575,7 +576,7 @@ def test_exporter_refuses_an_adapter_that_imports_the_production_package(tmp_pat
     result = subprocess.run(
         [
             sys.executable,
-            str(ROOT / "scripts" / "export_testgraph_cases.py"),
+            str(SKILL_ROOT / "scripts" / "export_testgraph_cases.py"),
             str(package_dir),
             "--out",
             str(tmp_path / "traces"),
@@ -600,13 +601,13 @@ def test_exporter_requires_bindings_at_all() -> None:
     import subprocess
 
     result = subprocess.run(
-        [sys.executable, str(ROOT / "scripts" / "export_testgraph_cases.py"), "--help"],
+        [sys.executable, str(SKILL_ROOT / "scripts" / "export_testgraph_cases.py"), "--help"],
         cwd=ROOT,
         text=True,
         capture_output=True,
     )
     assert "--bindings" in result.stdout
-    text = (ROOT / "scripts" / "export_testgraph_cases.py").read_text(encoding="utf-8")
+    text = (SKILL_ROOT / "scripts" / "export_testgraph_cases.py").read_text(encoding="utf-8")
     assert "required=True" in text
     for flag in ("--skip-channel", "--allow-in-process", "--no-channel-check"):
         assert flag not in text, f"export offers {flag}; a gate with a bypass is not a gate"

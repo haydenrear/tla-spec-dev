@@ -2210,3 +2210,101 @@ findings:
       The first evidence FOR this epic's thesis: the substrate got a defect
       reported rather than worked around, by an agent that could not fix it
       itself. Instrument change belongs to SI-07 (#340).
+
+  - id: SI-01-DF-01
+    found_by: "SI-01"
+    found_at_commit: "4d563e2d"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      Sealed analysis scripts under specs/results/scorecards/** locate the
+      repository by walking their ancestors for `references/eval_scorecard.md`,
+      or name it as a literal. SI-01 moved the card to
+      skills/spec-double-2/references/eval_scorecard.md, so those walks no longer
+      terminate. Three were made TOLERANT of both spellings in this ticket
+      because a repository test executes them
+      (SV-03/analysis/baseline_is_a_card.py,
+      SV-03/analysis/no_card_project_unaffected.py,
+      SV-06/analysis/goal_score_survey.py). The rest were left exactly as sealed:
+      SV-02/analysis/carrier_cost.py (`RUBRIC = pathlib.Path("references") /
+      "eval_scorecard.md"`), subtract-to-measure/SM-06/run_dup_mutants.py
+      (`CARD = ROOT / "references/eval_scorecard.md"`), and
+      subtract-to-measure-sm05/packet/stage_judge_trees.sh (`rm -f
+      "$root/references/eval_scorecard.md"`, which now removes nothing).
+    reproduction: >-
+      python3 specs/results/scorecards/score-drives-validation/GOAL-validation-is-scorable/SV-02/analysis/carrier_cost.py
+      from the repository root after SI-01: the rubric path it names does not
+      exist. The stage_judge_trees.sh case is the quiet one -- `rm -f` on a
+      missing path exits 0, so a judge tree that was meant to have the card
+      removed would now be staged WITH it.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-01/pytest-after-migration.txt"
+    why_out_of_scope: >-
+      specs/results/** is append-only record and is in no conflict key of this
+      ticket. Editing sealed evidence to satisfy a path move is the opposite of
+      what that tree is for; the three exceptions were made only where a live
+      test executes the script, and each carries a comment saying so.
+    suggested_fix: >-
+      Decide once, for the whole tree, whether a sealed analysis script is
+      expected to remain runnable. If yes, give them the same two-spelling walk
+      the three exceptions now carry. If no, record that they are records rather
+      than tools and stop executing any of them from tests. Do not repoint the
+      literals silently -- that rewrites the record without saying so.
+    blast_radius: >-
+      No shipped behaviour. The stage_judge_trees.sh case could silently weaken a
+      future blind judging round by leaving the card in a tree meant to be
+      without it, which is why this is filed rather than left unsaid.
+    disposition: pending
+    disposition_ticket: null
+    disposition_note: >-
+      Natural home is whichever ticket next touches the scorecard tree; SI-03
+      builds the improvement card and is the closest. Not retrofitted.
+
+  - id: SI-01-DF-02
+    found_by: "SI-01"
+    found_at_commit: "4d563e2d"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      examples/effect_providers/PREREGISTRATION.yaml declares
+      `forbidden_rescue_surfaces` as repository-relative paths
+      (scripts/tla_spec_dev.py, spec_double_compiler/**, templates/**). The two
+      live guards that enforce it -- FORBIDDEN_FRAMEWORK_SURFACES in
+      atomic_publisher/run_experiment.py and
+      legacy_payment_http/scripts/run_experiment.py -- were repointed in this
+      ticket because they are git PATHSPECS and a stale prefix matches nothing,
+      making the guard silently vacuous. The sealed preregistration was NOT
+      repointed, so the document and the code that enforces it now spell the
+      same surfaces differently.
+    reproduction: >-
+      diff the `forbidden_rescue_surfaces` list in
+      examples/effect_providers/PREREGISTRATION.yaml against
+      FORBIDDEN_FRAMEWORK_SURFACES in either run_experiment.py after SI-01.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-01/pytest-after-migration.txt"
+    why_out_of_scope: >-
+      A preregistration is a sealed statement of what was forbidden before a
+      measurement ran. Rewriting it after the fact is precisely the move the
+      preregistration exists to prevent, and it is in no conflict key here.
+    suggested_fix: >-
+      Add a dated migration note UNDER the preregistration saying the surfaces
+      moved and where, rather than editing the list in place. Anyone re-running
+      the experiment reads both.
+    blast_radius: >-
+      None while the experiment is not re-run. If it is re-run without reading
+      this, the guard is correct and the document is misleading about which
+      paths it names.
+    disposition: pending
+    disposition_ticket: null
+    disposition_note: >-
+      Owner triages at the wave boundary; no ticket owns examples/effect_providers.

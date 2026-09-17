@@ -1,0 +1,1319 @@
+FFF....FFFFFFFFFFF.FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF.                    [100%]
+=================================== FAILURES ===================================
+_____ test_analyze_complexity_adapter_advises_both_sides_and_never_blocks ______
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_analyze_complexity_adapte0')
+
+    def test_analyze_complexity_adapter_advises_both_sides_and_never_blocks(
+        tmp_path: Path,
+    ) -> None:
+        adapters = load_adapters()
+>       result = adapters.AnalyzeComplexityAdapter().apply(tmp_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_analyze_adapter.py:32: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:1368: in apply
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+_____________________ test_descriptor_makes_no_suggestions _____________________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_descriptor_makes_no_sugge0')
+
+    def test_descriptor_makes_no_suggestions(tmp_path: Path) -> None:
+        """CD-01: no suggested move, no recommendations, no projected gains.
+    
+        Validation project 1 showed the suggested-move chooser confidently wrong on
+        standard TLA+ (an aliased invariant made it recommend projecting away every
+        variable), so the machinery was removed. The descriptor states facts.
+        """
+        adapters = load_adapters()
+>       result = adapters.AnalyzeComplexityAdapter().apply(tmp_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_analyze_adapter.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:1368: in apply
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+______________________ test_output_reports_measured_facts ______________________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_output_reports_measured_f0')
+
+    def test_output_reports_measured_facts(tmp_path: Path) -> None:
+        """Every figure is [MEASURED]; nothing projected remains in the output."""
+        adapters = load_adapters()
+>       result = adapters.AnalyzeComplexityAdapter().apply(tmp_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_analyze_adapter.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:1368: in apply
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+____________ test_record_budgets_adapter_emits_defaults_and_prompt _____________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_record_budgets_adapter_em0')
+
+    def test_record_budgets_adapter_emits_defaults_and_prompt(tmp_path: Path) -> None:
+        adapters = load_adapters()
+>       budgets = load_budgets_module(adapters)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_budgets_adapter.py:31: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_budgets_adapter.py:23: in load_budgets_module
+    sys.path.insert(0, str(adapters.repo_root()))
+                           ^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+__________________ test_scaffold_workflow_also_emits_budgets ___________________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_scaffold_workflow_also_em0')
+
+    def test_scaffold_workflow_also_emits_budgets(tmp_path: Path) -> None:
+        adapters = load_adapters()
+>       budgets = load_budgets_module(adapters)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_budgets_adapter.py:44: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_budgets_adapter.py:23: in load_budgets_module
+    sys.path.insert(0, str(adapters.repo_root()))
+                           ^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+______________ test_missing_budgets_block_falls_back_with_warning ______________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_missing_budgets_block_fal0')
+capsys = <_pytest.capture.CaptureFixture object at 0x10934c980>
+
+    def test_missing_budgets_block_falls_back_with_warning(tmp_path: Path, capsys) -> None:
+        adapters = load_adapters()
+>       budgets = load_budgets_module(adapters)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_budgets_adapter.py:65: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_budgets_adapter.py:23: in load_budgets_module
+    sys.path.insert(0, str(adapters.repo_root()))
+                           ^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+_______________ test_install_local_cli_executes_case_end_to_end ________________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_install_local_cli_execute0')
+
+    def test_install_local_cli_executes_case_end_to_end(tmp_path: Path) -> None:
+        pa = load_adapters()
+        adapter = pa.InstallLocalCliAdapter()
+        case = install_case()
+        accepted, reason = adapter.can_run(case)
+        assert accepted, reason
+>       result = adapter.run(case, work_dir=tmp_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_case_execution_run.py:98: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:300: in run
+    target_repo, spec_root, replay = materialize_before(case, work_dir)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+specs/tickets/SI-01/desired/adapter_case_runtime.py:160: in materialize_before
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+__________ test_install_local_cli_negative_control_wrong_phase_fails ___________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_install_local_cli_negativ0')
+
+    def test_install_local_cli_negative_control_wrong_phase_fails(tmp_path: Path) -> None:
+        pa = load_adapters()
+        adapter = pa.InstallLocalCliAdapter()
+        bad = _corrupt(install_case(), lambda a: a.__setitem__("setup_phase", 3))
+        with pytest.raises(AssertionError):
+>           adapter.run(bad, work_dir=tmp_path)
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_case_execution_run.py:109: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:300: in run
+    target_repo, spec_root, replay = materialize_before(case, work_dir)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+specs/tickets/SI-01/desired/adapter_case_runtime.py:160: in materialize_before
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+_______________ test_scaffold_workflow_executes_case_end_to_end ________________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_scaffold_workflow_execute0')
+
+    def test_scaffold_workflow_executes_case_end_to_end(tmp_path: Path) -> None:
+        pa = load_adapters()
+        adapter = pa.ScaffoldWorkflowAdapter()
+        case = scaffold_workflow_case()
+        assert adapter.can_run(case)[0]
+>       result = adapter.run(case, work_dir=tmp_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_case_execution_run.py:120: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:497: in run
+    target_repo, spec_root, replay = materialize_before(case, work_dir)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+specs/tickets/SI-01/desired/adapter_case_runtime.py:160: in materialize_before
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+__________ test_scaffold_workflow_negative_control_wrong_phase_fails ___________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_scaffold_workflow_negativ0')
+
+    def test_scaffold_workflow_negative_control_wrong_phase_fails(tmp_path: Path) -> None:
+        pa = load_adapters()
+        adapter = pa.ScaffoldWorkflowAdapter()
+        bad = _corrupt(scaffold_workflow_case(), lambda a: a.__setitem__("setup_phase", 4))
+        with pytest.raises(AssertionError):
+>           adapter.run(bad, work_dir=tmp_path)
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_case_execution_run.py:131: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:497: in run
+    target_repo, spec_root, replay = materialize_before(case, work_dir)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+specs/tickets/SI-01/desired/adapter_case_runtime.py:160: in materialize_before
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+_________________ test_record_budgets_executes_case_end_to_end _________________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_record_budgets_executes_c0')
+
+    def test_record_budgets_executes_case_end_to_end(tmp_path: Path) -> None:
+        pa = load_adapters()
+        adapter = pa.RecordBudgetsAdapter()
+        case = record_budgets_case()
+        assert adapter.can_run(case)[0]
+>       result = adapter.run(case, work_dir=tmp_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_case_execution_run.py:142: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:1192: in run
+    target_repo, spec_root, replay = materialize_before(case, work_dir)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+specs/tickets/SI-01/desired/adapter_case_runtime.py:160: in materialize_before
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+________ test_record_budgets_negative_control_wrong_last_command_fails _________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_record_budgets_negative_c0')
+
+    def test_record_budgets_negative_control_wrong_last_command_fails(tmp_path: Path) -> None:
+        pa = load_adapters()
+        adapter = pa.RecordBudgetsAdapter()
+        bad = _corrupt(record_budgets_case(), lambda a: a.__setitem__("lastCommand", "WrongCommand"))
+        with pytest.raises(AssertionError):
+>           adapter.run(bad, work_dir=tmp_path)
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_case_execution_run.py:153: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:1192: in run
+    target_repo, spec_root, replay = materialize_before(case, work_dir)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+specs/tickets/SI-01/desired/adapter_case_runtime.py:160: in materialize_before
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+__________________ test_open_ticket_executes_case_end_to_end ___________________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_open_ticket_executes_case0')
+
+    def test_open_ticket_executes_case_end_to_end(tmp_path: Path) -> None:
+        pa = load_adapters()
+        adapter = pa.OpenTicketAdapter()
+        case = open_ticket_case()
+        accepted, reason = adapter.can_run(case)
+        assert accepted, reason
+>       result = adapter.run(case, work_dir=tmp_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_case_execution_run.py:165: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:715: in run
+    target_repo, spec_root, replay = materialize_before(case, work_dir)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+specs/tickets/SI-01/desired/adapter_case_runtime.py:160: in materialize_before
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+__________ test_open_ticket_negative_control_wrong_ticket_state_fails __________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_open_ticket_negative_cont0')
+
+    def test_open_ticket_negative_control_wrong_ticket_state_fails(tmp_path: Path) -> None:
+        pa = load_adapters()
+        adapter = pa.OpenTicketAdapter()
+        # Claim the ticket jumped to DesiredReady(2); the adapter observes Opened(1).
+        bad = _corrupt(open_ticket_case(), lambda a: a["ticket_state"].__setitem__("cli_entrypoint", 2))
+        with pytest.raises(AssertionError):
+>           adapter.run(bad, work_dir=tmp_path)
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_case_execution_run.py:178: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:715: in run
+    target_repo, spec_root, replay = materialize_before(case, work_dir)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+specs/tickets/SI-01/desired/adapter_case_runtime.py:160: in materialize_before
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+_________ test_build_skill_cli_adapter_finds_entrypoint_and_installer __________
+
+    def test_build_skill_cli_adapter_finds_entrypoint_and_installer() -> None:
+        adapters = load_adapters()
+>       result = adapters.BuildSkillCliAdapter().apply()
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_cli_adapter.py:16: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:193: in apply
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+_______________ test_install_local_cli_adapter_installs_wrapper ________________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_install_local_cli_adapter0')
+
+    def test_install_local_cli_adapter_installs_wrapper(tmp_path: Path) -> None:
+        adapters = load_adapters()
+>       result = adapters.InstallLocalCliAdapter().apply(tmp_path / "bin", tmp_path / "cache")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_cli_adapter.py:25: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:251: in apply
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+______________ test_close_promotion_preserves_current_only_paths _______________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_close_promotion_preserves0')
+
+    def test_close_promotion_preserves_current_only_paths(tmp_path: Path) -> None:
+        adapters = load_adapters()
+>       result = adapters.ClosePromotionPreservesCurrentAdapter().apply(
+            tmp_path, spec_root="project_specs", ticket_id="CLI-127"
+        )
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_close_promotion_adapter.py:24: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:852: in apply
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+______________ test_close_promotion_enumerates_what_it_preserved _______________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_close_promotion_enumerate0')
+
+    def test_close_promotion_enumerates_what_it_preserved(tmp_path: Path) -> None:
+        """Silent survival is still the wrong failure mode; close must say so."""
+        adapters = load_adapters()
+>       result = adapters.ClosePromotionPreservesCurrentAdapter().apply(
+            tmp_path, spec_root="project_specs", ticket_id="CLI-128"
+        )
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_close_promotion_adapter.py:45: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:852: in apply
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+________ test_close_records_delta_jointly_with_retention_and_refinement ________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_close_records_delta_joint0')
+
+    def test_close_records_delta_jointly_with_retention_and_refinement(tmp_path: Path) -> None:
+        adapters = load_adapters()
+>       result = adapters.ComplexityLedgerCloseOutAdapter().apply(
+            tmp_path, spec_root="project_specs", ticket_id="CLI-140"
+        )
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_complexity_ledger_adapter.py:27: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:1789: in apply
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+_______________ test_unfilled_ledger_template_refuses_the_close ________________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_unfilled_ledger_template_0')
+
+    def test_unfilled_ledger_template_refuses_the_close(tmp_path: Path) -> None:
+        """Silence is not an acceptable substitute for the record."""
+        adapters = load_adapters()
+>       result = adapters.ComplexityLedgerCloseOutAdapter().apply(
+            tmp_path, spec_root="project_specs", ticket_id="CLI-141"
+        )
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_complexity_ledger_adapter.py:46: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:1789: in apply
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+_____ test_decrease_with_degraded_validated_refactor_evidence_is_rejected ______
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_decrease_with_degraded_va0')
+
+    def test_decrease_with_degraded_validated_refactor_evidence_is_rejected(tmp_path: Path) -> None:
+        """The anti-gaming rule on the amended basis (CD-09): a reduction whose
+        descriptor comparison is stale cannot close."""
+        adapters = load_adapters()
+>       result = adapters.ComplexityLedgerCloseOutAdapter().apply(
+            tmp_path, spec_root="project_specs", ticket_id="CLI-142"
+        )
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_complexity_ledger_adapter.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:1789: in apply
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+_______ test_validated_decrease_with_not_run_fuzzing_members_is_recorded _______
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_validated_decrease_with_n0')
+
+    def test_validated_decrease_with_not_run_fuzzing_members_is_recorded(tmp_path: Path) -> None:
+        """CD-09, the amended licensing: TLC green before/after + behavior tests +
+        descriptor comparison license a decrease; kill_rate/effect_conformance/
+        external_coverage stay recorded as the honest `not_run`, never gating."""
+        adapters = load_adapters()
+>       result = adapters.ComplexityLedgerCloseOutAdapter().apply(
+            tmp_path, spec_root="project_specs", ticket_id="CLI-143"
+        )
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_complexity_ledger_adapter.py:78: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:1789: in apply
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+__________________ test_case_cap_is_a_hard_gate_on_both_sides __________________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_case_cap_is_a_hard_gate_o0')
+
+    def test_case_cap_is_a_hard_gate_on_both_sides(tmp_path: Path) -> None:
+        adapters = load_adapters()
+>       result = adapters.AnalyzeCorpusAdapter().apply(tmp_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_corpus_adapter.py:31: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:1567: in apply
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+___________________ test_a_failing_gate_never_removes_a_case ___________________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_a_failing_gate_never_remo0')
+
+    def test_a_failing_gate_never_removes_a_case(tmp_path: Path) -> None:
+        """The corpus is complete whether the gate passes or fails."""
+        adapters = load_adapters()
+>       result = adapters.AnalyzeCorpusAdapter().apply(tmp_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_corpus_adapter.py:41: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:1567: in apply
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+____________ test_failure_reports_the_distribution_and_what_varies _____________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_failure_reports_the_distr0')
+
+    def test_failure_reports_the_distribution_and_what_varies(tmp_path: Path) -> None:
+        """The actionable part: the cause, not just the count."""
+        adapters = load_adapters()
+>       result = adapters.AnalyzeCorpusAdapter().apply(tmp_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_corpus_adapter.py:49: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:1567: in apply
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+_______________ test_raising_the_cap_is_the_offered_accept_path ________________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_raising_the_cap_is_the_of0')
+
+    def test_raising_the_cap_is_the_offered_accept_path(tmp_path: Path) -> None:
+        """Caps are per-program and negotiable; trimming is not an option at all."""
+        adapters = load_adapters()
+>       result = adapters.AnalyzeCorpusAdapter().apply(tmp_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_corpus_adapter.py:60: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:1567: in apply
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+_______ test_over_cap_output_asks_the_redesign_question_never_prescribes _______
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_over_cap_output_asks_the_0')
+
+    def test_over_cap_output_asks_the_redesign_question_never_prescribes(tmp_path: Path) -> None:
+        """CD-04: the gate states the finding and asks the redesign question,
+        naming the complexity descriptor and references/complexity_intuition.md
+        as the judgment inputs; prescriptive-move wording must never return."""
+        adapters = load_adapters()
+>       result = adapters.AnalyzeCorpusAdapter().apply(tmp_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_corpus_adapter.py:69: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:1567: in apply
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+_______________ test_named_regression_traces_are_always_retained _______________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_named_regression_traces_a0')
+
+    def test_named_regression_traces_are_always_retained(tmp_path: Path) -> None:
+        adapters = load_adapters()
+>       result = adapters.AnalyzeCorpusAdapter().apply(tmp_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_corpus_adapter.py:75: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:1567: in apply
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+________________________ test_findings_fail_the_command ________________________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_findings_fail_the_command0')
+
+    def test_findings_fail_the_command(tmp_path: Path) -> None:
+        """A finding exits nonzero. Recording it is not an alternative to failing."""
+        adapters = load_adapters()
+>       result = adapters.RunEffectConformanceAdapter().apply(tmp_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_effect_conformance_adapter.py:35: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:1687: in apply
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+__________ test_a_recorded_justification_does_not_prevent_the_failure __________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_a_recorded_justification_0')
+
+    def test_a_recorded_justification_does_not_prevent_the_failure(tmp_path: Path) -> None:
+        """THE inverse test. Nothing suppresses a gap report."""
+        adapters = load_adapters()
+>       result = adapters.RunEffectConformanceAdapter().apply(tmp_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_effect_conformance_adapter.py:45: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:1687: in apply
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+_________ test_suppression_attempts_are_reported_not_silently_ignored __________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_suppression_attempts_are_0')
+
+    def test_suppression_attempts_are_reported_not_silently_ignored(tmp_path: Path) -> None:
+        """A silently dropped waiver would let an author believe it worked."""
+        adapters = load_adapters()
+>       result = adapters.RunEffectConformanceAdapter().apply(tmp_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_effect_conformance_adapter.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:1687: in apply
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+___________ test_absent_declarations_are_an_error_not_a_silent_pass ____________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_absent_declarations_are_a0')
+
+    def test_absent_declarations_are_an_error_not_a_silent_pass(tmp_path: Path) -> None:
+        """A gate that disables itself when its input is absent is degeneracy."""
+        adapters = load_adapters()
+>       result = adapters.RunEffectConformanceAdapter().apply(tmp_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_effect_conformance_adapter.py:63: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:1687: in apply
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+_____________ test_generate_cases_performs_the_effects_it_declares _____________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_generate_cases_performs_t0')
+
+    def test_generate_cases_performs_the_effects_it_declares(tmp_path: Path) -> None:
+        """The three ports on `GenerateCases`, exercised through the shipped CLI.
+    
+        `corpus_process` is the java/TLC spawn, `spec_tree` the generated package
+        plus the per-action coverage record and the parameter-recovery audit, and
+        `spec_tree_delete` the metadir `rmtree`. Until RC-01 none of these was
+        declared and none was reachable from `build_parser`, so no oracle in this
+        toolchain could observe any of them.
+    
+        A machine with no `tlc2` reports `unobservable` and FAILS this test rather
+        than passing on an unobserved boundary -- the MF-027 rule, applied to the
+        adapter that would otherwise be the quietest place to break it.
+        """
+        adapters = load_adapters()
+>       result = adapters.GenerateCasesAdapter().apply(tmp_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_generation_adapter.py:41: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:1969: in apply
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+____________ test_a_weakened_close_is_recorded_as_a_different_close ____________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_a_weakened_close_is_recor0')
+
+    def test_a_weakened_close_is_recorded_as_a_different_close(tmp_path: Path) -> None:
+        """`--allow-open` closes a ticket the plan still calls open, and says so.
+    
+        `CloseTicket` guards on the ticket having reached `TicketSpecUnitTestsPassed`
+        and TLC proves `ClosedTicketsPassedSpecUnitTests` over the whole reachable
+        state space, while `--accept-new` and `--allow-open` exist specifically to
+        get past that precondition. No modeled state recorded their use and no
+        oracle could see the difference, because the mutation kill test seeds faults
+        per declared port and per invariant -- only inside modeled boundaries.
+    
+        The weakened close still SUCCEEDS. The flags ship and have legitimate uses;
+        asserting a refusal the CLI does not perform would be the same false
+        assurance this ticket exists to remove.
+        """
+        adapters = load_adapters()
+>       result = adapters.CloseTicketWeakenedAdapter().apply(tmp_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_generation_adapter.py:72: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:2096: in apply
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+____________ test_run_spec_unit_tests_adapter_drives_cli_validation ____________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_run_spec_unit_tests_adapt0')
+
+    def test_run_spec_unit_tests_adapter_drives_cli_validation(tmp_path: Path) -> None:
+        adapters = load_adapters()
+>       result = adapters.RunSpecUnitTestsAdapter().apply(tmp_path, spec_root="project_specs", ticket_id="CLI-126")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_run_adapter.py:16: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:1049: in apply
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+_____________ test_scaffold_project_and_workflow_adapters_use_cli ______________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_scaffold_project_and_work0')
+
+    def test_scaffold_project_and_workflow_adapters_use_cli(tmp_path: Path) -> None:
+        adapters = load_adapters()
+    
+>       project = adapters.ScaffoldProjectAdapter().apply(tmp_path, spec_root="project_specs", name="CliProject")
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_scaffold_adapter.py:17: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:343: in apply
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+_________________ test_close_out_emits_skill_feedback_template _________________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_close_out_emits_skill_fee0')
+
+    def test_close_out_emits_skill_feedback_template(tmp_path: Path) -> None:
+        adapters = load_adapters()
+>       result = adapters.SkillFeedbackCloseOutAdapter().apply(
+            tmp_path, spec_root="project_specs", ticket_id="CLI-129"
+        )
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_skill_feedback_adapter.py:23: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:950: in apply
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+_______________ test_history_scopes_feedback_to_the_newest_close _______________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_history_scopes_feedback_t0')
+
+    def test_history_scopes_feedback_to_the_newest_close(tmp_path: Path) -> None:
+        adapters = load_adapters()
+>       result = adapters.SkillFeedbackCloseOutAdapter().apply(
+            tmp_path, spec_root="project_specs", ticket_id="CLI-130"
+        )
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_skill_feedback_adapter.py:41: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:950: in apply
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+_______________ test_accumulated_findings_survive_the_next_close _______________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_accumulated_findings_surv0')
+
+    def test_accumulated_findings_survive_the_next_close(tmp_path: Path) -> None:
+        """A filled finding is evidence; regenerating the template over it is data loss."""
+        adapters = load_adapters()
+>       result = adapters.SkillFeedbackCloseOutAdapter().apply(
+            tmp_path, spec_root="project_specs", ticket_id="CLI-131"
+        )
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_skill_feedback_adapter.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:950: in apply
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+__________ test_test_graph_cli_adapter_validates_spec_workflow_nodes ___________
+
+    def test_test_graph_cli_adapter_validates_spec_workflow_nodes() -> None:
+        adapters = load_adapters()
+>       result = adapters.TestGraphCliAdapter().apply()
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_test_graph_adapter.py:16: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:1076: in apply
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+_____________ test_open_ticket_adapter_drives_cli_ticket_workspace _____________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_open_ticket_adapter_drive0')
+
+    def test_open_ticket_adapter_drives_cli_ticket_workspace(tmp_path: Path) -> None:
+        adapters = load_adapters()
+>       result = adapters.OpenTicketAdapter().apply(tmp_path, spec_root="project_specs", ticket_id="CLI-124")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_ticket_adapter.py:16: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:665: in apply
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+____________ test_close_ticket_adapter_drives_cli_history_promotion ____________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_close_ticket_adapter_driv0')
+
+    def test_close_ticket_adapter_drives_cli_history_promotion(tmp_path: Path) -> None:
+        adapters = load_adapters()
+>       result = adapters.CloseTicketAdapter().apply(tmp_path, spec_root="project_specs", ticket_id="CLI-125")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_ticket_adapter.py:25: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:787: in apply
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+_____________ test_update_ticket_desired_executes_case_end_to_end ______________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_update_ticket_desired_exe0')
+
+    def test_update_ticket_desired_executes_case_end_to_end(tmp_path: Path) -> None:
+        pa = load_adapters()
+        adapter = pa.UpdateTicketDesiredAdapter()
+        case = desired_case()
+        accepted, reason = adapter.can_run(case)
+        assert accepted, reason
+>       result = adapter.run(case, work_dir=tmp_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_update_ticket_adapter.py:83: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:105: in run
+    target_repo, spec_root, replay = materialize_before(case, work_dir)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+specs/tickets/SI-01/desired/adapter_case_runtime.py:160: in materialize_before
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+_____________ test_update_ticket_current_executes_case_end_to_end ______________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_update_ticket_current_exe0')
+
+    def test_update_ticket_current_executes_case_end_to_end(tmp_path: Path) -> None:
+        pa = load_adapters()
+        adapter = pa.UpdateTicketCurrentAdapter()
+        case = current_case()
+        assert adapter.can_run(case)[0]
+>       result = adapter.run(case, work_dir=tmp_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_update_ticket_adapter.py:96: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:105: in run
+    target_repo, spec_root, replay = materialize_before(case, work_dir)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+specs/tickets/SI-01/desired/adapter_case_runtime.py:160: in materialize_before
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+_______________ test_desired_negative_control_wrong_value_fails ________________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_desired_negative_control_0')
+
+    def test_desired_negative_control_wrong_value_fails(tmp_path: Path) -> None:
+        pa = load_adapters()
+        adapter = pa.UpdateTicketDesiredAdapter()
+        # Claim the ticket jumped to CURRENT_READY(3); the adapter observes 2.
+        bad = _corrupt(desired_case(), lambda a: a["ticket_state"].__setitem__("cli_entrypoint", 3))
+        with pytest.raises(AssertionError):
+>           adapter.run(bad, work_dir=tmp_path)
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_update_ticket_adapter.py:108: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:105: in run
+    target_repo, spec_root, replay = materialize_before(case, work_dir)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+specs/tickets/SI-01/desired/adapter_case_runtime.py:160: in materialize_before
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+____________ test_desired_negative_control_wrong_last_command_fails ____________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_desired_negative_control_1')
+
+    def test_desired_negative_control_wrong_last_command_fails(tmp_path: Path) -> None:
+        pa = load_adapters()
+        adapter = pa.UpdateTicketDesiredAdapter()
+        bad = _corrupt(desired_case(), lambda a: a.__setitem__("lastCommand", "WrongCommand"))
+        with pytest.raises(AssertionError):
+>           adapter.run(bad, work_dir=tmp_path)
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_update_ticket_adapter.py:116: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:105: in run
+    target_repo, spec_root, replay = materialize_before(case, work_dir)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+specs/tickets/SI-01/desired/adapter_case_runtime.py:160: in materialize_before
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+_______________ test_current_negative_control_wrong_value_fails ________________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-377/test_current_negative_control_0')
+
+    def test_current_negative_control_wrong_value_fails(tmp_path: Path) -> None:
+        pa = load_adapters()
+        adapter = pa.UpdateTicketCurrentAdapter()
+        bad = _corrupt(current_case(), lambda a: a["ticket_state"].__setitem__("cli_entrypoint", 2))
+        # after==before for ticket_state -> the argument is not recoverable, which is
+        # itself a refusal: the check cannot be satisfied by a non-transition.
+        with pytest.raises((AssertionError, pa.BeforeStateUnreachable)):
+>           adapter.run(bad, work_dir=tmp_path)
+
+specs/tickets/SI-01/desired/tests/test_tla_spec_dev_update_ticket_adapter.py:126: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/tickets/SI-01/desired/production_adapters.py:105: in run
+    target_repo, spec_root, replay = materialize_before(case, work_dir)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+specs/tickets/SI-01/desired/adapter_case_runtime.py:160: in materialize_before
+    root = repo_root()
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def repo_root() -> Path:
+        for parent in Path(__file__).resolve().parents:
+            if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+                return parent
+>       raise RuntimeError("could not locate tla-spec-dev repository root")
+E       RuntimeError: could not locate tla-spec-dev repository root
+
+specs/tickets/SI-01/desired/adapter_case_runtime.py:30: RuntimeError
+=========================== short test summary info ============================
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_analyze_adapter.py::test_analyze_complexity_adapter_advises_both_sides_and_never_blocks
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_analyze_adapter.py::test_descriptor_makes_no_suggestions
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_analyze_adapter.py::test_output_reports_measured_facts
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_budgets_adapter.py::test_record_budgets_adapter_emits_defaults_and_prompt
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_budgets_adapter.py::test_scaffold_workflow_also_emits_budgets
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_budgets_adapter.py::test_missing_budgets_block_falls_back_with_warning
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_case_execution_run.py::test_install_local_cli_executes_case_end_to_end
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_case_execution_run.py::test_install_local_cli_negative_control_wrong_phase_fails
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_case_execution_run.py::test_scaffold_workflow_executes_case_end_to_end
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_case_execution_run.py::test_scaffold_workflow_negative_control_wrong_phase_fails
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_case_execution_run.py::test_record_budgets_executes_case_end_to_end
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_case_execution_run.py::test_record_budgets_negative_control_wrong_last_command_fails
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_case_execution_run.py::test_open_ticket_executes_case_end_to_end
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_case_execution_run.py::test_open_ticket_negative_control_wrong_ticket_state_fails
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_cli_adapter.py::test_build_skill_cli_adapter_finds_entrypoint_and_installer
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_cli_adapter.py::test_install_local_cli_adapter_installs_wrapper
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_close_promotion_adapter.py::test_close_promotion_preserves_current_only_paths
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_close_promotion_adapter.py::test_close_promotion_enumerates_what_it_preserved
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_complexity_ledger_adapter.py::test_close_records_delta_jointly_with_retention_and_refinement
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_complexity_ledger_adapter.py::test_unfilled_ledger_template_refuses_the_close
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_complexity_ledger_adapter.py::test_decrease_with_degraded_validated_refactor_evidence_is_rejected
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_complexity_ledger_adapter.py::test_validated_decrease_with_not_run_fuzzing_members_is_recorded
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_corpus_adapter.py::test_case_cap_is_a_hard_gate_on_both_sides
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_corpus_adapter.py::test_a_failing_gate_never_removes_a_case
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_corpus_adapter.py::test_failure_reports_the_distribution_and_what_varies
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_corpus_adapter.py::test_raising_the_cap_is_the_offered_accept_path
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_corpus_adapter.py::test_over_cap_output_asks_the_redesign_question_never_prescribes
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_corpus_adapter.py::test_named_regression_traces_are_always_retained
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_effect_conformance_adapter.py::test_findings_fail_the_command
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_effect_conformance_adapter.py::test_a_recorded_justification_does_not_prevent_the_failure
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_effect_conformance_adapter.py::test_suppression_attempts_are_reported_not_silently_ignored
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_effect_conformance_adapter.py::test_absent_declarations_are_an_error_not_a_silent_pass
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_generation_adapter.py::test_generate_cases_performs_the_effects_it_declares
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_generation_adapter.py::test_a_weakened_close_is_recorded_as_a_different_close
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_run_adapter.py::test_run_spec_unit_tests_adapter_drives_cli_validation
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_scaffold_adapter.py::test_scaffold_project_and_workflow_adapters_use_cli
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_skill_feedback_adapter.py::test_close_out_emits_skill_feedback_template
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_skill_feedback_adapter.py::test_history_scopes_feedback_to_the_newest_close
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_skill_feedback_adapter.py::test_accumulated_findings_survive_the_next_close
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_test_graph_adapter.py::test_test_graph_cli_adapter_validates_spec_workflow_nodes
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_ticket_adapter.py::test_open_ticket_adapter_drives_cli_ticket_workspace
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_ticket_adapter.py::test_close_ticket_adapter_drives_cli_history_promotion
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_update_ticket_adapter.py::test_update_ticket_desired_executes_case_end_to_end
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_update_ticket_adapter.py::test_update_ticket_current_executes_case_end_to_end
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_update_ticket_adapter.py::test_desired_negative_control_wrong_value_fails
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_update_ticket_adapter.py::test_desired_negative_control_wrong_last_command_fails
+FAILED specs/tickets/SI-01/desired/tests/test_tla_spec_dev_update_ticket_adapter.py::test_current_negative_control_wrong_value_fails
+47 failed, 6 passed in 0.89s
+spec root: /Users/hayde/IdeaProjects/wt-334-plugin-migration/specs
+spec-unit target: /Users/hayde/IdeaProjects/wt-334-plugin-migration/specs/tickets/SI-01/desired
+running pytest:/Users/hayde/IdeaProjects/wt-334-plugin-migration/specs/tickets/SI-01/desired: uv run --with pytest -m pytest /Users/hayde/IdeaProjects/wt-334-plugin-migration/specs/tickets/SI-01/desired/tests -q

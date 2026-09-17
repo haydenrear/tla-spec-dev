@@ -87,7 +87,7 @@ def main() -> int:
     run(
         [
             sys.executable,
-            str(REPO_ROOT / "scripts" / "generate_cases_from_tlc_dump.py"),
+            str(REPO_ROOT / "skills" / "spec-double-2" / "scripts" / "generate_cases_from_tlc_dump.py"),
             str(SPEC_DIR / "Internal.tla"),
             str(SPEC_DIR / "Internal.cfg"),
             "--out",
@@ -104,7 +104,7 @@ def main() -> int:
     run(
         [
             sys.executable,
-            str(REPO_ROOT / "scripts" / "generate_cases_from_tlc_dump.py"),
+            str(REPO_ROOT / "skills" / "spec-double-2" / "scripts" / "generate_cases_from_tlc_dump.py"),
             str(SPEC_DIR / "External.tla"),
             str(SPEC_DIR / "External.cfg"),
             "--out",
@@ -121,7 +121,7 @@ def main() -> int:
     run(
         [
             sys.executable,
-            str(REPO_ROOT / "scripts" / "export_testgraph_cases.py"),
+            str(REPO_ROOT / "skills" / "spec-double-2" / "scripts" / "export_testgraph_cases.py"),
             str(generated_dir / "testgraph" / "ecommerce_external_cases"),
             "--out",
             str(generated_dir / "testgraph" / "traces"),

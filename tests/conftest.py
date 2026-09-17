@@ -16,8 +16,13 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
+#: SI-01: `scripts/` and `spec_double_compiler/` moved under the contained
+#: skill. Both roots go on the path: the repository root for `tests.*` and
+#: `examples.*`, the skill root for `scripts.*` and `spec_double_compiler`.
+SKILL_ROOT = ROOT / "skills" / "spec-double-2"
+for _root in (ROOT, SKILL_ROOT):
+    if str(_root) not in sys.path:
+        sys.path.insert(0, str(_root))
 
 
 PASSING_LEDGER_INPUT = """\

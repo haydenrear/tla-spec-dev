@@ -45,14 +45,14 @@ For production repositories that use the desired/current migration loop,
 scaffold the workflow directories first:
 
 ```bash
-python3 scripts/tla_spec_dev.py --spec-root specs scaffold project --name ProjectName
-python3 scripts/tla_spec_dev.py --spec-root specs scaffold workflow TICKET-123 "Ticket title"
-python3 scripts/tla_spec_dev.py --spec-root specs open ticket TICKET-123
-python3 scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket TICKET-123
+python3 skills/spec-double-2/scripts/tla_spec_dev.py --spec-root specs scaffold project --name ProjectName
+python3 skills/spec-double-2/scripts/tla_spec_dev.py --spec-root specs scaffold workflow TICKET-123 "Ticket title"
+python3 skills/spec-double-2/scripts/tla_spec_dev.py --spec-root specs open ticket TICKET-123
+python3 skills/spec-double-2/scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket TICKET-123
 ```
 
 The installed wrapper exposes the same workflow as `tla-spec-dev`; the
-repository path uses `python3 scripts/tla_spec_dev.py` so local development does
+repository path uses `python3 skills/spec-double-2/scripts/tla_spec_dev.py` so local development does
 not depend on a prior skill install. Use the same `--spec-root` for every
 project, workflow, ticket, run, and close command.
 
@@ -70,7 +70,7 @@ uv run examples/distributed_history/scripts/regenerate_tlc_cases.py \
 Run the generated internal/spec-unit cases:
 
 ```bash
-python3 scripts/run_generated_case_adapters.py \
+python3 skills/spec-double-2/scripts/run_generated_case_adapters.py \
   examples/distributed_history/test_graph/build/generated/manual/spec-unit/ecommerce_internal_cases \
   --mapping examples/distributed_history/specs/program_model/case_adapters.toml \
   --view internal \
@@ -81,9 +81,9 @@ python3 scripts/run_generated_case_adapters.py \
 View-aware case generation writes explicit internal and external outputs:
 
 ```bash
-python3 scripts/generate_cases_from_tlc_dump.py path/to/Internal.tla path/to/Internal.cfg --out generated --package internal_cases --view internal --actions-metadata model/actions.yml
-python3 scripts/generate_cases_from_tlc_dump.py path/to/External.tla path/to/External.cfg --out generated --package external_cases --view external --actions-metadata model/actions.yml
-python3 scripts/export_testgraph_cases.py generated/testgraph/external_cases --out generated/testgraph/traces --bindings model/testgraph_bindings.yml
+python3 skills/spec-double-2/scripts/generate_cases_from_tlc_dump.py path/to/Internal.tla path/to/Internal.cfg --out generated --package internal_cases --view internal --actions-metadata model/actions.yml
+python3 skills/spec-double-2/scripts/generate_cases_from_tlc_dump.py path/to/External.tla path/to/External.cfg --out generated --package external_cases --view external --actions-metadata model/actions.yml
+python3 skills/spec-double-2/scripts/export_testgraph_cases.py generated/testgraph/external_cases --out generated/testgraph/traces --bindings model/testgraph_bindings.yml
 ```
 
 `--bindings` is required: export is gated on every external binding declaring
@@ -114,7 +114,7 @@ the spec directory should produce the same spec-local artifact layout.
 Adapter mapping validation:
 
 ```bash
-python3 scripts/run_generated_case_adapters.py \
+python3 skills/spec-double-2/scripts/run_generated_case_adapters.py \
   examples/distributed_history/test_graph/build/generated/manual/testgraph/ecommerce_external_cases \
   --mapping examples/distributed_history/specs/program_model/testgraph_bindings.yml \
   --view external \
@@ -126,7 +126,7 @@ python3 scripts/run_generated_case_adapters.py \
 For larger case sets, use batch mode:
 
 ```bash
-python3 scripts/run_generated_case_adapters.py path/to/generated_cases --mapping path/to/case_adapters.toml --batch --validate-capabilities
+python3 skills/spec-double-2/scripts/run_generated_case_adapters.py path/to/generated_cases --mapping path/to/case_adapters.toml --batch --validate-capabilities
 ```
 
 ## Evaluation Scorecards
@@ -191,8 +191,8 @@ After each ticket is marked closed in
 `specs/desired_program_model/ticket_plan.yaml`:
 
 ```bash
-python3 scripts/tla_spec_dev.py --spec-root specs open ticket TICKET-123
-python3 scripts/tla_spec_dev.py --spec-root specs close ticket TICKET-123 \
+python3 skills/spec-double-2/scripts/tla_spec_dev.py --spec-root specs open ticket TICKET-123
+python3 skills/spec-double-2/scripts/tla_spec_dev.py --spec-root specs close ticket TICKET-123 \
   --summary "Kept generated cases spec-local" \
   --result specs/results/tlc.txt
 ```
@@ -217,7 +217,7 @@ disposable git repository under the graph build directory:
 At the end of a desired/current workflow:
 
 ```bash
-python3 scripts/close_tickets.py --repo-root . --summary "Promoted desired/current into program_model"
+python3 skills/spec-double-2/scripts/close_tickets.py --repo-root . --summary "Promoted desired/current into program_model"
 ```
 
 These commands write under `specs/.history/<workflow-name>/`, refuse to

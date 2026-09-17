@@ -42,6 +42,7 @@ from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+SKILL_ROOT = REPO_ROOT / "skills" / "spec-double-2"
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
@@ -60,8 +61,8 @@ from scripts.code_complexity import (  # noqa: E402
     render,
 )
 
-SCRIPT = REPO_ROOT / "scripts" / "code_complexity.py"
-INTUITION_DOC = REPO_ROOT / "references" / "complexity_intuition.md"
+SCRIPT = SKILL_ROOT / "scripts" / "code_complexity.py"
+INTUITION_DOC = SKILL_ROOT / "references" / "complexity_intuition.md"
 
 #: RD-05. The one shipped file that reads this instrument's figures on purpose,
 #: named here so the §6b ruling has a subject rather than a category. It is NOT
@@ -331,10 +332,10 @@ def test_shipped_source_has_exactly_one_exit_code_and_it_is_zero() -> None:
 # this repository takes.
 
 EXECUTABLE_SURFACES = (
-    "scripts",
-    "skill-scripts",
-    "spec_double_compiler",
-    "templates",
+    "skills/spec-double-2/scripts",
+    "skills/spec-double-2/skill-scripts",
+    "skills/spec-double-2/spec_double_compiler",
+    "skills/spec-double-2/templates",
     "test_graph",
 )
 

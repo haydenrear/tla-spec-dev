@@ -46,7 +46,7 @@ def main() -> int:
     run(
         [
             sys.executable,
-            str(REPO_ROOT / "scripts" / "generate_python.py"),
+            str(REPO_ROOT / "skills" / "spec-double-2" / "scripts" / "generate_python.py"),
             str(SPEC_DIR / "spec_manifest.yaml"),
             "--out",
             str(GENERATED_DIR),
@@ -69,7 +69,7 @@ def main() -> int:
             completed = run(
                 [
                     sys.executable,
-                    str(REPO_ROOT / "scripts" / "generate_cases_from_tlc_dump.py"),
+                    str(REPO_ROOT / "skills" / "spec-double-2" / "scripts" / "generate_cases_from_tlc_dump.py"),
                     str(SPEC_DIR / f"{module}.tla"),
                     str(SPEC_DIR / f"{module}.cfg"),
                     "--out",

@@ -34,6 +34,7 @@ from scripts.generate_python import (
 
 ROOT = Path(__file__).resolve().parents[1]
 
+SKILL_ROOT = ROOT / "skills" / "spec-double-2"
 MODULE_TLA = """\
 ---- MODULE Ledger ----
 EXTENDS Naturals
@@ -367,7 +368,7 @@ def test_the_cli_prints_the_audit_unprompted(tmp_path: Path) -> None:
     completed = subprocess.run(
         [
             sys.executable,
-            str(ROOT / "scripts" / "generate_python.py"),
+            str(SKILL_ROOT / "scripts" / "generate_python.py"),
             str(manifest_path),
             "--out",
             str(tmp_path / "out"),

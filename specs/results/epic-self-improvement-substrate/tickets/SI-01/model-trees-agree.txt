@@ -1,0 +1,22 @@
+# SI-01 — the adapter copies stayed in agreement across the three model trees
+
+Model ownership for this epic sits with the EPIC AGENT; a ticket agent moves
+current toward desired. SI-01's only model-side change is mechanical: the spec-unit
+adapters locate the toolchain, and what they locate it BY moved.
+  - repo_root() keyed on skill-manager.toml at the repo root -> now keys on
+    skills/spec-double-2/scripts/tla_spec_dev.py
+  - every root/'scripts' and root/'skill-scripts' join, SKILL_DIR and SKILL_NAME
+
+The same edit was applied to all three trees, so they must still agree:
+
+  IDENTICAL  program_model/production_adapters.py == current/production_adapters.py
+  IDENTICAL  program_model/production_adapters.py == desired_program_model/production_adapters.py
+  IDENTICAL  program_model/adapter_case_runtime.py == current/adapter_case_runtime.py
+  IDENTICAL  program_model/adapter_case_runtime.py == desired_program_model/adapter_case_runtime.py
+
+No TLA+ action was added, removed or changed. TlaSpecDevCli.tla changes are
+comment-only (script paths named in prose), as the assignment's tla conflict key
+anticipated:
+    specs/program_model/TlaSpecDevCli.tla: 14 changed line(s) — 14 comment, 0 non-comment
+    specs/current/TlaSpecDevCli.tla: 14 changed line(s) — 14 comment, 0 non-comment
+    specs/desired_program_model/TlaSpecDevCli.tla: 14 changed line(s) — 14 comment, 0 non-comment

@@ -10,6 +10,7 @@ import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
+SKILL_ROOT = ROOT / "skills" / "spec-double-2"
 sys.path.insert(0, str(ROOT))
 
 from scripts.effect_conformance import load_effect_declarations
@@ -1346,7 +1347,7 @@ provider = "provider_app:filesystem_provider"
 
     command = [
         sys.executable,
-        str(ROOT / "scripts" / "run_generated_case_adapters.py"),
+        str(SKILL_ROOT / "scripts" / "run_generated_case_adapters.py"),
         str(cases_dir),
         "--mapping",
         str(mapping_path),

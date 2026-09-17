@@ -39,6 +39,7 @@ from types import SimpleNamespace
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+SKILL_ROOT = REPO_ROOT / "skills" / "spec-double-2"
 DRIVER = REPO_ROOT / "examples/validation/ab/eval/run_controls.py"
 
 pytestmark = pytest.mark.skipif(
@@ -54,7 +55,7 @@ def driver():
     so it is imported by path rather than as a package.
     """
     measure = REPO_ROOT / "specs/results/scorecards/hexagonal-prompting/measure"
-    for entry in (str(REPO_ROOT), str(REPO_ROOT / "scripts"), str(DRIVER.parent),
+    for entry in (str(REPO_ROOT), str(SKILL_ROOT / "scripts"), str(DRIVER.parent),
                   str(measure), str(measure / "generated")):
         if entry not in sys.path:
             sys.path.insert(0, entry)

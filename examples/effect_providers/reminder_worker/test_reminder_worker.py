@@ -14,7 +14,12 @@ from typing import get_type_hints
 
 ROOT = Path(__file__).resolve().parent
 REPO_ROOT = ROOT.parents[2]
+# SI-01: the package moved to skills/spec-double-2/. REPO_ROOT stays on the
+# path for everything else; the skill root is what makes
+# `import spec_double_compiler` resolve.
+SKILL_ROOT = REPO_ROOT / "skills" / "spec-double-2"
 sys.path.insert(0, str(REPO_ROOT))
+sys.path.insert(0, str(SKILL_ROOT))
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "specs" / "generated"))
 
@@ -88,7 +93,7 @@ class ReminderWorkerExperimentTests(unittest.TestCase):
                     [
                         sys.executable,
                         *python_args,
-                        str(REPO_ROOT / "scripts" / "generate_python.py"),
+                        str(REPO_ROOT / "skills" / "spec-double-2" / "scripts" / "generate_python.py"),
                         str(ROOT / "specs" / "program_model" / "spec_manifest.yaml"),
                         "--out",
                         str(output),

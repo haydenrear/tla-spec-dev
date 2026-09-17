@@ -21,7 +21,7 @@ def test_internal_adapters_run_in_batch(tmp_path):
     generated_root = _regenerate_cases(tmp_path)
     command = [
         sys.executable,
-        str(REPO / "scripts" / "run_generated_case_adapters.py"),
+        str(REPO / "skills" / "spec-double-2" / "scripts" / "run_generated_case_adapters.py"),
         str(generated_root / "spec-unit" / "ecommerce_internal_cases"),
         "--mapping",
         str(ROOT / "specs" / "program_model" / "case_adapters.toml"),
@@ -53,7 +53,7 @@ def test_external_adapters_project_cluster_state(tmp_path):
         env["ECOMMERCE_BASE_URL"] = "http://127.0.0.1:18081"
         command = [
             sys.executable,
-            str(REPO / "scripts" / "run_generated_case_adapters.py"),
+            str(REPO / "skills" / "spec-double-2" / "scripts" / "run_generated_case_adapters.py"),
             str(generated_root / "testgraph" / "ecommerce_external_cases"),
             "--mapping",
             str(ROOT / "specs" / "program_model" / "testgraph_bindings.yml"),
