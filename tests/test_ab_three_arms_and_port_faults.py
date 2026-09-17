@@ -38,6 +38,7 @@ from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+SKILL_ROOT = REPO_ROOT / "skills" / "spec-double-2"
 AB = REPO_ROOT / "examples" / "validation" / "ab"
 PREDICTIONS = REPO_ROOT / "examples" / "validation" / "PREDICTIONS-PA.md"
 
@@ -569,7 +570,7 @@ def test_nothing_added_here_refuses_anything_in_the_product():
     degeneracy `scripts/kill_test.py` scans for.
     """
     catalogue = (AB / "seeded_faults.toml").read_text(encoding="utf-8")
-    sys.path.insert(0, str(REPO_ROOT / "scripts"))
+    sys.path.insert(0, str(SKILL_ROOT / "scripts"))
     import kill_test  # noqa: PLC0415
 
     for key in kill_test.SUPPRESSION_KEYS:

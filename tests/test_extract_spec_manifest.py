@@ -10,6 +10,7 @@ from scripts.extract_spec_manifest import load_manifest, parse_simple_yaml
 ROOT = Path(__file__).resolve().parents[1]
 
 
+SKILL_ROOT = ROOT / "skills" / "spec-double-2"
 def test_parse_simple_yaml_supports_folded_block_scalar_with_strip_chomping() -> None:
     manifest = parse_simple_yaml(
         """\
@@ -135,7 +136,7 @@ def test_complete_generated_tree_is_identical_with_and_without_site_packages(
             [
                 sys.executable,
                 *python_flags,
-                str(ROOT / "scripts" / "generate_python.py"),
+                str(SKILL_ROOT / "scripts" / "generate_python.py"),
                 str(manifest),
                 "--out",
                 str(out),

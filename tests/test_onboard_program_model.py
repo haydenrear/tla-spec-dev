@@ -7,6 +7,7 @@ import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
+SKILL_ROOT = ROOT / "skills" / "spec-double-2"
 sys.path.insert(0, str(ROOT))
 
 from scripts.onboard_program_model import (
@@ -186,7 +187,7 @@ def test_scripts_run_as_direct_invocations(tmp_path: Path, script: str) -> None:
     args = ["T-1", "title"] if script == "new_ticket_workflow.py" else []
 
     result = subprocess.run(
-        [sys.executable, str(ROOT / "scripts" / script), *args, "--repo-root", str(tmp_path)],
+        [sys.executable, str(SKILL_ROOT / "scripts" / script), *args, "--repo-root", str(tmp_path)],
         capture_output=True,
         text=True,
     )

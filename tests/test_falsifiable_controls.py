@@ -32,6 +32,7 @@ from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+SKILL_ROOT = REPO_ROOT / "skills" / "spec-double-2"
 AB = REPO_ROOT / "examples" / "validation" / "ab"
 DEMONSTRATIONS = AB / "probe_demonstrations.toml"
 ARM_B_CONTROL = AB / "eval" / "controls_port_region_arm_b.toml"
@@ -466,7 +467,7 @@ def test_nothing_fi01_added_can_suppress_a_survivor():
     running the instrument. It decides no kill and appears in no measurement.
     This asserts it did not arrive alongside anything that could.
     """
-    sys.path.insert(0, str(REPO_ROOT / "scripts"))
+    sys.path.insert(0, str(SKILL_ROOT / "scripts"))
     import kill_test  # noqa: PLC0415
 
     for catalogue in (AB / "seeded_faults.toml", DEMONSTRATIONS, ARM_B_CONTROL):

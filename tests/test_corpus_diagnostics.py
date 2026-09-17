@@ -18,6 +18,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
+SKILL_ROOT = ROOT / "skills" / "spec-double-2"
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "tests"))
 
@@ -113,7 +114,7 @@ def test_no_api_removes_cases_to_satisfy_a_cap() -> None:
 def test_there_is_no_distill_flag_on_any_entry_point() -> None:
     """An opt-in filter is still a filter. It must not exist."""
     for script in ("generate_cases_from_tlc_dump.py", "export_testgraph_cases.py", "corpus_diagnostics.py"):
-        text = (ROOT / "scripts" / script).read_text(encoding="utf-8")
+        text = (SKILL_ROOT / "scripts" / script).read_text(encoding="utf-8")
         for flag in ("--distill", "--trim", "--sample", "--prune", "--max-cases"):
             assert flag not in text, f"{script} offers {flag}; opt-in filtering is forbidden"
 
@@ -401,7 +402,7 @@ def test_export_limit_cannot_bring_an_over_cap_corpus_under_cap(tmp_path: Path) 
     manifest.write_text("module: Program\nbudgets:\n  max_external_cases_per_action: 50\n", encoding="utf-8")
 
     result = subprocess.run(
-        [sys.executable, str(ROOT / "scripts" / "export_testgraph_cases.py"), str(package_dir),
+        [sys.executable, str(SKILL_ROOT / "scripts" / "export_testgraph_cases.py"), str(package_dir),
          "--out", str(tmp_path / "traces"), "--limit", "5", "--manifest", str(manifest),
          "--bindings", str(_external_bindings(tmp_path))],
         capture_output=True, text=True, cwd=ROOT,
@@ -418,7 +419,7 @@ def test_export_proceeds_when_the_corpus_is_within_cap(tmp_path: Path) -> None:
     manifest.write_text("module: Program\nbudgets:\n  max_external_cases_per_action: 50\n", encoding="utf-8")
 
     result = subprocess.run(
-        [sys.executable, str(ROOT / "scripts" / "export_testgraph_cases.py"), str(package_dir),
+        [sys.executable, str(SKILL_ROOT / "scripts" / "export_testgraph_cases.py"), str(package_dir),
          "--out", str(tmp_path / "traces"), "--manifest", str(manifest),
          "--bindings", str(_external_bindings(tmp_path))],
         capture_output=True, text=True, cwd=ROOT,
@@ -435,7 +436,7 @@ def test_export_proceeds_when_the_corpus_is_within_cap(tmp_path: Path) -> None:
 
 def _cli(*args: str) -> subprocess.CompletedProcess:
     return subprocess.run(
-        [sys.executable, str(ROOT / "scripts" / "tla_spec_dev.py"), "--spec-root", "specs",
+        [sys.executable, str(SKILL_ROOT / "scripts" / "tla_spec_dev.py"), "--spec-root", "specs",
          "analyze", "corpus", *args],
         capture_output=True, text=True, cwd=ROOT,
     )
@@ -465,7 +466,7 @@ def test_cli_exits_nonzero_over_cap(tmp_path: Path) -> None:
 
 def test_cli_help_states_that_nothing_is_dropped_and_asks_not_prescribes() -> None:
     result = subprocess.run(
-        [sys.executable, str(ROOT / "scripts" / "tla_spec_dev.py"), "analyze", "corpus", "--help"],
+        [sys.executable, str(SKILL_ROOT / "scripts" / "tla_spec_dev.py"), "analyze", "corpus", "--help"],
         capture_output=True, text=True, cwd=ROOT,
     )
     assert result.returncode == 0

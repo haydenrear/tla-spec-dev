@@ -61,6 +61,7 @@ from pathlib import Path
 from types import ModuleType, SimpleNamespace
 
 ROOT = Path(__file__).resolve().parents[1]
+SKILL_ROOT = ROOT / "skills" / "spec-double-2"
 sys.path.insert(0, str(ROOT))
 
 from scripts.analyze_complexity import parse_cfg_constants  # noqa: E402
@@ -82,7 +83,7 @@ SPEC = EXAMPLE / "specs" / "program_model"
 # consumer that still named the old spelling -- caught by set-comparing the
 # suite against main, not by anything here. Derived from the generator now, so
 # the next rename moves this with it instead of orphaning it.
-sys.path.insert(0, str(ROOT / "scripts"))
+sys.path.insert(0, str(SKILL_ROOT / "scripts"))
 try:
     from generate_cases_from_tlc_dump import VIEW_OUTPUT_DIRS  # type: ignore
 finally:

@@ -30,8 +30,9 @@ from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+SKILL_ROOT = REPO_ROOT / "skills" / "spec-double-2"
 EFFECT_PROVIDERS = REPO_ROOT / "examples" / "effect_providers"
-GENERATOR = REPO_ROOT / "scripts" / "generate_python.py"
+GENERATOR = SKILL_ROOT / "scripts" / "generate_python.py"
 
 
 def _manifests() -> list[Path]:

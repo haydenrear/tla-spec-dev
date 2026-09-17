@@ -29,6 +29,7 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+SKILL_ROOT = REPO_ROOT / "skills" / "spec-double-2"
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
@@ -1546,7 +1547,7 @@ def run_generation(tmp_path: Path, *extra: str) -> subprocess.CompletedProcess[s
     return subprocess.run(
         [
             sys.executable,
-            str(REPO_ROOT / "scripts" / "generate_cases_from_tlc_dump.py"),
+            str(SKILL_ROOT / "scripts" / "generate_cases_from_tlc_dump.py"),
             str(tla),
             str(cfg),
             "--out",
@@ -1595,7 +1596,7 @@ def test_case_generation_has_no_over_budget_override_flag(tmp_path: Path) -> Non
 
 def run_cli(*args: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        [sys.executable, str(REPO_ROOT / "scripts" / "tla_spec_dev.py"), *args],
+        [sys.executable, str(SKILL_ROOT / "scripts" / "tla_spec_dev.py"), *args],
         cwd=REPO_ROOT,
         text=True,
         capture_output=True,

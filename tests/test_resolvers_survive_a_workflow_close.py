@@ -25,8 +25,9 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
+SKILL_ROOT = REPO_ROOT / "skills" / "spec-double-2"
 def _module(name: str):
-    spec = importlib.util.spec_from_file_location(name, REPO_ROOT / "scripts" / f"{name}.py")
+    spec = importlib.util.spec_from_file_location(name, SKILL_ROOT / "scripts" / f"{name}.py")
     assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)
     import sys

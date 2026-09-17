@@ -5,7 +5,7 @@
 # operator happens to have installed. Measured: a run's `which -a tla-spec-dev`
 # returned `/Users/hayde/.skill-manager/bin/cli/tla-spec-dev` three times and
 # nothing else, and a traceback resolved the code from
-# `~/.skill-manager/skills/spec-double-compiler/scripts/`. The branch under
+# `~/.skill-manager/plugins/tla-spec-dev/skills/spec-double-2/scripts/`. The branch under
 # review was never executed.
 #
 # Three ways that DO NOT work, each measured rather than assumed:
@@ -22,9 +22,9 @@ set -eu
 here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 repo=$(CDPATH= cd -- "$here/../../../.." && pwd)
 
-test -f "$repo/scripts/tla_spec_dev.py" || {
+test -f "$repo/skills/spec-double-2/scripts/tla_spec_dev.py" || {
     echo "tla-spec-dev shim: no checkout at $repo -- refusing to fall through" \
          "to an installed copy, which would grade code nobody is reviewing" >&2
     exit 127
 }
-exec python3 "$repo/scripts/tla_spec_dev.py" "$@"
+exec python3 "$repo/skills/spec-double-2/scripts/tla_spec_dev.py" "$@"

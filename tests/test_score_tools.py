@@ -51,8 +51,9 @@ from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+SKILL_ROOT = REPO_ROOT / "skills" / "spec-double-2"
 TOOL = REPO_ROOT / "examples/validation/scorecards/score_tools.py"
-RUBRIC = REPO_ROOT / "references/eval_scorecard.md"
+RUBRIC = SKILL_ROOT / "references/eval_scorecard.md"
 # The bar as it stood at version 3, frozen so the change rule's "re-score a prior
 # example under both versions" is followable at all. `--card-version 3` alone
 # reproduces the old SCHEMA against the NEW bar; pointing at this file is the
@@ -307,7 +308,13 @@ def test_a_blinded_card_carries_the_scope_and_nothing_that_identifies_it(
         assert subject["blinded"] is True
         assert subject["name"] is None, subject
         assert "declared_effect_boundary" not in subject, subject
-        assert subject["scope"] == ["scripts"], subject   # what to read: kept
+        # SI-01: `rm04_scripts` declares its scope in the real subjects.toml, and
+        # that scope had to move with the skill surface -- left at "scripts" it
+        # would aim the complexity instrument at a directory that no longer
+        # exists and the measurement would go quietly vacuous. The card still
+        # carries the scope on purpose ("what to read: kept"); the path names the
+        # SKILL, never the arm label, so nothing identifying is disclosed by it.
+        assert subject["scope"] == ["skills/spec-double-2/scripts"], subject
 
     # 2. --unblinded is the deliberate, recorded way to get the identity back
     assert scaffold(st, root / "e2", arms="A", judges=1, subject="rm04_scripts",
@@ -2640,8 +2647,12 @@ def test_the_tool_finds_its_tree_instead_of_counting_parents(st, tmp_path, monke
     # one deep, which `parents[3]` cannot reach
     shallow = tmp_path / "tools"
     shallow.mkdir()
-    (tmp_path / "references").mkdir()
-    (tmp_path / "references/eval_scorecard.md").write_text(RUBRIC.read_text())
+    # Built FROM `st.CARD_PATH` rather than from a literal: this test is about
+    # the tool finding its tree by the card, so a second spelling of where the
+    # card lives is a second thing to forget. SI-01 moved it once already.
+    card = tmp_path / st.CARD_PATH
+    card.parent.mkdir(parents=True)
+    card.write_text(RUBRIC.read_text())
     assert st.repo_root(shallow / "score_tools.py") == tmp_path
     # and a layout neither rule fits is a variable, not a patch
     monkeypatch.setenv("SCORECARD_REPO_ROOT", str(tmp_path))

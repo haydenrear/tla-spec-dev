@@ -18,11 +18,15 @@ from typing import Any
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 REPO_ROOT = PROJECT_ROOT.parents[2]
+# SI-01: the package moved to skills/spec-double-2/. REPO_ROOT stays on the
+# path for everything else; the skill root is what makes
+# `import spec_double_compiler` resolve.
+SKILL_ROOT = REPO_ROOT / "skills" / "spec-double-2"
 SPEC_DIR = PROJECT_ROOT / "specs" / "program_model"
 GENERATED_DIR = SPEC_DIR / "generated"
 CASES_DIR = GENERATED_DIR / "cases" / "spec-unit" / "atomic_internal_cases"
 MAPPING = SPEC_DIR / "case_adapters.toml"
-RUNNER = REPO_ROOT / "scripts" / "run_generated_case_adapters.py"
+RUNNER = REPO_ROOT / "skills" / "spec-double-2" / "scripts" / "run_generated_case_adapters.py"
 ROOT_SEED = 20260721
 ITERATIONS = 16
 
@@ -379,6 +383,7 @@ def add_import_roots() -> None:
         CASES_DIR.parent,
         PROJECT_ROOT,
         REPO_ROOT,
+        SKILL_ROOT,
     ]
     for root in roots:
         rendered = str(root)
@@ -511,15 +516,18 @@ def cost_metrics(framework_audit: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
+# SI-01 moved the framework surface under the contained skill. These strings
+# are git PATHSPECS (`git ls-files -- ...`), so a stale prefix matches nothing
+# and the rescue guard goes silently vacuous rather than failing.
 FORBIDDEN_FRAMEWORK_SURFACES = [
-    "spec_double_compiler",
-    "scripts/run_generated_case_adapters.py",
-    "scripts/generate_cases_from_tlc_dump.py",
-    "scripts/generate_python.py",
-    "scripts/tla_spec_dev.py",
-    "scripts/scaffold_spec.py",
-    "scripts/onboard_program_model.py",
-    "templates",
+    "skills/spec-double-2/spec_double_compiler",
+    "skills/spec-double-2/scripts/run_generated_case_adapters.py",
+    "skills/spec-double-2/scripts/generate_cases_from_tlc_dump.py",
+    "skills/spec-double-2/scripts/generate_python.py",
+    "skills/spec-double-2/scripts/tla_spec_dev.py",
+    "skills/spec-double-2/scripts/scaffold_spec.py",
+    "skills/spec-double-2/scripts/onboard_program_model.py",
+    "skills/spec-double-2/templates",
     "tests",
 ]
 

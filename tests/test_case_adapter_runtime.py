@@ -6,6 +6,7 @@ from typing import Optional
 from types import SimpleNamespace
 
 ROOT = Path(__file__).resolve().parents[1]
+SKILL_ROOT = ROOT / "skills" / "spec-double-2"
 sys.path.insert(0, str(ROOT))
 
 from scripts.generate_cases_from_tlc_dump import ActionMetadata, Edge, render_python_package
@@ -495,7 +496,7 @@ kind = "request-http"
     result = subprocess.run(
         [
             sys.executable,
-            str(ROOT / "scripts" / "run_generated_case_adapters.py"),
+            str(SKILL_ROOT / "scripts" / "run_generated_case_adapters.py"),
             str(package_dir),
             "--mapping",
             str(mapping),
@@ -647,7 +648,7 @@ def test_the_derived_project_root_is_the_specs_that_contains_the_spec_dir(tmp_pa
     """
     import sys as _sys
 
-    _sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    _sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "skills" / "spec-double-2" / "scripts"))
     from run_generated_case_adapters import default_import_roots_for
 
     outer = tmp_path / "specs"

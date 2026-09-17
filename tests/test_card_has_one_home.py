@@ -114,12 +114,13 @@ from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-CARD = REPO_ROOT / "references/eval_scorecard.md"
+SKILL_ROOT = REPO_ROOT / "skills" / "spec-double-2"
+CARD = SKILL_ROOT / "references/eval_scorecard.md"
 SCORE_TOOLS = REPO_ROOT / "examples/validation/scorecards/score_tools.py"
 
 #: Repo-relative prefixes whose card statements are records, not declarations.
 OUT_OF_SCOPE = {
-    "references/eval_scorecard.md": "the card itself",
+    "skills/spec-double-2/references/eval_scorecard.md": "the card itself",
     "specs/.history/": "append-only close records",
     "examples/validation/PREDICTIONS": "sealed pre-dispatch predictions; "
                                        "check_prediction_seal.py reads them as written",
@@ -465,7 +466,7 @@ def test_the_check_is_not_vacuous_on_the_card_itself(rubric):
     fails, the parse or the matcher broke and every green above is meaningless.
     """
     needles = card_needles(rubric)
-    hits = restatements("references/eval_scorecard.md", CARD.read_text(encoding="utf-8"),
+    hits = restatements("skills/spec-double-2/references/eval_scorecard.md", CARD.read_text(encoding="utf-8"),
                         needles)
     kinds = set()
     for h in hits:

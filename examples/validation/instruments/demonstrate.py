@@ -112,7 +112,7 @@ from pathlib import Path
 from typing import Any
 
 HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "scripts"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "skills" / "spec-double-2" / "scripts"))
 import verdict  # noqa: E402
 
 REPO_ROOT = HERE.parents[2]

@@ -1,0 +1,15 @@
+# SI-01 — line citations survived the path move
+
+check_citations.py --fix repairs NUMBERS, never PATHS, so the cited paths in the
+three spec_manifest.yaml and three TlaSpecDevCli.tla copies were repointed by hand
+and --fix was then run to repair any numbers my edits shifted.
+
+Verified tool-against-tool rather than by counting:
+  - baseline: scripts/check_citations.py run in a pre-move checkout of 4d563e2d
+  - current:  skills/spec-double-2/scripts/check_citations.py run on this branch
+Both emit 23 lines. After normalizing away the 'skills/spec-double-2/' prefix the
+two outputs are IDENTICAL, i.e. every remaining stale anchor was already stale
+before this ticket and no new one was introduced.
+
+## normalized diff (empty means identical)
+(end)

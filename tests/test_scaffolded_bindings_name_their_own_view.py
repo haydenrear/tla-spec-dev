@@ -36,6 +36,7 @@ import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
+SKILL_ROOT = REPO_ROOT / "skills" / "spec-double-2"
 #: Any dotted prefix naming a specific spec TREE. It is the `specs.<tree>.`
 #: shape that is wrong, not the word `program_model`: `specs.current.adapters`
 #: and `specs.desired_program_model.adapters` fail the same way, and a rule
@@ -44,8 +45,8 @@ VIEW_QUALIFIED = re.compile(r"\bspecs\.[A-Za-z0-9_]+\.(adapters|internal_adapter
 
 
 def _onboard():
-    path = REPO_ROOT / "scripts" / "onboard_program_model.py"
-    sys.path.insert(0, str(REPO_ROOT / "scripts"))
+    path = SKILL_ROOT / "scripts" / "onboard_program_model.py"
+    sys.path.insert(0, str(SKILL_ROOT / "scripts"))
     try:
         spec = importlib.util.spec_from_file_location("onboard_program_model", path)
         assert spec and spec.loader
@@ -100,7 +101,7 @@ def test_the_scaffold_still_binds_something(template: str) -> None:
 
 
 def _runner():
-    sys.path.insert(0, str(REPO_ROOT / "scripts"))
+    sys.path.insert(0, str(SKILL_ROOT / "scripts"))
     try:
         import run_generated_case_adapters  # type: ignore[import-not-found]
 

@@ -18,8 +18,9 @@ from typing import Any
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
+SKILL_ROOT = ROOT / "skills" / "spec-double-2"
 sys.path.insert(0, str(ROOT))
-sys.path.insert(0, str(ROOT / "scripts"))
+sys.path.insert(0, str(SKILL_ROOT / "scripts"))
 
 from effect_conformance import load_effect_declarations  # noqa: E402
 from scripts.run_generated_case_adapters import (  # noqa: E402

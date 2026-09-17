@@ -4,6 +4,7 @@ import sys
 
 
 ROOT = Path(__file__).resolve().parents[1]
+SKILL_ROOT = ROOT / "skills" / "spec-double-2"
 sys.path.insert(0, str(ROOT))
 
 from scripts.new_ticket_workflow import scaffold, scaffold_ticket_directory
@@ -74,8 +75,8 @@ def write_successful_ticket_receipt(
 
 
 def test_skill_requires_two_minute_case_generation_budget() -> None:
-    skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
-    generation_modes = (ROOT / "references" / "generation_modes.md").read_text(encoding="utf-8")
+    skill = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
+    generation_modes = (SKILL_ROOT / "references" / "generation_modes.md").read_text(encoding="utf-8")
 
     assert "hard 120-second timeout" in skill
     assert "Do not simply raise the timeout" in skill

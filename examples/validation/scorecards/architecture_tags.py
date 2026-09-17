@@ -66,7 +66,7 @@ def _repo_root(start: pathlib.Path) -> pathlib.Path:
     if override:
         return pathlib.Path(override).expanduser().resolve()
     for parent in start.parents:
-        if (parent / "references/eval_scorecard.md").exists():
+        if (parent / "skills/spec-double-2/references/eval_scorecard.md").exists():
             return parent
     for parent in start.parents:
         if (parent / ".git").exists():
@@ -78,7 +78,7 @@ def _repo_root(start: pathlib.Path) -> pathlib.Path:
 REPO_ROOT = _repo_root(HERE)
 DEFAULT_SUBJECTS = HERE.parent / "subjects.toml"
 DEFAULT_SCORECARD_ROOT = REPO_ROOT / "specs/results/scorecards"
-COMPLEXITY = "scripts/code_complexity.py"
+COMPLEXITY = "skills/spec-double-2/scripts/code_complexity.py"
 
 DIMS = ("D1", "D2", "D3", "D4", "D5")
 

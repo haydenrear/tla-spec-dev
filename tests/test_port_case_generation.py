@@ -32,6 +32,7 @@ from typing import Any
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
+SKILL_ROOT = ROOT / "skills" / "spec-double-2"
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
@@ -52,7 +53,7 @@ from scripts.infer_action_params import build_recipes  # noqa: E402
 from scripts.run_generated_case_adapters import assert_case_result_per_field  # noqa: E402
 
 AB_MANIFEST = ROOT / "examples/validation/ab/model/spec_manifest.yaml"
-HEXAGONAL_PROMPT = ROOT / "prompts/hexagonal_implementation.md"
+HEXAGONAL_PROMPT = SKILL_ROOT / "prompts/hexagonal_implementation.md"
 
 
 # ---------------------------------------------------------------------------

@@ -59,6 +59,7 @@ from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+SKILL_ROOT = REPO_ROOT / "skills" / "spec-double-2"
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
@@ -310,7 +311,7 @@ def test_the_classifier_has_no_failing_exit_path(classifier):
 def test_nothing_shipped_consults_either_analysis_script():
     """A measurement nothing reads cannot become a gate by accident."""
     for name in ("baseline_is_a_card", "no_card_project_unaffected"):
-        for path in sorted((REPO_ROOT / "scripts").glob("*.py")):
+        for path in sorted((SKILL_ROOT / "scripts").glob("*.py")):
             assert name not in path.read_text(encoding="utf-8"), f"{path} reads {name}"
 
 

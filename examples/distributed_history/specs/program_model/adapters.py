@@ -60,8 +60,16 @@ def _spec_double_compiler_root() -> Path | None:
     # which also showed the reference example failing to import at all on any
     # checkout that does not happen to sit under the operator's home.
     for parent in Path(__file__).resolve().parents:
-        if (parent / "spec_double_compiler").is_dir():
-            return parent
+        # Two shapes, because the package sits in a different place depending on
+        # which side of the boundary this file landed on. In a DOWNSTREAM
+        # project neither matches and resolution proceeds to the homes below, at
+        # no cost. Inside the tla-spec-dev repository the first no longer matches
+        # (SI-01 moved the surface) and the second is what keeps the reference
+        # example importing THE CHECKOUT rather than an installed skill -- the
+        # G-12 property, which the move would otherwise have silently retired.
+        for candidate in (parent, parent / "skills" / "spec-double-2"):
+            if (candidate / "spec_double_compiler").is_dir():
+                return candidate
 
     explicit = os.environ.get("SPEC_DOUBLE_COMPILER_HOME")
     if explicit:
@@ -69,7 +77,8 @@ def _spec_double_compiler_root() -> Path | None:
         if not (root / "spec_double_compiler").is_dir():
             raise ModuleNotFoundError(
                 f"SPEC_DOUBLE_COMPILER_HOME={explicit} holds no spec_double_compiler "
-                "package. Point it at <home>/skills/spec-double-compiler, or unset it."
+                "package. Point it at <home>/plugins/tla-spec-dev/skills/spec-double-2, "
+                "or unset it."
             )
         return root
 
@@ -83,9 +92,18 @@ def _spec_double_compiler_root() -> Path | None:
     homes.append(Path.home() / ".skill-manager")
 
     for home in homes:
-        root = home / "skills" / "spec-double-compiler"
-        if (root / "spec_double_compiler").is_dir():
-            return root
+        # THE PLUGIN LAYOUT FIRST. A contained skill's bytes live at
+        # `plugins/<plugin>/skills/<skill>/`, never at `skills/<skill>/`, so a
+        # home that installed this substrate after SI-01 has nothing at the old
+        # path. The standalone path is kept behind it for one release, so a home
+        # installed before the migration still resolves instead of failing with
+        # an import error that names nothing.
+        for root in (
+            home / "plugins" / "tla-spec-dev" / "skills" / "spec-double-2",
+            home / "skills" / "spec-double-compiler",
+        ):
+            if (root / "spec_double_compiler").is_dir():
+                return root
     return None
 
 

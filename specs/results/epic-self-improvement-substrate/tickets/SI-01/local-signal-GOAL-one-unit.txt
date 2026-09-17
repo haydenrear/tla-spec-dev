@@ -1,0 +1,39 @@
+# GOAL-one-unit local signal — SI-01
+# contribution: enabling; expected_effect: none (it unblocks SI-02)
+
+$ python3 skills/spec-double-2/scripts/tla_spec_dev.py --help
+usage: tla-spec-dev [-h] [--spec-root SPEC_ROOT] [--repo-root REPO_ROOT]
+                    [--version]
+                    command ...
+
+Work with a spec-double-compiler project through the modeled spec workflow.
+
+positional arguments:
+  command
+    scaffold            Create spec workflow directories.
+    open                Open a ticket-local spec workflow.
+    run                 Run spec workflow validations.
+    analyze             Analyze model complexity against the budgets.
+    generate            Generate spec-unit case packages from a TLC state
+                        graph.
+    retire              Record an owner decision to withdraw a dispatched
+                        ticket.
+    close               Close a ticket. (Workflow history:
+                        scripts/close_tickets.py.)
+
+options:
+  -h, --help            show this help message and exit
+  --spec-root SPEC_ROOT
+                        Spec root under the repository. Defaults to specs.
+  --repo-root REPO_ROOT
+                        Repository root. Defaults to the current directory.
+  --version             show program's version number and exit
+
+Typical order: scaffold project -> scaffold workflow -> open ticket -> analyze
+complexity -> run spec-unit-tests -> close ticket. When the owner withdraws a
+dispatched ticket, record that separately with retire ticket.
+exit=0
+
+$ python3 skills/spec-double-2/scripts/tla_spec_dev.py --version
+tla-spec-dev 0.1.0
+exit=0

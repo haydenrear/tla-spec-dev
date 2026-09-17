@@ -25,7 +25,7 @@ from pathlib import Path
 
 def repo_root() -> Path:
     for parent in Path(__file__).resolve().parents:
-        if (parent / "skill-manager.toml").is_file() and (parent / "scripts" / "tla_spec_dev.py").is_file():
+        if (parent / "skills" / "spec-double-2" / "scripts" / "tla_spec_dev.py").is_file():
             return parent
     raise RuntimeError("could not locate tla-spec-dev repository root")
 
@@ -34,7 +34,7 @@ def run_cli(root: Path, target_repo: Path, *args: str) -> subprocess.CompletedPr
     import sys
 
     return subprocess.run(
-        [sys.executable, str(root / "scripts" / "tla_spec_dev.py"), *args],
+        [sys.executable, str(root / "skills" / "spec-double-2" / "scripts" / "tla_spec_dev.py"), *args],
         cwd=target_repo,
         text=True,
         capture_output=True,

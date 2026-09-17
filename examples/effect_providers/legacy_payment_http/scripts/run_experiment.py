@@ -21,8 +21,13 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 REPO_ROOT = PROJECT_ROOT.parents[2]
+# SI-01: the package moved to skills/spec-double-2/. REPO_ROOT stays on the
+# path for everything else; the skill root is what makes
+# `import spec_double_compiler` resolve.
+SKILL_ROOT = REPO_ROOT / "skills" / "spec-double-2"
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
+sys.path.insert(0, str(SKILL_ROOT))
 SPEC_DIR = PROJECT_ROOT / "specs" / "program_model"
 CASES_DIR = PROJECT_ROOT / "specs" / "generated" / "spec-unit" / "payment_http_internal_cases"
 MAPPING = SPEC_DIR / "case_adapters.toml"
@@ -117,15 +122,18 @@ MUTATION_CANONICAL_FIELDS = (
     "replay_provider_state_clean",
     "infra_errors",
 )
+# SI-01 moved the framework surface under the contained skill. These strings
+# are git PATHSPECS (`git ls-files -- ...`), so a stale prefix matches nothing
+# and the rescue guard goes silently vacuous rather than failing.
 FORBIDDEN_FRAMEWORK_SURFACES = [
-    "spec_double_compiler",
-    "scripts/run_generated_case_adapters.py",
-    "scripts/generate_cases_from_tlc_dump.py",
-    "scripts/generate_python.py",
-    "scripts/tla_spec_dev.py",
-    "scripts/scaffold_spec.py",
-    "scripts/onboard_program_model.py",
-    "templates",
+    "skills/spec-double-2/spec_double_compiler",
+    "skills/spec-double-2/scripts/run_generated_case_adapters.py",
+    "skills/spec-double-2/scripts/generate_cases_from_tlc_dump.py",
+    "skills/spec-double-2/scripts/generate_python.py",
+    "skills/spec-double-2/scripts/tla_spec_dev.py",
+    "skills/spec-double-2/scripts/scaffold_spec.py",
+    "skills/spec-double-2/scripts/onboard_program_model.py",
+    "skills/spec-double-2/templates",
     "tests",
 ]
 
@@ -631,7 +639,7 @@ def _runner_command(
 ) -> tuple[subprocess.CompletedProcess[str], list[str]]:
     command = [
         sys.executable,
-        str(REPO_ROOT / "scripts" / "run_generated_case_adapters.py"),
+        str(REPO_ROOT / "skills" / "spec-double-2" / "scripts" / "run_generated_case_adapters.py"),
         str(CASES_DIR),
         "--mapping",
         str(MAPPING),

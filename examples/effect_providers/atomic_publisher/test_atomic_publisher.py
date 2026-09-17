@@ -14,11 +14,15 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 REPO_ROOT = PROJECT_ROOT.parents[2]
+# SI-01: the package moved to skills/spec-double-2/. REPO_ROOT stays on the
+# path for everything else; the skill root is what makes
+# `import spec_double_compiler` resolve.
+SKILL_ROOT = REPO_ROOT / "skills" / "spec-double-2"
 SPEC_DIR = PROJECT_ROOT / "specs" / "program_model"
 GENERATED_DIR = SPEC_DIR / "generated"
 INTERNAL_PARENT = GENERATED_DIR / "cases" / "spec-unit"
 EXTERNAL_PARENT = GENERATED_DIR / "cases" / "testgraph"
-for root in (GENERATED_DIR, INTERNAL_PARENT, EXTERNAL_PARENT, PROJECT_ROOT, REPO_ROOT):
+for root in (GENERATED_DIR, INTERNAL_PARENT, EXTERNAL_PARENT, PROJECT_ROOT, REPO_ROOT, SKILL_ROOT):
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
 

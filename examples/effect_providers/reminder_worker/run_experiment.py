@@ -21,6 +21,10 @@ from typing import Any
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 REPO_ROOT = PROJECT_ROOT.parents[2]
+# SI-01: the package moved to skills/spec-double-2/. REPO_ROOT stays on the
+# path for everything else; the skill root is what makes
+# `import spec_double_compiler` resolve.
+SKILL_ROOT = REPO_ROOT / "skills" / "spec-double-2"
 SPEC_ROOT = PROJECT_ROOT / "specs" / "program_model"
 GENERATED_ROOT = PROJECT_ROOT / "specs" / "generated"
 CASES_ROOT = GENERATED_ROOT / "cases" / "spec-unit" / "reminder_internal_cases"
@@ -140,7 +144,7 @@ def runner_command(
 ) -> list[str]:
     command = [
         sys.executable,
-        str(REPO_ROOT / "scripts" / "run_generated_case_adapters.py"),
+        str(REPO_ROOT / "skills" / "spec-double-2" / "scripts" / "run_generated_case_adapters.py"),
         str(CASES_ROOT),
         "--mapping",
         str(SPEC_ROOT / "case_adapters.toml"),
@@ -339,6 +343,7 @@ def hand_case(scenario: str) -> Any:
 
 def run_hand_point(case: Any, mutant: str | None, work_dir: Path) -> None:
     sys.path.insert(0, str(REPO_ROOT))
+    sys.path.insert(0, str(SKILL_ROOT))
     sys.path.insert(0, str(PROJECT_ROOT))
     sys.path.insert(0, str(GENERATED_ROOT))
     from adapter import ReminderAdapter

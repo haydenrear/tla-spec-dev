@@ -9,7 +9,12 @@ from tempfile import TemporaryDirectory
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+# SI-01: the package moved to skills/spec-double-2/. REPO_ROOT stays on the
+# path for everything else; the skill root is what makes
+# `import spec_double_compiler` resolve.
+SKILL_ROOT = REPO_ROOT / "skills" / "spec-double-2"
 sys.path.insert(0, str(REPO_ROOT))
+sys.path.insert(0, str(SKILL_ROOT))
 
 from scripts.scaffold_spec import parse_views, scaffold  # noqa: E402
 

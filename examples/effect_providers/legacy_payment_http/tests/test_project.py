@@ -17,9 +17,13 @@ import requests
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = PROJECT_ROOT.parents[2]
+# SI-01: the package moved to skills/spec-double-2/. REPO_ROOT stays on the
+# path for everything else; the skill root is what makes
+# `import spec_double_compiler` resolve.
+SKILL_ROOT = REPO_ROOT / "skills" / "spec-double-2"
 CASES_PARENT = PROJECT_ROOT / "specs" / "generated" / "spec-unit"
 CONTRACT_PARENT = PROJECT_ROOT / "specs" / "program_model" / "generated"
-for root in (PROJECT_ROOT, REPO_ROOT, CASES_PARENT, CONTRACT_PARENT):
+for root in (PROJECT_ROOT, REPO_ROOT, SKILL_ROOT, CASES_PARENT, CONTRACT_PARENT):
     sys.path.insert(0, str(root))
 
 from payment_effects.adapters import PaymentHttpCaseAdapter  # noqa: E402

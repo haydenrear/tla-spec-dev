@@ -7,6 +7,7 @@ from conftest import write_ticket_ledger_input
 
 
 ROOT = Path(__file__).resolve().parents[1]
+SKILL_ROOT = ROOT / "skills" / "spec-double-2"
 sys.path.insert(0, str(ROOT))
 
 from scripts import tla_spec_dev
@@ -15,7 +16,7 @@ from scripts.generate_cases_from_tlc_dump import ActionMetadata, Edge, render_py
 
 def run_cli(*args: str, cwd: Path = ROOT) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        [sys.executable, str(ROOT / "scripts" / "tla_spec_dev.py"), *args],
+        [sys.executable, str(SKILL_ROOT / "scripts" / "tla_spec_dev.py"), *args],
         cwd=cwd,
         text=True,
         capture_output=True,
@@ -352,12 +353,12 @@ def test_skill_script_installs_tla_spec_dev_wrapper(tmp_path: Path) -> None:
         **os.environ,
         "SKILL_MANAGER_BIN_DIR": str(bin_dir),
         "SKILL_MANAGER_CACHE_DIR": str(cache_dir),
-        "SKILL_DIR": str(ROOT),
-        "SKILL_NAME": "spec-double-compiler",
+        "SKILL_DIR": str(SKILL_ROOT),
+        "SKILL_NAME": "spec-double-2",
     }
 
     install = subprocess.run(
-        ["bash", str(ROOT / "skill-scripts" / "install-tla-spec-dev.sh")],
+        ["bash", str(SKILL_ROOT / "skill-scripts" / "install-tla-spec-dev.sh")],
         cwd=ROOT,
         text=True,
         capture_output=True,
@@ -397,7 +398,7 @@ def _import_closure(entry: Path) -> set[str]:
     """
     import ast
 
-    scripts_dir = ROOT / "scripts"
+    scripts_dir = SKILL_ROOT / "scripts"
     known = {path.stem for path in scripts_dir.glob("*.py")}
     seen: set[str] = set()
     queue = [entry.stem]
@@ -428,7 +429,7 @@ def test_case_generation_is_reachable_from_the_shipped_parser() -> None:
     RP-03 both closed "zero model delta" against it while all four oracles
     reported green.
     """
-    closure = _import_closure(ROOT / "scripts" / "tla_spec_dev.py")
+    closure = _import_closure(SKILL_ROOT / "scripts" / "tla_spec_dev.py")
     assert "generate_cases_from_tlc_dump" in closure
     assert "case_modules" in closure
     assert "infer_action_params" in closure

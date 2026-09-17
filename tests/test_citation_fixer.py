@@ -20,8 +20,9 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT / "scripts") not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT / "scripts"))
+SKILL_ROOT = REPO_ROOT / "skills" / "spec-double-2"
+if str(SKILL_ROOT / "scripts") not in sys.path:
+    sys.path.insert(0, str(SKILL_ROOT / "scripts"))
 
 from check_citations import fix_file, problems_in  # type: ignore[import-not-found]  # noqa: E402
 
@@ -103,7 +104,7 @@ def test_the_shipped_checker_runs_and_reports_its_own_repairability() -> None:
     citations are the ambiguous ones a human owes an answer to.
     """
     proc = subprocess.run(
-        [sys.executable, str(REPO_ROOT / "scripts" / "check_citations.py")],
+        [sys.executable, str(SKILL_ROOT / "scripts" / "check_citations.py")],
         cwd=REPO_ROOT, text=True, capture_output=True, timeout=300,
     )
     assert proc.returncode in (0, 1), proc.stdout + proc.stderr

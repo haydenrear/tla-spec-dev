@@ -151,8 +151,12 @@ from typing import Any
 
 HERE = Path(__file__).resolve().parent
 REPO_ROOT = HERE.parents[3]
+# SI-01: the package moved to skills/spec-double-2/. REPO_ROOT stays on the
+# path for everything else; the skill root is what makes
+# `import spec_double_compiler` resolve.
+SKILL_ROOT = REPO_ROOT / "skills" / "spec-double-2"
 MEASURE = REPO_ROOT / "specs/results/scorecards/hexagonal-prompting/measure"
-for entry in (str(REPO_ROOT), str(REPO_ROOT / "scripts"), str(HERE), str(MEASURE),
+for entry in (str(REPO_ROOT), str(SKILL_ROOT), str(SKILL_ROOT / "scripts"), str(HERE), str(MEASURE),
               str(MEASURE / "generated")):
     if entry not in sys.path:
         sys.path.insert(0, entry)

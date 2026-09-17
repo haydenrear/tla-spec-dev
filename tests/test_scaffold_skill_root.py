@@ -34,8 +34,14 @@ from scripts.scaffold_spec import parse_views, scaffold
 
 
 def _plant_skill(home: Path, marker: str) -> Path:
-    """Make `home` a Skill Manager home holding a labelled spec-double-compiler."""
-    pkg = home / "skills" / "spec-double-compiler" / "spec_double_compiler"
+    """Make `home` a Skill Manager home holding a labelled spec-double-2.
+
+    SI-01: a contained skill's bytes land at
+    `plugins/<plugin>/skills/<skill>/`, never at `skills/<skill>/`, so planting
+    at the old path would test a layout no home produces any more.
+    """
+    pkg = (home / "plugins" / "tla-spec-dev" / "skills" / "spec-double-2"
+           / "spec_double_compiler")
     pkg.mkdir(parents=True, exist_ok=True)
     (pkg / "__init__.py").write_text("", encoding="utf-8")
     (pkg / "runtime.py").write_text(
@@ -112,7 +118,7 @@ def _run(module: Path, *, user_home: Path, bound_home: Path | None = None,
 
 def _skill_root(home: Path) -> Path:
     """The importable root inside a home — what PYTHONPATH would name."""
-    return home / "skills" / "spec-double-compiler"
+    return home / "plugins" / "tla-spec-dev" / "skills" / "spec-double-2"
 
 
 @pytest.mark.parametrize("module_name", ["adapters.py", "providers.py"])

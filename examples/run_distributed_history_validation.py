@@ -255,7 +255,7 @@ def validate_internal_cases() -> None:
     run(
         [
             sys.executable,
-            str(REPO_ROOT / "scripts" / "run_generated_case_adapters.py"),
+            str(REPO_ROOT / "skills" / "spec-double-2" / "scripts" / "run_generated_case_adapters.py"),
             str(GENERATED_ROOT / "spec-unit" / "ecommerce_internal_cases"),
             "--mapping",
             str(EXAMPLE_ROOT / "specs" / "program_model" / "case_adapters.toml"),
@@ -308,7 +308,7 @@ class WrongExpectedProjection:
             mapping.write_text(wrong_projection_mapping(), encoding="utf-8")
             command = [
                 sys.executable,
-                str(REPO_ROOT / "scripts" / "run_generated_case_adapters.py"),
+                str(REPO_ROOT / "skills" / "spec-double-2" / "scripts" / "run_generated_case_adapters.py"),
                 str(GENERATED_ROOT / "testgraph" / "ecommerce_external_cases"),
                 "--mapping",
                 str(mapping),
