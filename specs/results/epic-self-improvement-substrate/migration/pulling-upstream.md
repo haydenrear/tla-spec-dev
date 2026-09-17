@@ -39,9 +39,15 @@ the subtree came from. That is the `git-integration-repo` model
 (`references/git-model.md`: constituents are plain tracked files, never
 submodules) reached by a command that also leaves a pull path open.
 
-Add `--squash` if the upstream history should not enter this repository's log.
-Decide once, per skill, and apply it consistently: a subtree added with
-`--squash` must also be pulled with `--squash` forever after.
+`--squash` would keep the upstream history out of this repository's log. The
+decision is permanent per skill — a subtree added with `--squash` must also be
+pulled with `--squash` forever after.
+
+**Owner decision, 2026-09-17: full history, for all five skills.** Do not pass
+`--squash`. The reason is the pull path: until the freeze, `subtree pull` has to
+stay cheap and conflict-legible, and squashed subtrees make every later merge
+harder to read. The cost accepted in exchange is five skills' commit history
+entering this repository's log at SI-02.
 
 ## Integrating new upstream work, until the freeze
 
