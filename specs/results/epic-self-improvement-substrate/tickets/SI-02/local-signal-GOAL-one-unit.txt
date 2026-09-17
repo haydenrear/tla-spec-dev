@@ -1,0 +1,50 @@
+GOAL-one-unit -- local signal, measured on this worktree's Skill Manager home
+home: /Users/hayde/IdeaProjects/wt-335-nest-workflow-skills/.skill-manager
+expected_effect: 'installed units belonging to this substrate go from 6 to 1'
+===========================================================================
+
+BASELINE (this home, before migration) -- 6 standalone units:
+  discovery 0.1.0 / git-epic-workflow 0.4.1 / git-issue 0.4.0
+  git-issue-workflow 0.4.1 / spec-double-compiler 0.1.0 / test-graph 0.2.1
+
+### AFTER: substrate-owned rows in skill-manager list ###
+tla-spec-dev                 plugin   0.1.0      0         -         local_file
+substrate units AFTER: 1
+
+### the six contained skills, on disk ###
+discovery
+git-epic-workflow
+git-issue
+git-issue-workflow
+spec-double-2
+test-graph
+
+### skill-manager show tla-spec-dev ###
+PLUGIN  tla-spec-dev@0.1.0  (sha -, source local_file)
+description: The TLA+ program-model toolchain: the spec-double-2 skill, the tla-spec-dev CLI, and the workflow skills that drive them, versioned and improved as one unit.
+path:        /Users/hayde/IdeaProjects/wt-335-nest-workflow-skills/.skill-manager/plugins/tla-spec-dev
+
+contained skills (6):
+  - discovery
+  - git-epic-workflow
+  - git-issue
+  - git-issue-workflow
+  - spec-double-2
+  - test-graph
+
+effective dependencies (unioned):
+  CLI:  gh                   (declared at: skills/git-epic-workflow)
+  CLI:  gh                   (declared at: skills/git-epic-workflow)
+  CLI:  gh                   (declared at: skills/git-epic-workflow)
+  CLI:  jinja2-cli[yaml]     (declared at: skills/spec-double-2)
+  CLI:  pytest               (declared at: skills/spec-double-2)
+  CLI:  tlc2                 (declared at: skills/spec-double-2)
+  CLI:  tla-spec-dev         (declared at: skills/spec-double-2)
+
+### a contained skill is NOT separately addressable (expected) ###
+unit not found: test-graph
+
+VERDICT: 6 -> 1 in this home tier. expected_effect MET here.
+Root and project home tiers are the epic agent's to migrate at wave close;
+this ticket changed no home but its own (assignment: worktree homes are
+reconciled in serial by the epic agent).

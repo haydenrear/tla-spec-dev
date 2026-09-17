@@ -2361,3 +2361,262 @@ findings:
     disposition_ticket: null
     disposition_note: >-
       Owner triages at the wave boundary; no ticket owns examples/effect_providers.
+  - id: SI-02-DF-01
+    found_by: "SI-02"
+    found_at_commit: "39e19a44"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      plugin-repository/scripts/verify.sh is named as this goal's local signal,
+      and on a correctly migrated bundle it still exits 1 -- for three reasons a
+      commit in this repository cannot remove. (a) Its two greps run from '.',
+      so they read ./.skill-manager/, the gitignored per-checkout Skill Manager
+      HOME. That home holds the OLD STANDALONE INSTALLS, which is precisely what
+      the operator-side home migration removes; all 10 of the reported
+      skill-imports violations were installed copies under
+      .skill-manager/skills/, not repository files. (b) They read sealed
+      evidence -- examples/agent_integration/evidence/runs/**/RESULT.json and
+      examples/validation/agent_rounds/SELF-IMPROVEMENT-MATRIX.md -- which are
+      transcripts of what an agent typed at the time; rewriting them would
+      falsify a record. (c) The store-path check flags verify.sh's OWN
+      prescribed remedy: an import rewritten per references/imports.md to
+      'unit: tla-spec-dev' with 'path: skills/<skill>/<file>' contains the
+      literal 'skills/<bundled-unit>/', so three correctly-migrated SKILL.md
+      files are reported as defects.
+    reproduction: >-
+      From the repository root with SKILL_MANAGER_HOME pointing at a checkout
+      home that still carries the standalone units, run
+      plugin-repository/scripts/verify.sh. Observed exit 1 with 714 store-path
+      lines and 10 skill-imports hits, the overwhelming majority rooted at
+      ./.skill-manager/. The same two checks scoped to files this repository
+      owns return 0 and 0 -- recorded in
+      specs/results/epic-self-improvement-substrate/tickets/SI-02/verify-repository-scoped.txt
+      beside the raw run in verify-sh.txt.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-02/verify-sh.txt"
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-02/verify-repository-scoped.txt"
+    why_out_of_scope: >-
+      verify.sh belongs to the plugin-repository unit, which is NOT a member of
+      this bundle and is not in SI-02's conflict keys. Fixing it here would edit
+      a skill this repository does not carry.
+    suggested_fix: >-
+      Three scoped changes in plugin-repository: exclude .skill-manager/,
+      .claude/, .codex/ and .gemini/ from both greps the way its own
+      _scannable_files-style skip lists already do elsewhere; let the repository
+      declare sealed paths the scan may not judge; and make the store-path grep
+      ignore a line whose match is a YAML 'path:' value inside skill-imports
+      frontmatter, which is the form imports.md tells you to write.
+    blast_radius: >-
+      The signal is advisory, so nothing is blocked. The cost is that a declared
+      local signal cannot be made green, which trains readers to ignore it --
+      the failure mode the epic is about.
+    disposition: pending
+    disposition_ticket: null
+    disposition_note: >-
+      Owner triages at the wave-2 boundary. Candidate home is whichever ticket
+      owns skill-side changes; SI-02 could not apply it.
+
+  - id: SI-02-DF-02
+    found_by: "SI-02"
+    found_at_commit: "39e19a44"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["skills/git-issue-workflow/scripts/selftest.sh"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      skills/git-issue-workflow/scripts/selftest.sh:581 picks a unit to corrupt
+      with BROKEN_UNIT="$(basename "$(command ls -d "$WTP_HOME"/skills/*/ |
+      command head -1)")". That enumerates only the STANDALONE store layout. In
+      a home where the units under test are contained skills of a plugin their
+      bytes are at plugins/<plugin>/skills/<unit>/, so the glob matches nothing
+      or matches an unrelated unit, and the mutation the assertion depends on is
+      applied to the wrong thing -- or to nothing, which makes the check pass
+      vacuously rather than fail.
+    reproduction: >-
+      Bootstrap a home whose git-issue-workflow is plugin-contained and run the
+      worktree-projection section of selftest.sh; "$WTP_HOME"/skills/*/ does not
+      enumerate the contained skills.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-02/verify-repository-scoped.txt"
+    why_out_of_scope: >-
+      It is inside SI-02's conflict keys, but fixing it means changing what the
+      suite mutates and then running that suite to show the assertion still
+      discriminates. SI-02 did not run selftest.sh, so it would be an unverified
+      edit to a test fixture -- worse than the defect.
+    suggested_fix: >-
+      Enumerate both layouts, standalone first, the way scripts/agent-home.sh
+      rungs 4b/5b now do, and assert the chosen unit is non-empty before
+      mutating it so a miss fails instead of passing quietly.
+    blast_radius: >-
+      Confined to selftest.sh. No runtime path reads it.
+    disposition: pending
+    disposition_ticket: null
+    disposition_note: >-
+      Owner triages; natural home is a ticket that already runs the
+      git-issue-workflow selftest.
+
+  - id: SI-02-DF-03
+    found_by: "SI-02"
+    found_at_commit: "39e19a44"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      Issue #335's "Metric / harness" names the skill-manager wide eval lane --
+      w-giw-*, w-sdc-*, w-misc-issue-*, w-epic-* green with one
+      units-override.txt naming the plugin checkout -- and its References cite
+      skill-manager/specs/evals/harness/wide/setup.sh as the mechanism. Neither
+      exists in this checkout's home: no file matching */evals/harness/wide/*
+      setup.sh, and no file anywhere under the home mentioning units-override.
+      The metric names an instrument the ticket agent cannot reach.
+    reproduction: >-
+      find "$SKILL_MANAGER_HOME" -path '*evals/harness/wide*' -name 'setup.sh'
+      and grep -rl 'units-override' "$SKILL_MANAGER_HOME" both return nothing.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-02/local-signal-GOAL-one-unit.txt"
+    why_out_of_scope: >-
+      The harness lives in the skill-manager/skt unit, outside this bundle and
+      outside SI-02's conflict keys. The assignment's own validation block does
+      not require it -- it names skt check and verify.sh -- so SI-02 ran those
+      and recorded this gap rather than widening scope.
+    suggested_fix: >-
+      Either ship the wide lane where the issue says it is, or amend the metric
+      on GOAL-one-unit to name instruments that exist. SI-08 decides this goal
+      and will hit the same wall.
+    blast_radius: >-
+      One clause of GOAL-one-unit's metric is unmeasurable as written. The rest
+      of the metric -- installed units per home tier, the three graphs, both
+      eval cases -- is measurable and was measured.
+    disposition: pending
+    disposition_ticket: null
+    disposition_note: >-
+      Owner triages; SI-08 is the deciding ticket and is the natural home.
+  - id: SI-02-DF-04
+    found_by: "SI-02"
+    found_at_commit: "39e19a44"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      `skill-manager install file://<checkout>` stages the ENTIRE directory,
+      including the checkout's own gitignored `.skill-manager/` home, and the
+      staging directory it creates lives inside that same home. So the copy
+      re-enters itself:
+      `.skill-manager/cache/stage-N/staged/.skill-manager/cache/stage-N/staged/...`
+      repeated until the path is unusable, and the install fails with
+      "BuildResolveGraphFromSource: 1 coord(s) failed to resolve". Every
+      per-checkout home this project creates (`wt new`, `skt ticket new`) puts a
+      `.skill-manager/` inside the working tree, so installing a unit FROM the
+      checkout that carries it is the normal case here, not an exotic one.
+      Two things make it worse than a clear failure. The rollback reports
+      "rolled back 0 effect(s)", which is true of the install and says nothing
+      about the surrounding sequence; and the documented migration order is
+      install-then-uninstall, so an operator who has already uninstalled -- or
+      who retries in the other order -- is left with a home carrying NEITHER the
+      plugin nor the standalone units. That state was reached during this ticket
+      and had to be repaired by hand.
+    reproduction: >-
+      In a checkout with its own `.skill-manager/` home, run
+      `<home>/bin/cli/skill-manager install "file://$PWD" --yes`. Observed exit
+      non-zero with the recursive staged path. The remedy that works, and that
+      README now documents, is to stage the tracked tree first:
+      `STAGE=$(mktemp -d) && git archive HEAD | tar -x -C "$STAGE"` then
+      `install "file://$STAGE"` -- which installed the plugin cleanly and is
+      recorded in plugin-install.txt.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-02/local-signal-GOAL-one-unit.txt"
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-02/plugin-install.txt"
+    why_out_of_scope: >-
+      The installer is skill-manager's, inside the skt plugin -- not a member of
+      this bundle and not in SI-02's conflict keys.
+    suggested_fix: >-
+      Exclude the destination home from the staged copy (the stager already
+      knows which home it is writing), or stage outside the home entirely.
+      Failing that, refuse with a named cause when the source directory
+      contains the destination home, instead of producing an unbounded path.
+    blast_radius: >-
+      Any install from a checkout that carries its own home -- the default shape
+      of every ticket worktree in this repository. It does not corrupt the home
+      on its own; the damage comes from the uninstall step of a migration
+      sequence that assumed the install would succeed.
+    disposition: pending
+    disposition_ticket: null
+    disposition_note: >-
+      Owner triages. README in this PR documents the `git archive` workaround so
+      the next home migration does not rediscover it.
+  - id: SI-02-DF-05
+    found_by: "SI-02"
+    found_at_commit: "39e19a44"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      git-integration-repo/scripts/integration-lib.sh resolves git-issue-workflow's
+      lib.sh at `${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts/lib.sh`
+      and carries NO `plugins/*/skills` rung (measured: zero matches in the file).
+      Once git-issue-workflow is a contained skill its bytes are at
+      `<home>/plugins/<plugin>/skills/git-issue-workflow/scripts/lib.sh`, so that
+      resolution fails at SOURCE time and every script that sources it stops
+      working: git-integration-repo's own verify.sh, refresh.sh and propagate.sh,
+      and -- because plugin-repository's plugin-repo-lib.sh sources
+      integration-lib.sh -- all of plugin-repository's scripts too, including the
+      verify.sh this goal names as its local signal. This is exactly the failure
+      mode plugin-repository/references/imports.md § 2 predicts, and
+      integration-lib.sh is the very example that page cites; plugin-repository's
+      own `unit_dir` has the three-rung search, its dependency does not.
+      Confirmed live: after the home migration, verify.sh exits before its first
+      check with "the git-integration-repo library (integration-lib.sh) was not
+      found" -- the fan-out and verification machinery for a plugin repository is
+      unusable in precisely the home layout that repository creates.
+    reproduction: >-
+      In a home where git-issue-workflow is plugin-contained, run
+      <home>/skills/plugin-repository/scripts/verify.sh. It refuses at source
+      time. `ls <home>/skills/git-issue-workflow/scripts/lib.sh` is absent and
+      `ls <home>/plugins/*/skills/git-issue-workflow/scripts/lib.sh` is present.
+      `grep -c 'plugins/\*/skills' <home>/skills/git-integration-repo/scripts/integration-lib.sh`
+      returns 0.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-02/verify-sh-after-migration.txt"
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-02/local-signal-GOAL-one-unit.txt"
+    why_out_of_scope: >-
+      git-integration-repo is not a member of this bundle -- membership is
+      exactly the five workflow skills -- and it is not in SI-02's conflict
+      keys. It is an installed skill whose repository this one does not carry.
+    suggested_fix: >-
+      Give integration-lib.sh the same search plugin-repository's `unit_dir`
+      already has: pin, then `<home>/skills/<unit>`, then
+      `<home>/plugins/*/skills/<unit>`. One loop, copied from the skill that
+      depends on it. Worth doing before any further bundling, because it
+      silently disables the verification and fan-out path for every plugin
+      repository.
+    blast_radius: >-
+      Every plugin-repository and git-integration-repo script in a home where
+      git-issue-workflow is bundled. It does not affect the repository contents
+      or any test; it disables tooling. SI-02's own verification was done by
+      replicating verify.sh's two checks directly (verify-repository-scoped.txt).
+    disposition: pending
+    disposition_ticket: null
+    disposition_note: >-
+      Owner triages. Pairs with SI-02-DF-01: together they mean the declared
+      local signal for GOAL-one-unit cannot run green in the layout this epic
+      is building, and SI-08 decides that goal.

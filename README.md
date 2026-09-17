@@ -62,28 +62,50 @@ That duplication is the thing the bundle exists to remove, and installing the
 plugin does **not** remove it on its own.
 
 ```bash
-# 0. Which home is being migrated? Every command below writes THIS one.
-export SKILL_MANAGER_HOME=/path/to/.skill-manager   # omit for ~/.skill-manager
+# 0. Name the home EXPLICITLY, by using its own entrypoint.
+#    Exporting SKILL_MANAGER_HOME is NOT enough and is not silently ignored:
+#    each shim binds the home it lives in, so the operator's ~/.skill-manager
+#    shim REFUSES rather than edit a home it does not own --
+#      "refusing to run against a home you did not name ...
+#       this entrypoint binds the home it lives in, so it cannot honour
+#       SKILL_MANAGER_HOME."
+#    Use that home's own shim (or pass --home to any other one).
+HOME_DIR=/path/to/.skill-manager                 # or $HOME/.skill-manager
+SM="$HOME_DIR/bin/cli/skill-manager"             # equivalently: skill-manager --home "$HOME_DIR"
 
-# 1. Install the bundle. From a checkout while the change is unmerged:
-skill-manager install "file://$(pwd)" --yes
-#    ...or, once merged:
-skill-manager install github:haydenrear/tla-spec-dev --yes
+# 1. Install the bundle.
+#    Once merged, straight from the coord:
+"$SM" install github:haydenrear/tla-spec-dev --yes
+#
+#    From a CHECKOUT while the change is unmerged, stage it first with
+#    `git archive`. Do NOT use `file://$(pwd)` on a checkout that carries its
+#    own `.skill-manager/`: the installer stages the whole directory, including
+#    that gitignored home, and recurses into
+#    `.skill-manager/cache/stage-*/staged/.skill-manager/cache/stage-*/...`
+#    until the path blows up. Measured; it fails with
+#    "BuildResolveGraphFromSource: 1 coord(s) failed to resolve".
+STAGE=$(mktemp -d) && git archive HEAD | tar -x -C "$STAGE"
+"$SM" install "file://$STAGE" --yes
 
 # 2. Remove the now-duplicated standalone units. `uninstall`, not `remove`:
 #    `remove` is lower-level and leaves agent symlinks and MCP registrations
 #    behind, which is how a "removed" skill keeps resolving.
 for u in spec-double-compiler git-epic-workflow git-issue-workflow \
          git-issue discovery test-graph; do
-  skill-manager uninstall "$u" --yes 2>/dev/null || true   # absent is fine
+  "$SM" uninstall "$u" --yes 2>/dev/null || true   # absent is fine
 done
 
 # 3. Confirm: ONE unit, six contained skills, and no standalone leftovers.
-skill-manager show tla-spec-dev          # lists the contained skills
-skill-manager list | grep -E 'tla-spec-dev|spec-double|git-issue|git-epic|discovery|test-graph'
-ls "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/plugins/tla-spec-dev/skills/"
-skt check
+"$SM" show tla-spec-dev                  # lists the contained skills
+"$SM" list | grep -E 'tla-spec-dev|spec-double|git-issue|git-epic|discovery|test-graph'
+ls "$HOME_DIR/plugins/tla-spec-dev/skills/"
+"$SM" show test-graph                    # expected: "unit not found" -- it is contained now
 ```
+
+Order matters in one direction only: install before uninstall, so the home is
+never briefly without the skills. Uninstalling first and then hitting a failed
+install leaves the home carrying neither — which is exactly what happened the
+first time this sequence was run, and why step 1 is written the way it is.
 
 Two things change for anything that addressed those skills by their **old**
 identity, and both are silent rather than loud:
