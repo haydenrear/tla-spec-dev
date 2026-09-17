@@ -2211,6 +2211,59 @@ findings:
       reported rather than worked around, by an agent that could not fix it
       itself. Instrument change belongs to SI-07 (#340).
 
+  - id: SIS-KICKOFF-F-04
+    found_by: "SI-01 ticket agent; source verified by the epic agent"
+    found_at_commit: "5b929e17"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: ["skills/spec-double-2/scripts/tla_spec_dev.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      `run spec-unit-tests --ticket <id>` resolves BOTH targets and executes
+      only the first. It builds commands for every target, prints a
+      "spec-unit target:" line for each, then runs them in a loop that returns
+      on the first nonzero exit. `specs/current` is ordered first and carries 7
+      pre-existing failures in this repository, so the ticket-local target is
+      never executed -- and nothing in the output says a target was skipped.
+      The REQUIRED spec_unit entry of all ten assignments is therefore weaker
+      than it reads: it can only ever report the project-scope result.
+    reproduction: >-
+      skills/spec-double-2/scripts/tla_spec_dev.py, run_spec_unit_tests, the
+      execution loop verbatim: `for label, command, env in commands: result =
+      subprocess.run(command, cwd=repo_root, env=env); if result.returncode !=
+      0: return result.returncode`. Run `run spec-unit-tests --ticket SI-01` on
+      058beb3d: the output lists two spec-unit targets, exits after the first,
+      and the ticket target's tests never run. Measuring the ticket target
+      needs `--target` directly.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-01/reconcile-spec-unit-ticket-SI-01.txt"
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-01/reconcile-ticket-target-after-repoint.txt"
+    why_out_of_scope: >-
+      Outside SI-01's slice, and the ticket agent deliberately did not file it:
+      the epic agent had fixed the post-merge backlog total at 38 rows, and
+      adding a row would have contradicted that instruction. Filed here by the
+      epic agent instead, which is the right division -- the agent reported it
+      with evidence and left the record to the owner.
+    suggested_fix: >-
+      Run every resolved target and aggregate the exit codes, or at minimum name
+      the targets that were skipped. A silent skip is worse than a failure here,
+      because the printed "spec-unit target:" line reads as evidence the target
+      ran. Pairs with SIS-KICKOFF-F-03: that one makes a MISSING workspace
+      visible, this one makes a PRESENT workspace actually exercised.
+    blast_radius: >-
+      All ten tickets, and every repository whose specs/current is not green --
+      the normal state of a repository carrying known failures. Any close-out
+      that cited spec-unit as passing for a ticket target cited a run that did
+      not happen.
+    disposition: pending
+    disposition_ticket: null
+    disposition_note: >-
+      Natural home is SI-07 (#340) with SIS-KICKOFF-F-03. Owner triages at the
+      wave-2 review.
+
   - id: SI-01-DF-01
     found_by: "SI-01"
     found_at_commit: "4d563e2d"
