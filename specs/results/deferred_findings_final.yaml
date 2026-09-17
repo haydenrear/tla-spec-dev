@@ -2163,6 +2163,54 @@ findings:
       Candidate home is SI-10 (#343), which owns references/plugin_evals.md.
       Owner triages at the wave boundary.
 
+  - id: SIS-KICKOFF-F-03
+    found_by: "SI-01 ticket agent; confirmed by the epic agent"
+    found_at_commit: "09d8108d"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      The epic agent's own defect, found by a ticket agent. All TEN assignments
+      carry `spec_unit: ... run spec-unit-tests --ticket <id>`, but that command
+      reads `specs/tickets/<id>/`, which only `open ticket <id>` creates -- and
+      this epic's model_ownership_rule reserves `open ticket` to the epic agent,
+      which never ran it. So the REQUIRED spec-unit entry was unrunnable as
+      written for every ticket in the epic, from dispatch.
+    reproduction: >-
+      On the epic branch at 4d563e2d: `ls specs/tickets/` shows MF-021, MF-027,
+      RD-06 and no SI-* workspace, while every issue body from #334 to #343
+      names `--ticket SI-0N` in its validation matrix.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-01/spec-unit-tests.txt"
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-01/spec-unit-baseline-at-4d563e2d.txt"
+    why_out_of_scope: >-
+      Not in SI-01's slice: the ticket agent could not fix it without running a
+      command the ownership rule forbids it. It reported the gap and ran the
+      spec units at project scope instead, which is the correct behaviour and
+      exactly what the epic wants a blocked agent to do.
+    suggested_fix: >-
+      The epic agent scaffolds each ticket's workspace BEFORE dispatching it --
+      that is what model_ownership_rule already promises ("scaffolds this
+      ticket's desired and current state before dispatch") and what was not
+      done. SI-07 should make the promise checkable: validate_epic_plan.py
+      warns when a ticket's assignment names --ticket <id> and no workspace
+      exists on the epic branch.
+    blast_radius: >-
+      All ten tickets. Left alone, every ticket agent either reports the same
+      gap or silently substitutes a different command, and the REQUIRED matrix
+      stops meaning anything. SI-01's workspace was scaffolded at wave-1 review;
+      the remaining nine are scaffolded before their waves dispatch.
+    disposition: pending
+    disposition_ticket: null
+    disposition_note: >-
+      The first evidence FOR this epic's thesis: the substrate got a defect
+      reported rather than worked around, by an agent that could not fix it
+      itself. Instrument change belongs to SI-07 (#340).
+
   - id: SI-01-DF-01
     found_by: "SI-01"
     found_at_commit: "4d563e2d"

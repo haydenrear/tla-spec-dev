@@ -106,3 +106,49 @@ kept") — the new path names the SKILL, never the arm label, so it discloses
 nothing identifying.
 
 New failures against the pre-move baseline: **none**.
+
+## Reconcile onto the epic tip (56227e50)
+
+The epic branch moved after this ticket was cut: it scaffolded `specs/tickets/SI-01/`
+and appended `SIS-KICKOFF-F-03` to the cumulative backlog. Merged rather than rebased,
+so the two sealed evidence commits keep their identity under a PR already in review.
+
+**One conflicted path**, `specs/results/deferred_findings_final.yaml`, resolved by taking
+the epic's file whole and appending this ticket's two rows — so no pre-existing row and no
+row of the epic agent's can be touched by construction. 35 shared + `SIS-KICKOFF-F-03` +
+`SI-01-DF-01` + `SI-01-DF-02` = **38**, parses, no duplicate IDs, and **zero deleted or
+changed lines against either parent**.
+
+### The scaffolded workspace was broken by this migration, and is now repaired
+
+`specs/tickets/SI-01/desired/` was scaffolded from the **pre-migration** model — its
+`adapter_case_runtime.py` and `production_adapters.py` were byte-identical to
+`program_model` at `4d563e2d`. On this branch they could not find the toolchain at all:
+
+| | before repoint | after repoint |
+|---|---|---|
+| `could not locate tla-spec-dev repository root` | 94 | **0** |
+| result | 47 failed, 6 passed | **7 failed** |
+
+Those 7 are, path-normalized, the **identical set** to the pristine `4d563e2d` baseline —
+the workspace now fails exactly what `specs/current` already failed and nothing else.
+
+The repair is the same four mechanical substitutions already applied to the three model
+trees, and it is provable rather than asserted: the two files were byte-identical to the
+*pre-migration* `program_model` before, and are byte-identical to the *fixed*
+`program_model` after. No action, state, invariant or test semantics changed. Under the
+epic's `model_ownership_rule` this is the "small correction" a ticket agent may make to
+`desired`; it is one `git checkout` from reverting if the epic agent disagrees.
+
+### A substrate finding this surfaced — `--ticket <id>` cannot reach the ticket workspace
+
+`run spec-unit-tests --ticket SI-01` resolves **2 targets** and executes **1 pytest run**.
+The runner's loop is `for label, command, env in commands: ... if result.returncode != 0:
+return result.returncode`, and `specs/current` is ordered first. Because `specs/current`
+carries 7 pre-existing failures, the ticket-local target is never reached — on this
+repository that command can never validate a ticket workspace, and the operator sees only
+"7 failed" with no indication a second target was skipped.
+
+This is why the ticket target above was measured with `--target` directly. Not filed as a
+backlog row: the epic agent fixed the post-merge total at 38 and owns whether this becomes
+a row.
