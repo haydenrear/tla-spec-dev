@@ -15,7 +15,11 @@ on a different machine against different units and its environment facts are the
 ones most likely to be local. Where a claim of theirs was re-checked here, the
 re-check is named too.
 
-The worked example is `examples/agent_integration/eval-plugin/`.
+The worked example is this repository's own `evals/`, run by `evals/run.sh`.
+Its README is the shortest path to a running suite; this page is the method
+behind it. (Until SI-10 the example was a thin symlinked plugin at
+`examples/agent_integration/eval-plugin/`. What replaced it, and why, is §3's
+*When the repository IS the plugin, and it is too big*.)
 
 ---
 
@@ -371,9 +375,56 @@ under `evals/` with no `case.yaml` is not loaded as a case today, but putting
 library code where the loader is scanning invites a name to become meaningful
 later.
 
-If `plugin eval` refuses your repository with *"a plugin directory holds more
-than 20000 entries"*, that is what the thin symlinked plugin is for: carry the
-skill's surface and nothing else.
+### When the repository IS the plugin, and it is too big
+
+`plugin eval` refuses a plugin directory over 20,000 entries. There are three
+spellings of that refusal in the CLI and they are not the same check:
+
+```
+the eval directory holds more than 20000 entries — move large fixtures out of it
+a plugin directory holds more than 20000 entries to check for eval directories — point the case at a smaller plugin directory
+a checkout sharing the plugin's repository holds more than 20000 entries to check for eval directories — run from a standalone clone
+```
+
+The middle one is what a bundled plugin hits. Measured on 2.1.275: pointing it
+at a 70,741-entry checkout produces it **at run time, once per case**, and a
+`plugins: ["../.."]` naming the same root changes nothing.
+
+**There is nothing to configure.** No `.gitignore`, no `.claudeignore`, no
+manifest key, no flag, no environment variable; the traversal skips `.git`,
+`.svn` and `.hg` and counts everything else, dot-directories included.
+`--eval-dir` moves where cases are FOUND, not what gets counted.
+
+So the only lever is which directory you hand it, and there are two shapes:
+
+| shape | what it costs |
+|---|---|
+| a committed thin plugin that symlinks the skill surface | it names the skills by hand. `tla-spec-dev`'s carried `skills/spec-double-2` and nothing else; when the bundle grew to six skills it still showed one, and nothing said so |
+| a view staged at run time, excluding what is not skill surface | a copy — but one built from the working tree at the top of every run, so it carries whatever the checkout carries and cannot drift |
+
+This repository now does the second: `evals/run.sh` stages the working tree
+without `specs/.history` (the append-only record, 19,154 entries), without the
+gitignored `.skill-manager` home (41,169), and without the agent homes. 70,741
+entries becomes 6,264.
+
+**Prefer the staged view for a plugin that bundles skills**, and keep the thin
+symlinked plugin for the case it was invented for: evaluating units that live
+somewhere else entirely (§3.5).
+
+### A plugin that is a repository must not commit `hooks/hooks.json`
+
+The hooks that place fixtures and write verdicts belong to the PLUGIN. When the
+plugin is a thin directory beside the repository, committing them is free. When
+the plugin **is** the repository, a root `hooks/hooks.json` ships to every user
+who installs it, and its `SessionStart` script runs in every session they open
+— including, since exit 2 is blocking, a way for an eval-only fixture script to
+refuse somebody's ordinary work.
+
+Stage them instead: keep the file under `evals/`, and have the run script copy
+it into the view as `hooks/hooks.json`. Verified on 2.1.275 — a probe case whose
+staged `SessionStart` hook wrote one file and whose `Stop` hook wrote another
+scored 1.00 with both verdict paths present, `${CLAUDE_PLUGIN_ROOT}` resolving
+to the view, with no Bash grant and no scratch HOME.
 
 ### `scaffold_script:` does not run — use a hook
 
@@ -619,8 +670,8 @@ Three gotchas the wrapper form introduces:
 * **`--case` is mandatory here, and this is the shape that makes it so.** The
   wrapper's whole point is that `units/*/skills/*` are symlinks into live units,
   and discovery is a recursive glob (`<eval dir>/**/case.yaml`) that follows
-  them. A unit that ships its own eval plugin — `spec-double-compiler` ships
-  `examples/agent_integration/eval-plugin/evals/` with two cases — contributes
+  them. A unit that ships its own eval suite — `tla-spec-dev` ships `evals/`
+  with seven cases, one per nested skill — contributes
   those cases to *your* run. They score, they bill, and the report does not mark
   them as somebody else's. **Name the cases you meant to run, every time.**
 

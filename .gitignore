@@ -18,14 +18,18 @@ build/
 bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
-# The eval plugin's CLI shim is SOURCE, not a build output. `bin/` swallowed it
-# silently: the commit that introduced it went through without it, so the
-# committed recipe would have pointed every operator at a directory that is not
-# there, and the run would have graded whichever tla-spec-dev they happened to
-# have installed -- which is the exact defect the shim exists to prevent,
-# restored by the ignore file.
-!examples/agent_integration/eval-plugin/bin/
-!examples/agent_integration/eval-plugin/bin/**
+# The eval suite's CLI shim is SOURCE, not a build output, and `bin/` above
+# swallows it silently: the commit that first introduced one went through
+# without it, so the committed recipe pointed every operator at a directory
+# that is not there, and the run graded whichever tla-spec-dev they happened to
+# have installed -- the exact defect the shim exists to prevent, restored by
+# the ignore file.
+!evals/bin/
+!evals/bin/**
+
+# What a run produces, as opposed to what makes one. `evals/run.sh` harvests
+# each run's report back out of the throwaway view into here.
+evals/results/
 
 ### IntelliJ IDEA ###
 .idea
