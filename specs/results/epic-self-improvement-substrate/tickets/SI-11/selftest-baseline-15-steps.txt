@@ -1,0 +1,278 @@
+
+== A worktree home is a copy of its PROJECT home (#50) ==
+      log:       /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/bootstrap-home-LgCvuT.log  (50 earlier line(s) omitted below)
+        Say which one you mean:
+          --home /Users/hayde/.skill-manager   (this shim's home)
+          --home /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/proj-T1/.skill-manager   (the home your environment names)
+        tree:      clean — nothing this run created is reported by git status
+      skill-manager: ignoring SKILL_MANAGER_CLI=/Users/hayde/.skill-manager/bin/cli/skill-manager — it resolves to this shim (/Users/hayde/.skill-manager/bin/cli/skill-manager),
+        and exec'ing it would re-enter this script forever. Using /opt/homebrew/bin/skill-manager instead.
+      Picked up JAVA_TOOL_OPTIONS: -Duser.home=/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/fakehome
+      ! reconcile: no skill-manager projection for project-only-unit on claude at /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/proj-T1/.claude/skills/project-only-unit. In order to create all symlinks missing, please run: skill-manager sync
+      ! reconcile: no skill-manager projection for project-only-unit on codex at /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/proj-T1/.codex/skills/project-only-unit. In order to create all symlinks missing, please run: skill-manager sync
+      ! reconcile: no skill-manager projection for project-only-unit on gemini at /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/proj-T1/.gemini/skills/project-only-unit. In order to create all symlinks missing, please run: skill-manager sync
+      ! skills with outstanding errors (1) — 1 distinct cause(s) — re-run after fixing:
+      ✗   project-only-unit:
+      ✗     - NEEDS_GIT_MIGRATION: not git-tracked; file/local installs do not sync — reinstall from github: or git+ source, or add a git remote
+      ✗       → file/local installs do not sync; reinstall from a git source: skill-manager uninstall project-only-unit && skill-manager install github:<owner>/<repo>
+      error: verify: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/proj-T1/.skill-manager/bin/cli/skill-manager refuses to act on /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/proj-T1/.skill-manager.
+        It binds /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/proj-T1/.skill-manager, not the home it is installed in, so
+        every command through it is aimed at another home. This is NOT a version
+        problem and re-pinning a newer build will not change it — the shim is in the
+        wrong home, or this home was moved after it was written. Re-provision it:
+          /Users/hayde/.skill-manager/bin/cli/skill-manager home shims --home '/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/proj-T1/.skill-manager'
+  PASS  the_worktree_home_carries_the_project_homes_unit
+  PASS  the_worktree_home_does_not_carry_the_global_homes_unit
+  PASS  a_successful_bootstrap_names_the_log_that_holds_its_detail
+  FAIL  the_named_log_is_a_file_that_was_actually_written
+      '/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/bootstrap-home-LgCvuT.log  (50 earlier line(s) omitted below)' is missing or empty, so every check that reads it would pass on nothing
+grep: /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/bootstrap-home-LgCvuT.log  (50 earlier line(s) omitted below): No such file or directory
+  FAIL  a_run_that_cloned_says_which_directories_were_skipped
+      a real clone did not record the skipped-directory caveat
+  FAIL  the_force_rerun_names_a_log_of_its_own
+      '/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/bootstrap-home-ixAxJt.log  (33 earlier line(s) omitted below)' is missing or empty (rc=1); the checks below would read nothing
+  PASS  each_run_gets_its_own_log_rather_than_appending_to_a_shared_one
+grep: /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/bootstrap-home-ixAxJt.log  (33 earlier line(s) omitted below): No such file or directory
+  PASS  a_force_rerun_does_not_claim_a_clone_it_did_not_do
+grep: /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/bootstrap-home-ixAxJt.log  (33 earlier line(s) omitted below): No such file or directory
+  FAIL  a_force_rerun_says_what_it_did_instead
+      --force did not say it was re-running rather than re-cloning (rc=1)
+  PASS  a_force_rerun_leaves_the_existing_home_intact
+
+== The banner describes the home it actually produced (#10) ==
+  FAIL  the_verified_line_states_how_many_skills_the_home_can_serve
+      expected the servable-skill count in '<no verified: line>'
+grep: /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/bootstrap-home-ixAxJt.log  (33 earlier line(s) omitted below): No such file or directory
+  FAIL  a_link_that_does_not_resolve_in_the_home_is_named_even_with_no_clone_report
+      verify() did not name the dangling shim on a run that recorded no clone report (rc=1); see /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/bootstrap-home-ixAxJt.log  (33 earlier line(s) omitted below)
+  FAIL  the_console_still_says_how_many_links_in_this_home_do_not_resolve
+      expected a counted one-line warning, got '<no warning: line>'
+  FAIL  the_console_warning_says_what_the_unresolved_links_cost
+      '<none>' does not say that `home verify` refuses the home over them
+  PASS  the_deleted_remedy_pattern_matches_the_line_that_shipped
+  PASS  no_script_here_still_offers_the_sync_that_cannot_repair_what_it_names
+  FAIL  a_successful_bootstrap_is_under_budget_AND_still_prints_its_evidence
+      21 line(s) / 2859 byte(s),
+      budget 8, and the evidence lines present are:
+        log:       /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/bootstrap-home-LgCvuT.log  (50 earlier line(s) omitted below)
+      Both halves matter: short-with-no-evidence is not an improvement on long.
+  FAIL  the_projection_evidence_survives_on_the_console
+      'projected: N of M into each of …' was demoted; it is what makes 'verified' checkable
+  FAIL  the_console_ends_by_naming_the_next_move
+      no 'launch:' line — the one thing the operator does next
+skills/git-issue-workflow/scripts/selftest.sh: line 142: /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/bootstrap-home-LgCvuT.log  (50 earlier line(s) omitted below): No such file or directory
+skills/git-issue-workflow/scripts/selftest.sh: line 118: test: : integer expression expected
+skills/git-issue-workflow/scripts/selftest.sh: line 142: /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/bootstrap-home-LgCvuT.log  (50 earlier line(s) omitted below): No such file or directory
+  FAIL  the_detail_the_console_no_longer_carries_is_in_the_log
+      the log has  line(s) and the console 21 — the detail was dropped, not moved
+  PASS  verbose_puts_the_whole_transcript_back_on_stderr
+  FAIL  verbose_still_ends_with_the_evidence
+      --verbose lost the verified: line while restoring everything else
+
+== The skills reach an agent, and 'verified' is printed only when they do ==
+  PASS  the_projection_fixture_home_actually_holds_a_skill
+  FAIL  a_bootstrapped_worktree_home_is_accepted
+      bootstrap exited 1; see /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/proj.log
+  FAIL  every_skill_in_the_home_is_readable_by_claude_from_inside_the_worktree
+      an agent launched here would not see: project-only-unit(absent)
+  FAIL  every_skill_in_the_home_is_readable_by_codex_from_inside_the_worktree
+      an agent launched here would not see: project-only-unit(absent)
+  FAIL  every_skill_in_the_home_is_readable_by_gemini_from_inside_the_worktree
+      an agent launched here would not see: project-only-unit(absent)
+  FAIL  the_projection_run_got_far_enough_to_report_on_the_home
+      no 'skills:' line in /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/bootstrap-home-08L6I1.log  (45 earlier line(s) omitted below) — the checks below would be about a run that died first
+  FAIL  a_fully_projected_home_is_reported_as_verified_with_the_projected_count
+      expected '1 skill(s) servable', got '<no verified: line>'
+  FAIL  the_run_states_how_many_of_the_stores_skills_an_agent_can_reach
+      no 'projected: 1 of 1' line; see /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/proj.log
+  FAIL  deleting_one_agent_link_changes_the_reported_projection_count
+      the count did not move when a link was removed — it is counting the store, not the links:
+        <no projected: line>
+  PASS  a_home_with_a_missing_agent_link_is_not_reported_as_verified
+  FAIL  a_dangling_agent_link_does_not_count_as_a_projection
+      a link to a nonexistent target was counted; see /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/proj-dangling.log
+  FAIL  an_agent_link_that_resolves_into_another_checkout_does_not_count
+      a link into /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/proj/.skill-manager was counted as this home serving the unit; see /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/proj-foreign.log
+  FAIL  an_unservable_home_exits_with_the_unprojected_code
+      expected exit 6, got 1; see /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/proj-refuse.log
+  FAIL  the_refusal_names_the_link_an_agent_would_have_followed
+      the refusal does not name /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/proj-P1/.claude/skills/project-only-unit; see /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/proj-refuse.log
+  FAIL  a_plain_rerun_repairs_the_projection
+      bootstrap exited 1 on a home with one missing link; see /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/proj-repair.log
+  PASS  the_repaired_link_is_there_and_resolves
+  FAIL  the_repaired_home_is_reported_as_verified_again
+      the repair run did not print 'verified:'; see /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/proj-repair.log
+  PASS  projecting_a_worktree_home_does_not_make_it_unclosable
+
+== A home with no skills is refused, not reported as verified ==
+  PASS  the_empty_home_fixture_really_did_produce_a_wired_home
+  PASS  a_home_with_no_skills_exits_with_the_empty_home_code
+  PASS  a_home_with_no_skills_is_never_reported_as_verified
+  PASS  a_home_with_no_skills_does_not_close_by_inviting_a_launch
+  FAIL  the_key_whose_absence_is_asserted_above_is_one_this_script_really_prints
+      no 'launch:' line on a GOOD run either, so its absence on an empty home proves nothing
+  PASS  the_refusal_names_onboard_the_step_that_installs_the_bundled_skills
+  PASS  the_empty_project_refusal_prints_an_onboard_command_to_check
+  PASS  a_printed_remedy_pins_the_agent_home_env_too
+  PASS  the_refusal_points_onboard_at_the_project_home_not_the_worktree_copy
+
+== close-change.sh reconciles into that SAME home ==
+  PASS  close_out_reconciles_into_the_home_the_worktree_was_cloned_from
+  PASS  a_freshly_bootstrapped_worktree_holds_nothing_that_removing_it_would_destroy
+  PASS  a_freshly_bootstrapped_worktree_is_blocked_by_nothing
+
+== A ticket resolves to the same worktree from anywhere in the repo ==
+  PASS  a_ticket_resolves_to_the_same_worktree_from_a_sibling_worktree
+
+== From inside the worktree: --dry-run answers, removal refuses ==
+  PASS  a_dry_run_from_inside_the_worktree_is_answered_not_refused
+  PASS  a_removal_from_inside_the_worktree_removes_nothing
+  PASS  a_removal_from_inside_the_worktree_says_why_it_refused
+
+== A printed remedy names a CLI that exists ==
+  PASS  the_gate_blocks_on_a_unit_only_the_worktree_home_has
+  PASS  the_printed_remedy_names_an_executable_that_exists
+  PASS  the_remedy_is_still_the_command_the_gate_ran
+  PASS  the_gate_reports_a_conflicted_unit_with_the_files_to_resolve
+  PASS  the_remedy_tail_names_the_conflicted_manifest
+  PASS  the_remedy_tail_names_conflicts_by_their_in_unit_path_not_an_absolute_one
+
+== A source that cannot be closed into is refused, not honoured ==
+  PASS  a_source_that_disagrees_with_the_project_home_creates_no_home
+  PASS  a_worktree_whose_project_has_no_home_creates_no_home
+  PASS  the_refusal_does_not_scaffold_a_home_at_the_project_either
+
+== new-change.sh rolls back a worktree whose home could not be created ==
+  PASS  a_worktree_whose_home_could_not_be_created_is_rolled_back
+  PASS  the_branch_listing_that_the_next_check_reads_is_real
+  PASS  the_branch_of_a_rolled_back_worktree_is_deleted_too
+  PASS  the_failure_names_a_remedy_that_actually_works
+
+== The documented first-time home recipe works, and pre-creating cannot break it ==
+  PASS  the_documented_recipe_still_has_a_bootstrap_step_and_no_longer_creates_the_home_first
+  FAIL  a_precreated_skill_manager_directory_no_longer_stops_the_first_bootstrap
+      rc=1, descriptor 1,
+      cloned unit 1; see /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/recipe-premade.log
+  PASS  a_directory_that_is_not_a_home_is_still_refused_even_with_force
+  PASS  and_the_refusal_is_this_scripts_own_before_the_clone_not_the_CLIs_three_steps_later
+  PASS  and_it_does_not_send_the_operator_to_force_which_would_skip_the_clone
+  PASS  the_refused_run_wrote_nothing_into_the_directory_it_refused
+
+== wt: the output is the next move ==
+  FAIL  a_direct_new_change_prints_one_line_of_stderr_AND_the_whole_contract_on_stdout
+      rc=3, stderr 21 line(s), stdout:
+        FAILED     no Skill Manager home could be created for this worktree (usually: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/cheap has no project home yet)
+        FIX        /Users/hayde/IdeaProjects/wt-epic-self-improvement-substrate/skills/git-issue-workflow/scripts/bootstrap-home.sh --root /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/cheap
+      stderr:
+        log:       /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/new-change-EDldgQ.log  (25 earlier line(s) omitted below)
+        ✗       → file/local installs do not sync; reinstall from a git source: skill-manager uninstall cheap-project-unit && skill-manager install github:<owner>/<repo>
+        error: verify: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/cheap-WD1/.skill-manager/bin/cli/skill-manager refuses to act on /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/cheap-WD1/.skill-manager.
+          It binds /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/cheap-WD1/.skill-manager, not the home it is installed in, so
+          every command through it is aimed at another home. This is NOT a version
+          problem and re-pinning a newer build will not change it — the shim is in the
+          wrong home, or this home was moved after it was written. Re-provision it:
+            /Users/hayde/.skill-manager/bin/cli/skill-manager home shims --home '/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/cheap-WD1/.skill-manager'
+        
+        No home could be created for this worktree, so an agent started in it would
+        read and write the operator's GLOBAL home. The cause is printed above, and the
+        remedy that clears it is in that message — it is usually that this repo has no
+        project home yet, which one command fixes:
+        
+          /Users/hayde/IdeaProjects/wt-epic-self-improvement-substrate/skills/git-issue-workflow/scripts/bootstrap-home.sh --root "/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/cheap"
+          /Users/hayde/IdeaProjects/wt-epic-self-improvement-substrate/skills/git-issue-workflow/scripts/new-change.sh WD1 main
+        
+        The worktree and branch feature/WD1 were removed, so re-running the line above
+        works as if this attempt had not happened.
+        
+        Or, if this worktree will never host an agent, create it with --no-home.
+  FAIL  the_direct_run_names_a_log_that_was_written
+      '/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/new-change-EDldgQ.log  (25 earlier line(s) omitted below)' is missing or empty
+grep: /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/new-change-EDldgQ.log  (25 earlier line(s) omitted below): No such file or directory
+  FAIL  the_worktrees_own_bootstrap_narration_lands_in_that_same_log
+      no 'verified:' line in /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/new-change-EDldgQ.log  (25 earlier line(s) omitted below) — bootstrap-home.sh's output went somewhere else
+grep: /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/new-change-EDldgQ.log  (25 earlier line(s) omitted below): No such file or directory
+  FAIL  and_so_does_new_changes_own_closing_prose
+      the closing notes were deleted rather than moved; they are the explanation of the contract
+  FAIL  wt_new_creates_the_worktree_and_its_home_in_one_command
+      wt new exited 3; see /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/wt-new.err
+  FAIL  a_successful_wt_new_costs_one_line_AND_that_line_names_the_worktree
+      stdout 3 line(s), stderr 0 line(s),
+      worktree '<none>' (is a directory: 0). stdout was:
+        error creating worktree: no Skill Manager home could be created for this worktree (usually: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/cheap has no project home yet)
+        fix: /Users/hayde/IdeaProjects/wt-epic-self-improvement-substrate/skills/git-issue-workflow/scripts/bootstrap-home.sh --root /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/cheap
+        log: /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/wt-MmXXhR-run.log
+  FAIL  wt_info_answers_for_a_worktree_that_exists
+      wt info exited 1; see /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/wt-info.err
+  FAIL  wt_info_names_the_same_worktree_the_one_line_summary_did
+      wt new said '<none>' and wt info said '<none>'
+  FAIL  the_contract_names_a_launcher_that_exists_and_can_be_run
+      LAUNCH names '<none>', which is not an executable file
+  FAIL  the_launcher_is_this_worktrees_own_not_some_other_homes
+      LAUNCH '' is not inside  — an agent started with it would bind to another home
+  FAIL  the_contract_names_a_close_command_that_exists
+      CLOSE names '<none>', whose first token is not an executable file
+  FAIL  the_contract_names_a_runnable_way_out_of_the_first_launch_refusal
+      IF-EXIT-8 names '<none>', whose first token is not an executable file — an agent
+      that meets exit 8 without it goes back to the reference pages
+  PASS  a_second_wt_new_for_the_same_ticket_fails
+  PASS  a_failing_wt_new_costs_three_lines_AND_one_of_them_says_what_failed
+  PASS  a_failing_run_names_one_remedy_that_is_actually_runnable
+  FAIL  the_remedy_for_an_existing_worktree_is_the_gated_teardown
+      fix is '/Users/hayde/IdeaProjects/wt-epic-self-improvement-substrate/skills/git-issue-workflow/scripts/bootstrap-home.sh --root /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/cheap' — anything but a 'wt close' here routes the operator around the close-out gate
+  PASS  the_failure_names_a_log_that_exists_and_holds_the_prose_it_replaced
+  FAIL  wt_close_tears_the_worktree_down_in_one_command
+      wt close exited 1; see /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/wt-close.err
+  PASS  wt_close_actually_removed_it
+  FAIL  a_successful_wt_close_costs_one_line_AND_that_line_names_the_worktree_and_the_dangling_branch
+      stdout 3 line(s), stderr 0 line(s); the line was:
+      error closing worktree: no worktree for ticket W1: not at /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/cheap-W1 (where new-change.sh would put cheap's), and nothing named '*-W1' in /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F
+      it must name both  and feature/W1 — the branch outlives the worktree,
+      so which branch that is, is the whole remaining move
+
+== wt close --force reports one outcome, not both ==
+  PASS  the_gate_blocks_the_unforced_close_so_the_forced_one_has_something_to_override
+  PASS  a_blocked_close_costs_three_lines_AND_one_of_them_says_why_it_refused
+  FAIL  the_remedy_on_a_refused_close_is_the_blockers_own_not_force
+      fix is 'git -C "/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/cheap" worktree list' — --force is always true and is the one that DESTROYS the work,
+      so a refusal that leads with it teaches the operator to discard
+  FAIL  the_refusal_names_a_log_that_holds_the_blocking_unit_it_no_longer_prints
+      log is '/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/wt-Y2dBe3.log' and does not name forced-wt-only-unit
+  PASS  a_blocked_close_does_not_also_claim_it_closed
+  FAIL  a_forced_close_succeeds
+      wt close --force exited 1; see /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/wt-force.err
+  FAIL  a_forced_close_reports_the_success_key_set
+      no CLOSED line on a run that removed the worktree; see /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/wt-force.out
+  PASS  a_forced_close_does_not_also_report_the_failure_contract
+  PASS  a_forced_close_does_not_print_a_fix_for_a_thing_it_did_anyway
+  FAIL  a_forced_close_still_says_on_stderr_what_it_discarded
+      the forced run threw work away and said so nowhere; see /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/wt-force.err
+  FAIL  a_forced_close_names_the_work_it_discarded
+      the discarded unit is not named on stderr; see /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/gir-selftest-29id5F/wt-force.err
+
+== The gate runs the home's own CLI pin without wedging it ==
+  PASS  the_gate_returns_when_the_cli_it_picked_is_the_homes_own_pin
+  PASS  the_cli_under_test_really_is_the_homes_own_pin
+  PASS  the_gate_reached_a_verdict_through_the_pin
+  PASS  the_pin_is_invoked_with_no_SKILL_MANAGER_CLI_to_resolve_itself_through
+  PASS  the_pin_is_never_named_in_the_variable_it_resolves_itself_through
+  PASS  the_pinned_build_behind_the_shim_is_what_answered_the_gate
+
+== Every skill-manager option this repo prints is one the CLI accepts ==
+skills/git-issue-workflow/scripts/selftest.sh: line 1567: bad substitution: no closing `)' in <(
+  # Both shapes, because both are printed here: a one-word subcommand
+  # (`exec --print-env`, `sync --force-scripts`) and a two-word one
+  # (`home close-out --home`, `project resolve --project-dir`). Keying only on
+  # the two-word shape is how the first draft of this check matched 4 of the 7
+  # strings that exist -- caught by the vacuity guard below, which is the only
+  # reason this comment is accurate.
+  # `xargs -0 grep`, NOT `xargs -0 command grep`. xargs execs its argument
+  # DIRECTLY, with no shell in between, so there is no alias or function for
+  # `command` to bypass — but there IS a `/usr/bin/command` binary on macOS and
+  # none on Linux, so on a GNU host xargs failed with "command: No such file or
+  # directory" and the sweep came back EMPTY. That is the vacuity this file's
+  # own guards exist to catch, hiding inside the sweep that feeds them.
+  # (`| command sed` below is a real shell pipeline where `command` IS the
+  # builtin and is correct; the distinction is xargs, not sed.)
+  cd "$SCRIPT_DIR/.." && git ls-files -z 2>/dev/null     | xargs -0 grep -ohE 'skill-manager [a-z][a-z-]*( [a-z][a-z-]+)? --[a-z][a-z-]+' 2>/dev/null     | command sed -E 's/^skill-manager //; s/ (--[a-z-]+)$/|\1/'     | sort -u
+)
+SELFTEST_BASELINE_EXIT=0
