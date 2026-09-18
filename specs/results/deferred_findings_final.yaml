@@ -2834,3 +2834,65 @@ findings:
     disposition_note: >-
       Candidate home is SI-11 (#351), which owns resolution under the plugin
       layout. Owner triages at the wave-3 review.
+  - id: SI-04-DF-04
+    found_by: "SI-04"
+    found_at_commit: "4b72c869"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      `origin` in this clone points at a SIBLING WORKTREE
+      (/Users/hayde/IdeaProjects/wt-351-plugin-plumbing), not at
+      github.com/haydenrear/tla-spec-dev, and that repository's own `origin`
+      points at itself -- so the chain dead-ends locally and nothing reaches
+      GitHub. No GitHub remote for this repository is configured at all; the
+      seven remotes that ARE configured are the constituent skill repos.
+      The consequence is a SILENT SUCCESS, which is why it is filed rather
+      than worked around: the assignment's `git push -u origin
+      feature/<branch>` exits 0 and prints "Everything up-to-date" plus
+      "branch set up to track origin/...", and `git rev-parse
+      origin/feature/...` then MATCHES local HEAD -- so every check an agent
+      would naturally run to confirm the push says it worked. GitHub returns
+      404 for the branch. An agent that trusted its own push verification
+      would open no PR, or report a PR it never opened.
+    reproduction: >-
+      In any wave-3 worktree: `git remote -v` -> `origin
+      /Users/hayde/IdeaProjects/wt-351-plugin-plumbing`; `git config --get
+      remote.origin.url` in the MAIN checkout returns the same. Then
+      `git push -u origin feature/337-improvement-record` -> "Everything
+      up-to-date", exit 0, while
+      `gh api repos/haydenrear/tla-spec-dev/branches/feature/337-improvement-record`
+      -> HTTP 404 "Branch not found". Confirmed the epic branch IS on GitHub
+      at 994f650c, so GitHub is live and authoritative; only the local remote
+      is mis-pointed.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-04/remote-origin-is-local.txt"
+    why_out_of_scope: >-
+      `.git/config` is SHARED by the common git dir across all nine worktrees
+      and the main checkout, so repointing remote.origin.url would silently
+      change the base and push target of every sibling ticket agent running
+      right now. That is not a change a ticket agent may make unilaterally,
+      and it is in no conflict key of SI-04.
+    suggested_fix: >-
+      Decide deliberately which is intended. If ticket branches are meant to
+      reach GitHub (PR #350 from feature/335-nest-workflow-skills was merged
+      there, so they are), add a github remote and leave `origin` alone, or
+      repoint `origin` once, by the epic owner, between waves -- never while
+      tickets are in flight. Until then a ticket agent must push by explicit
+      URL. Worth pairing with a check that refuses to report a push as
+      confirmed when the resolved remote is a local path.
+    blast_radius: >-
+      Every wave-3 ticket that ends in "push the sealed branch and open the
+      PR". The branch and commit are never lost -- they are in the shared
+      object store -- but the PR the epic agent is waiting on never appears,
+      and the agent's own verification says it did.
+    skill_change: proposed(git-issue-workflow, "SI-04-DF-04; treat a local-path origin as unpublished when confirming a push")
+    disposition: pending
+    disposition_ticket: null
+    disposition_note: >-
+      Owner triages at the wave-3 review. SI-04 worked around it by pushing to
+      the GitHub URL explicitly and did NOT touch the shared .git/config.
