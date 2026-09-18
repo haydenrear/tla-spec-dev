@@ -2217,9 +2217,17 @@ def test_the_claim_that_justified_an_epic_is_refused(st):
     assert hit["scope"].startswith("UNSCOPED")
     named = {f"{c['example']}/{c['run_id']}" for c in hit["counterexamples"]}
 
+    # SI-03: every filled card THAT SCORES D2. `.get("D2")` on a card of a kind
+    # that has no D2 returns nothing, and nothing is not 2 -- so without the
+    # kind filter this set silently absorbs every improvement card ever written
+    # and calls each one a counterexample to a claim about a dimension it does
+    # not carry. The pinned count below is deliberately NOT moved: it going back
+    # to 20 is the evidence that the D2 population is exactly what it was before
+    # a second card kind existed.
     expected = {f"{c['example']}/{c['run_id']}"
                 for _, c in st.load(SCORECARDS)
                 if c.get("status") != "unfilled"
+                and "D2" in st.dims_of(st.card_kind_of(c))
                 and (c["dimensions"].get("D2") or {}).get("score") != 2}
     assert named == expected, sorted(named ^ expected)
 
@@ -2886,3 +2894,180 @@ def test_the_frozen_v4_bar_is_still_the_v4_bar(st):
     # and it is a DIFFERENT bar from the live card, or freezing it bought nothing
     live = st.load_rubric(RUBRIC)
     assert st.served_digest(live, live["card_version"]) != st.served_digest(frozen, 4)
+
+
+# --------------------------------------------------------------------------
+# SI-03: the improvement card -- a second KIND, whose subject is the loop
+# --------------------------------------------------------------------------
+#
+# These are deliberately fast: this file already takes ~14 minutes and a new
+# card kind is not a reason to make it longer. Nothing here shells out.
+
+IMPROVEMENT = SKILL_ROOT / "references/improvement_card.md"
+
+
+@pytest.fixture(scope="module")
+def icard(st):
+    return st.load_rubric(IMPROVEMENT)
+
+
+def improvement_card(st, icard, **over):
+    """A well-formed filled improvement card, so each test mutates ONE thing."""
+    card = {
+        "card_kind": "improvement", "scorecard_version": 1, "status": "filled",
+        "epic": "self-improvement-substrate", "example": "si-06-pr352",
+        "run_id": "20260918-t-GG-p1", "arm": "GG", "commit": "21a71448",
+        "subject_shape": "ticket", "subject_ref": "PR #352 / SI-06",
+        "judge": {"model": "claude-opus-5[1m]", "pass": 1, "blind_to_arm": True},
+        "subject": None,
+        "packet": {"items": ["pr_body"], "absent": ["close_summary"], "withheld": [],
+                   "contamination": "NOT BLIND."},
+        "rubric": {"source": icard["source"], "digest": icard["digest"],
+                   "served_digest": st.served_digest(icard, 1),
+                   "file_sha256": icard["file_sha256"]},
+        "dimensions": {k: {"name": st.INAMES[k], "score": 3,
+                           "citations": ["specs/results/x.md:1"],
+                           "rationale": "r", "refuses_to_claim": None}
+                       for k in st.IDIMS},
+        "contested": [], "verdict": "v",
+    }
+    card.update(over)
+    return card
+
+
+def test_the_improvement_card_is_a_different_kind_not_a_version(st, rubric, icard):
+    """The two cards share discipline and share NO dimension.
+
+    Folding the loop's dimensions in as a sixth version of the eval card would
+    have made every rule under `Reading history` -- all of which are written on
+    the claim that the SAME bar moved -- a statement about something else.
+    """
+    assert icard["kind"] == "improvement" and rubric["kind"] == "eval"
+    assert set(icard["dimensions"]).isdisjoint(set(rubric["dimensions"]))
+    assert set(icard["dimensions"]) == set(st.IDIMS)
+
+
+def test_a_card_that_declares_no_kind_is_an_eval_card_forever(st):
+    """R-H4 forbids editing a sealed card, and 133 sealed files declare no kind.
+
+    So absent has to keep meaning `eval` permanently. If this ever stops being
+    true, every sealed card silently changes what it is a measurement of.
+    """
+    assert st.card_kind_of({}) == st.KIND_EVAL
+    assert st.card_kind_of({"card_kind": None}) == st.KIND_EVAL
+    sealed = json.loads(one_card(SCORECARDS / "close-the-loop-cl03-v4").read_text())
+    assert "card_kind" not in sealed
+    assert st.card_kind_of(sealed) == st.KIND_EVAL
+
+
+def test_adding_a_second_card_moved_no_bar_a_judge_reads(st, rubric):
+    """THE REGRESSION THIS TICKET COULD MOST EASILY HAVE CAUSED.
+
+    A kind-aware renderer that rebuilt the eval card's served notice from a
+    template would change the bytes a judge reads while every anchor stayed put
+    -- exactly the class `CL-01`'s second seal exists to catch -- and would
+    report all 133 sealed digests as drifted. So the eval notice stays a
+    verbatim literal, and this asserts the outcome rather than the intent.
+    """
+    declared = {v["version"]: v for v in rubric["versions"]}[rubric["card_version"]]
+    assert rubric["anchors_digest"] == declared["anchors_digest"]
+    assert st.served_digest(rubric, rubric["card_version"]) == declared["served_digest"]
+    assert not st.version_history_problems(rubric)
+
+
+def test_each_card_declares_exactly_what_its_own_audit_executes(st, rubric, icard):
+    """A reading rule nothing executes will drift -- in both registries.
+
+    And the registries are kept APART: adding an `R-I` to `AUDIT_CHECKS` would
+    report the eval card as declaring a rule it does not have, which is the same
+    false statement this meta-check exists to prevent, wearing the other sign.
+    """
+    assert {r["id"] for r in rubric["reading_rules"]} == set(st.AUDIT_CHECKS)
+    assert {r["id"] for r in icard["reading_rules"]} == set(st.IMPROVEMENT_AUDIT_CHECKS)
+    assert set(st.AUDIT_CHECKS).isdisjoint(set(st.IMPROVEMENT_AUDIT_CHECKS))
+
+
+def test_an_improvement_card_records_the_packet_its_judge_was_handed(st, icard):
+    """R-I2. The subject is a RECORD, and a record has no natural boundary."""
+    assert not st.check(improvement_card(st, icard), "ok", icard)[0]
+    for label, packet in [
+            ("no packet at all", None),
+            ("no items", {"items": [], "contamination": "NOT BLIND."}),
+            ("no contamination note", {"items": ["pr_body"], "contamination": ""}),
+    ]:
+        bad, _ = st.check(improvement_card(st, icard, packet=packet), "x", icard)
+        assert bad, f"a card with {label} was accepted"
+
+
+def test_absent_is_not_withheld(st, icard):
+    """`absent` (it does not exist) and `withheld` (it exists, not passed) are
+    different claims about the same silence. A withheld item owes a reason;
+    collapsing the two is how a gap reads as a decision."""
+    bad, _ = st.check(improvement_card(st, icard, packet={
+        "items": ["pr_body"], "withheld": ["review_input"],
+        "contamination": "NOT BLIND."}), "x", icard)
+    assert any("carries no reason" in b for b in bad), bad
+    ok, _ = st.check(improvement_card(st, icard, packet={
+        "items": ["pr_body"],
+        "withheld": [{"item": "review_input", "reason": "the section is the subject"}],
+        "contamination": "NOT BLIND."}), "x", icard)
+    assert not ok, ok
+
+
+def test_an_improvement_card_carries_no_total_and_no_judging_practice(st, icard):
+    """Both are EVAL fields. A version 1 card is below the eval card's
+    `total`-removal boundary, so without an explicit clause it would be checked
+    by the arithmetic branch and REFUSED for not carrying a sum it must not have.
+    """
+    bad, _ = st.check(improvement_card(st, icard, total=15), "x", icard)
+    assert any("no total at any version" in b for b in bad), bad
+    bad, _ = st.check(improvement_card(st, icard, judging_practice={
+        "executed_own_faults": False, "what_was_run": []}), "x", icard)
+    assert any("not a field of an improvement card" in b for b in bad), bad
+
+
+def test_a_dimension_from_the_other_kind_is_unknown_not_skipped(st, icard):
+    """`check` walks EVERY kind's keys, so a D-dimension on an improvement card
+    is reported rather than quietly ignored."""
+    dims = dict(improvement_card(st, icard)["dimensions"])
+    dims["D2"] = {"name": "complexity", "score": 2, "citations": ["a:1"], "rationale": "r"}
+    bad, _ = st.check(improvement_card(st, icard, dimensions=dims), "x", icard)
+    assert any("unknown dimensions: D2" in b for b in bad), bad
+
+
+def test_a_card_checked_against_the_other_kinds_bar_is_refused(st, rubric, icard):
+    """A card is checked against its own kind's bar or against nothing. The eval
+    card carries none of I1..I5, so checking one against it would measure a card
+    against a bar with no rung for anything it scores."""
+    bad, _ = st.check(improvement_card(st, icard), "x", rubric)
+    assert any("card_kind" in b and "checked against" in b for b in bad), bad
+
+
+def test_the_improvement_skeleton_scaffolds_blinded_and_checks_clean(st, tmp_path, capsys):
+    """Scaffolding is the mechanism; hand-authoring a card is how a field drifts
+    from the rubric it was copied out of. The skeleton must also carry NO eval
+    field -- a judge handed a `judging_practice` block would answer a question
+    this card does not ask."""
+    assert st.main(["scaffold", str(tmp_path / "r"), "--example", "s", "--arms", "A,B",
+                    "--judges", "1", "--kind", "improvement",
+                    "--subject-shape", "ticket", "--subject-ref", "PR #352",
+                    "--run-date", "20260918"]) == 0
+    capsys.readouterr()
+    card = json.loads(one_card(tmp_path / "r").read_text())
+    assert card["card_kind"] == "improvement"
+    assert card["subject_shape"] == "ticket" and card["subject_ref"] == "PR #352"
+    assert sorted(card["dimensions"]) == list(st.IDIMS)
+    assert "judging_practice" not in card and "notes" not in card and "total" not in card
+    assert card["packet"]["items"] == [] and card["packet"]["contamination"] == ""
+    assert st.main(["check", str(tmp_path / "r")]) == 0
+
+
+def test_the_improvement_rubric_serves_no_result_about_its_own_dimensions(st, icard):
+    """A judge must never be handed the finding they are the instrument for --
+    the same backstop the eval card carries, over the second card's served bytes.
+    """
+    assert not st.rubric_leak_problems(icard)
+    served = st.served_rubric(icard, 1)
+    assert not st.result_leaks(served)
+    # and the reading rules are NOT in what a judge reads
+    assert "R-I1" not in served and "Reading history" not in served

@@ -297,6 +297,14 @@ def card_rows(scorecard_root: pathlib.Path = DEFAULT_SCORECARD_ROOT) -> list[dic
     rows = []
     for path in sorted(scorecard_root.glob("*/*/*/scorecard.json")):
         card = json.loads(path.read_text())
+        # SI-03. THIS AXIS IS THE EVAL CARD'S. It is derived from D3 citations
+        # and it annotates D-dimension comparisons; an improvement card carries
+        # none of those keys, so sweeping one in contributes a row of `None`
+        # scores and an unattributable subject to every table below. A card that
+        # declares no kind is an eval card, which is every card sealed before
+        # this ticket -- so this filter changes nothing about the 133 of them.
+        if (card.get("card_kind") or "eval") != "eval":
+            continue
         parts = path.relative_to(scorecard_root).parts
         model = str((card.get("judge") or {}).get("model") or "")
         tier = "opus" if "opus" in model else ("sonnet" if "sonnet" in model else "?")

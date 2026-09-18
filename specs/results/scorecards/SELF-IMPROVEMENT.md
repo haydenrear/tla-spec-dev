@@ -7,6 +7,33 @@ dimensions across epic boundaries so the movement is visible.
 Read `references/eval_scorecard.md` first — it defines the five dimensions, the
 anchors, and the rules that make a judged score hard to game.
 
+## Two cards, and a row from one is never a row from the other
+
+**`SI-03`.** There are now two judged cards, and every row in this file belongs
+to exactly one of them:
+
+| card | its subject | keys | where its rows are |
+|---|---|---|---|
+| `references/eval_scorecard.md` | an **artifact** | `D…` | every row below |
+| `references/improvement_card.md` | the **loop** — what an agent did when this substrate blocked it | `I…` | `self-improvement-substrate-si03/` |
+
+`score_tools.py` tells them apart by a `card_kind` field, and a card that
+declares none is an eval card permanently — which is what every card sealed
+before `SI-03` is.
+
+**They are not comparable in either direction, and no reading rule makes them
+so.** `R-H1` asks whether two rows were measured on the same instrument; two
+different cards are not one instrument, so the question does not arise. Nothing
+here may average, sum or difference across the two, for the reason `R-H2`
+already gives about examples: a number over both is a number about nothing.
+
+**Why a second card and not a sixth version:** a version bump is the claim that
+*the same bar moved*, and every rule under **Reading history** is written on that
+claim. The loop's dimensions are not the artifact's dimensions.
+
+In one line: the eval card measures the thing we built; the improvement card
+measures whether we fixed the thing that made building it harder.
+
 ## How this file is maintained
 
 - Every epic seals its scorecards into

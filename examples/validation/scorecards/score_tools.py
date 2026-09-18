@@ -251,29 +251,182 @@ NOTE_KEY = {dim: f"N-{dim}" for dim in RETIRED_DIMS}
 #: that cost is this dict rather than a sentence somewhere.
 TOP_SCORE_V4 = {"D2": 3, "D3": 4}
 
-
-def scored_dims(version: int) -> tuple[str, ...]:
-    """The dimensions a card of this version carries a SCORE for."""
-    if version >= RETIRED_AT:
-        return tuple(d for d in DIMS if d not in RETIRED_DIMS)
-    return DIMS
-
-
-def note_dims(version: int) -> tuple[str, ...]:
-    """The dimensions this version records as prose instead of scoring."""
-    return RETIRED_DIMS if version >= RETIRED_AT else ()
-
-
-def top_score(dim: str, version: int) -> int:
-    """The highest anchor `dim` carries at this version. Rule 3 keys on it."""
-    if version >= RETIRED_AT:
-        return TOP_SCORE_V4.get(dim, 4)
-    return 4
-
 HERE = pathlib.Path(__file__).resolve()
 
 #: Where the one home of the card sits, relative to the tree root.
 CARD_PATH = "skills/spec-double-2/references/eval_scorecard.md"
+
+# ---------------------------------------------------------------------------
+# SI-03: A SECOND CARD KIND, whose subject is the LOOP rather than the artifact
+# ---------------------------------------------------------------------------
+#
+# `references/improvement_card.md` scores what an agent did when the substrate
+# blocked it. It is a different CARD, not a different version of this one: its
+# dimensions are not these dimensions and its anchors are not comparable to
+# these anchors, so folding it in as `scorecard_version 6` would have made every
+# cross-version reading rule a statement about something it is not about.
+#
+# THE KIND IS A FIELD OF THE CARD AND ITS DEFAULT IS THE ABSENT ONE. Every card
+# sealed before this ticket carries no `card_kind`, and `R-H4` says a sealed
+# card is never edited -- so absent MUST read as `eval` forever, and it does.
+# Nothing here changes what any existing card means, which is checkable rather
+# than asserted: `anchors_digest`, `served_digest` and every sealed digest over
+# the 133 sealed files are unmoved by this ticket.
+#
+# Each kind owns only what actually differs: which dimension keys exist, what
+# they are called, which of them a version scores, where the card file lives,
+# and from which version a `### Version history` row seals the served bytes.
+# Everything else -- the citation rule, the top-of-scale refusal, blinding,
+# sealing, the reading-rule audit -- is SHARED CODE, because the improvement
+# card extends the eval card's discipline rather than replacing it, and a second
+# implementation of that discipline is the `CA-05-DF-06` shape: two opinions
+# about the same bytes in the same repository.
+
+KIND_EVAL = "eval"
+KIND_IMPROVEMENT = "improvement"
+
+#: The improvement card's five dimensions, in the loop's own order --
+#: reported, proposed, disposed, anchored, honest.
+IDIMS = ("I1", "I2", "I3", "I4", "I5")
+INAMES = {
+    "I1": "reporting",
+    "I2": "proposal",
+    "I3": "disposition",
+    "I4": "attribution",
+    "I5": "honesty",
+}
+
+IMPROVEMENT_CARD_PATH = "skills/spec-double-2/references/improvement_card.md"
+
+#: `subject_shape` -- the unit an improvement card scores. Closed on purpose:
+#: the evaluation ticket has to tell a ticket row from an epic row without
+#: reading the prose, and an open vocabulary is how `disposition` became a field
+#: that 130 rows satisfied by saying nothing.
+SUBJECT_SHAPES = ("ticket", "wave", "epic")
+
+#: A version above anything a one-version card can declare. It is a NUMBER
+#: rather than `None` so the shared `scored_dims`/`note_dims`/`top_score`
+#: arithmetic needs no branch, and a future retirement on this card is a value
+#: change rather than a new code path.
+NEVER_RETIRED = 1 << 30
+
+KINDS: dict[str, dict] = {
+    KIND_EVAL: {
+        "dims": DIMS,
+        "names": NAMES,
+        "retired_at": RETIRED_AT,
+        "retired": RETIRED_DIMS,
+        "top": TOP_SCORE_V4,
+        "card_path": CARD_PATH,
+        "served_seal_from": SERVED_SEAL_FROM,
+        "reading_prefix": "R-H",
+        "title": "The Eval Scorecard",
+        # The version from which `serve` emits the "this is the whole rubric"
+        # notice. Version 3 is when the eval card stopped pointing a judge at
+        # its own file.
+        "preamble_from": 3,
+        # A VERBATIM LITERAL, not a template, and that is the point. This string
+        # is inside the bytes `served_digest` covers, the eval card's version
+        # history declares `sha256:2d7d4a0506d9b259` for it, and 133 sealed
+        # digests rest on it. Rendering it from `card_path` would move the
+        # served surface for a refactor nobody asked for and report the whole
+        # sealed record as SERVED-DRIFT.
+        "serve_notice": (
+            "**This is the whole rubric, and it is reproduced here so the bar for a "
+            "score sits in the same file as the score.** Do NOT go and read "
+            "`references/eval_scorecard.md`. That file also carries reading rules "
+            "and prior results about these same dimensions, and a judge who "
+            "reads those is being handed conclusions about the instrument they are "
+            "the instrument for."),
+    },
+    KIND_IMPROVEMENT: {
+        "dims": IDIMS,
+        "names": INAMES,
+        "retired_at": NEVER_RETIRED,
+        "retired": (),
+        "top": {},
+        "card_path": IMPROVEMENT_CARD_PATH,
+        # SEALED ON THE SERVED BYTES FROM ITS FIRST VERSION. The eval card
+        # carries `SERVED_SEAL_FROM = 4` because versions 1-3 served bytes
+        # nobody digested, and back-filling them would invent a digest no judge
+        # was ever handed. This card has no such history, so it starts with the
+        # seal the eval card needed `RM-05` to learn it wanted.
+        "served_seal_from": 1,
+        "reading_prefix": "R-I",
+        "title": "The Improvement Card",
+        "preamble_from": 1,
+        "serve_notice": (
+            "**This is the whole rubric, and it is reproduced here so the bar for a "
+            "score sits in the same file as the score.** Do NOT go and read "
+            "`references/improvement_card.md`. That file also carries reading rules "
+            "and prior results about these same dimensions, and a judge who "
+            "reads those is being handed conclusions about the instrument they are "
+            "the instrument for."),
+    },
+}
+
+#: Every dimension key of every kind, for the readers that must not care which
+#: kind a card is -- `check`'s per-dimension loop walks this so a card carrying
+#: a key from the WRONG kind is reported as unknown rather than skipped.
+ALL_DIMS = tuple(d for spec in KINDS.values() for d in spec["dims"])
+
+#: The dimension-key pattern the rubric parser matches. Derived from the kinds
+#: rather than spelled, so adding a kind cannot leave the parser behind.
+DIM_KEY_RE = "[" + "".join(sorted({d[0] for d in ALL_DIMS})) + "][1-5]"
+
+
+def kind_spec(kind: str | None) -> dict:
+    """The kind's table. An unknown kind is refused by name, never defaulted.
+
+    Defaulting here would reproduce the bug `resolve_card_version` documents one
+    level down: a value the tool did not know, silently replaced by the nearest
+    one it did, with `check` reporting 0 problems afterwards.
+    """
+    k = kind or KIND_EVAL
+    if k not in KINDS:
+        raise RubricError(
+            f"unknown card kind {k!r}; this tool knows {sorted(KINDS)}. A card kind is "
+            f"what the card FILE declares (`**Card kind: <kind>.**`), and a card file "
+            f"that declares none is an `{KIND_EVAL}` card -- which is what every card "
+            f"sealed before SI-03 is.")
+    return KINDS[k]
+
+
+def card_kind_of(card: dict) -> str:
+    """The kind a CARD is. Absent means `eval`, permanently -- see above."""
+    return str(card.get("card_kind") or KIND_EVAL)
+
+
+def dims_of(kind: str | None = KIND_EVAL) -> tuple[str, ...]:
+    """Every dimension key this kind has ever scored."""
+    return kind_spec(kind)["dims"]
+
+
+def names_of(kind: str | None = KIND_EVAL) -> dict[str, str]:
+    """The dimension titles this kind knows, by key."""
+    return kind_spec(kind)["names"]
+
+
+def scored_dims(version: int, kind: str | None = KIND_EVAL) -> tuple[str, ...]:
+    """The dimensions a card of this version carries a SCORE for."""
+    spec = kind_spec(kind)
+    if version >= spec["retired_at"]:
+        return tuple(d for d in spec["dims"] if d not in spec["retired"])
+    return spec["dims"]
+
+
+def note_dims(version: int, kind: str | None = KIND_EVAL) -> tuple[str, ...]:
+    """The dimensions this version records as prose instead of scoring."""
+    spec = kind_spec(kind)
+    return spec["retired"] if version >= spec["retired_at"] else ()
+
+
+def top_score(dim: str, version: int, kind: str | None = KIND_EVAL) -> int:
+    """The highest anchor `dim` carries at this version. Rule 3 keys on it."""
+    spec = kind_spec(kind)
+    if version >= spec["retired_at"]:
+        return spec["top"].get(dim, 4)
+    return 4
 
 
 def repo_root(start: pathlib.Path) -> pathlib.Path:
@@ -458,15 +611,23 @@ def load_rubric(path: pathlib.Path) -> dict:
     # 3 one carrying two.
     m = re.search(r"^\*\*Scorecard version (\d+)\.\*\*", text, re.M)
     file_version = int(m.group(1)) if m else 1
-    want_dims = scored_dims(file_version)
+
+    # SI-03. WHICH CARD THIS IS. A file that declares no kind is an `eval` card,
+    # which is what every card file this repository had before SI-03 is -- so
+    # the absent declaration has to keep meaning exactly what it meant, and a
+    # frozen copy of an older bar still loads without being edited.
+    km = re.search(r"^\*\*Card kind: ([a-z][a-z0-9_-]*)\.\*\*", text, re.M)
+    kind = km.group(1) if km else KIND_EVAL
+    spec = kind_spec(kind)          # refuses an unknown kind by name
+    want_dims = scored_dims(file_version, kind)
 
     questions: dict[str, str] = {}
-    for m in re.finditer(r"^\|\s*\*\*(D[1-5])\*\*\s*\|\s*\*\*([^|]+?)\*\*\s*\|\s*([^|]+?)\s*\|",
-                         text, re.M):
+    for m in re.finditer(r"^\|\s*\*\*(" + DIM_KEY_RE + r")\*\*\s*\|\s*\*\*([^|]+?)\*\*\s*\|"
+                         r"\s*([^|]+?)\s*\|", text, re.M):
         questions[m.group(1)] = m.group(3).strip()
 
     dims: dict[str, dict] = {}
-    sections = re.split(r"^### (D[1-5]) — (.+)$", text, flags=re.M)
+    sections = re.split(r"^### (" + DIM_KEY_RE + r") — (.+)$", text, flags=re.M)
     # sections == [pre, key, title, body, key, title, body, ...]
     for i in range(1, len(sections) - 2, 3):
         key, title, body = sections[i], sections[i + 1].strip(), sections[i + 2]
@@ -476,7 +637,7 @@ def load_rubric(path: pathlib.Path) -> dict:
         for j in range(1, len(items) - 1, 2):
             score, chunk = items[j], items[j + 1]
             anchors[score] = " ".join(re.split(r"\n\n", chunk)[0].split())
-        want = [str(n) for n in range(top_score(key, file_version) + 1)]
+        want = [str(n) for n in range(top_score(key, file_version, kind) + 1)]
         if sorted(anchors) != want:
             raise RubricError(
                 f"{path}: {key} does not carry anchors {want[0]}-{want[-1]} "
@@ -524,11 +685,12 @@ def load_rubric(path: pathlib.Path) -> dict:
             f"for {', '.join(sorted(retired))}. A retired dimension is kept in the file "
             f"under `Retired anchors` -- where a person comparing two versions can read it "
             f"and a judge scoring under either cannot be served it.")
+    known = names_of(kind)
     for key, dim in dims.items():
-        if dim["name"] != NAMES[key]:
+        if dim["name"] != known[key]:
             raise RubricError(
                 f"{path}: {key} is titled {dim['name']!r} but this tool knows it as "
-                f"{NAMES[key]!r} -- the dimension key has drifted"
+                f"{known[key]!r} -- the dimension key has drifted"
             )
 
     # The recorded notes, parsed out of the file exactly as the anchors are, so
@@ -541,7 +703,7 @@ def load_rubric(path: pathlib.Path) -> dict:
                              nblock.group(1), re.M | re.S):
             notes[m.group(1)] = {"name": m.group(2).strip(),
                                  "prompt": " ".join(m.group(3).split())}
-    want_notes = [NOTE_KEY[d] for d in note_dims(file_version)]
+    want_notes = [NOTE_KEY[d] for d in note_dims(file_version, kind)]
     absent = [n for n in want_notes if n not in notes]
     if absent:
         raise RubricError(
@@ -562,7 +724,8 @@ def load_rubric(path: pathlib.Path) -> dict:
     reading = []
     reading_block = re.search(r"^## Reading history\s*\n(.*?)(?=^## )", text, re.M | re.S)
     if reading_block:
-        for m in re.finditer(r"^### (R-H\d+) — (.+?)$", reading_block.group(1), re.M):
+        for m in re.finditer(r"^### (" + re.escape(spec["reading_prefix"]) + r"\d+) — (.+?)$",
+                             reading_block.group(1), re.M):
             reading.append({"id": m.group(1), "title": m.group(2).strip()})
 
     card_version = file_version
@@ -584,7 +747,7 @@ def load_rubric(path: pathlib.Path) -> dict:
 
     source = str(path.relative_to(REPO_ROOT)) if _under(path, REPO_ROOT) else str(path)
     rubric = {"source": source, "dimensions": dims, "notes": notes,
-              "card_version": card_version,
+              "card_version": card_version, "kind": kind,
               "scoring_rules": rules, "reading_rules": reading, "versions": versions}
     # The notes enter the digest only where they exist. A version 1-3 rubric has
     # none, so its digest is byte-identical to what every sealed card recorded --
@@ -652,14 +815,11 @@ def served_rubric(rubric: dict, card_version: int = VERSION) -> str:
     storage layout, the change rule and anything a later editor adds are outside
     the served surface by construction rather than by a rule someone remembers.
     """
+    kind = rubric.get("kind") or KIND_EVAL
+    spec = kind_spec(kind)
     out = ["## The rubric you are scoring against", ""]
-    if card_version >= 3:
-        out.append("**This is the whole rubric, and it is reproduced here so the bar for a "
-                   "score sits in the same file as the score.** Do NOT go and read "
-                   "`references/eval_scorecard.md`. That file also carries reading rules "
-                   "and prior results about these same dimensions, and a judge who "
-                   "reads those is being handed conclusions about the instrument they are "
-                   "the instrument for.")
+    if card_version >= spec["preamble_from"]:
+        out.append(spec["serve_notice"])
         out.append("")
     out.append("### The scoring rules")
     out.append("")
@@ -669,7 +829,11 @@ def served_rubric(rubric: dict, card_version: int = VERSION) -> str:
     out.append("**Score the LOWEST anchor the artifact fully satisfies; when torn "
                "between two, take the lower and say why.**")
     out.append("")
-    if card_version >= 2:
+    # Judging practice is an EVAL-card field. Its question -- did you seed a
+    # fault of your own and run it against this artifact -- has no meaning for a
+    # card whose subject is a record rather than a program, and inventing an
+    # answer for it would be requiring a variable nobody can vary.
+    if kind == KIND_EVAL and card_version >= 2:
         out.append("### Judging practice — REQUIRED, and it is a field on the card")
         out.append("")
         out.append("**Did you seed a fault of your own and run it against this artifact, or "
@@ -691,7 +855,7 @@ def served_rubric(rubric: dict, card_version: int = VERSION) -> str:
                        "recorded note now. Say what you ran because it is the variable "
                        "that moves scores, not because a rung depends on it.")
         out.append("")
-    for key in scored_dims(card_version):
+    for key in scored_dims(card_version, kind):
         d = rubric["dimensions"].get(key)
         if d is None:
             continue
@@ -709,7 +873,7 @@ def served_rubric(rubric: dict, card_version: int = VERSION) -> str:
         if d["caveat"]:
             out.append(f"> {d['caveat']}")
             out.append("")
-    served_notes = [NOTE_KEY[dim] for dim in note_dims(card_version)]
+    served_notes = [NOTE_KEY[dim] for dim in note_dims(card_version, kind)]
     if served_notes:
         out.append("## The recorded notes — REQUIRED, and they take no score")
         out.append("")
@@ -785,13 +949,14 @@ def version_history_problems(rubric: dict) -> list[str]:
                    f"{seen[current]['anchors_digest']} but the anchors in this file digest to "
                    f"{rubric['anchors_digest']}. Either the anchors moved without a version "
                    f"bump, or the table is stale -- and both are the card changing silently.")
-    if current >= SERVED_SEAL_FROM:
+    seal_from = kind_spec(rubric.get("kind"))["served_seal_from"]
+    if current >= seal_from:
         want = served_digest(rubric, current)
         got = seen[current].get("served_digest")
         if not got:
             bad.append(
                 f"{rubric['source']}: version {current} declares no served digest. From "
-                f"version {SERVED_SEAL_FROM} the `### Version history` row carries the "
+                f"version {seal_from} the `### Version history` row carries the "
                 f"digest of the bytes `serve` emits as well as the one over the anchors, "
                 f"because a caveat or a preamble rewritten in someone else's words changes "
                 f"what a judge reads while the anchors digest does not move. Add "
@@ -858,11 +1023,21 @@ def check(card: dict, where: str, rubric: dict | None = None,
     # defect one level down: the population stopped being a ceiling for
     # `scaffold` and stayed one here. Read the default card file when nobody
     # named one; if it cannot be read, the old fallback stands and still says so.
+    # SI-03. The card's OWN kind decides which file the default rubric is. A
+    # caller with no rubric used to get the eval card whatever the card was, so
+    # an improvement card checked on its own would have been measured against a
+    # bar that carries none of its dimensions.
+    kind = card_kind_of(card)
     if rubric is None:
         try:
-            rubric = load_rubric(DEFAULT_RUBRIC)
+            rubric = load_rubric(REPO_ROOT / kind_spec(kind)["card_path"])
         except Exception:                                # pragma: no cover - no card
             rubric = None
+    elif rubric.get("kind", KIND_EVAL) != kind:
+        err(f"card declares card_kind {kind!r} and was checked against "
+            f"{rubric['source']}, which is a {rubric.get('kind', KIND_EVAL)!r} card. "
+            f"A card is checked against its own kind's bar or against nothing; the "
+            f"dimensions of one are not the dimensions of the other.")
     allowed = supported_versions(rubric)
     if version not in allowed:
         err(f"scorecard_version must be one of {list(allowed)}, got {version!r}"
@@ -877,7 +1052,9 @@ def check(card: dict, where: str, rubric: dict | None = None,
         err(f"status must be 'filled' or 'unfilled', got {status!r}")
         status = "filled"
     dims = card.get("dimensions") or {}
-    scored = [d for d in DIMS
+    # ALL_DIMS, not this kind's dims: a card carrying a key from the OTHER kind
+    # must be reported as unknown rather than silently skipped.
+    scored = [d for d in ALL_DIMS
               if isinstance(dims.get(d), dict) and dims[d].get("score") is not None]
 
     # A skeleton cannot smuggle a score past the schema by staying 'unfilled'.
@@ -973,13 +1150,62 @@ def check(card: dict, where: str, rubric: dict | None = None,
     elif subject is not None:
         err(f"subject must be an object or null, got {type(subject).__name__}")
 
-    want_dims = scored_dims(version)
+    want_dims = scored_dims(version, kind)
+
+    # SI-03. What an IMPROVEMENT card must carry beyond the shared schema. The
+    # subject of this kind is a RECORD, and a record has no natural boundary --
+    # so what the judge was handed is a field rather than a recollection, and
+    # `absent` (it does not exist) is kept apart from `withheld` (it exists and
+    # was not passed) because collapsing them is how a gap reads as a decision.
+    if kind == KIND_IMPROVEMENT and status != "unfilled":
+        shape = card.get("subject_shape")
+        if shape not in SUBJECT_SHAPES:
+            err(f"subject_shape must be one of {list(SUBJECT_SHAPES)}, got {shape!r} -- "
+                f"R-I1. The vocabulary is closed so a ticket row can be told from an "
+                f"epic row without reading the prose.")
+        if not str(card.get("subject_ref") or "").strip():
+            err("subject_ref is required and non-empty -- R-I1. A subject identified "
+                "only by a description is a subject nobody can re-score, and a card "
+                "nobody can re-score cannot take part in a delta.")
+        packet = card.get("packet")
+        if not isinstance(packet, dict):
+            err("missing required field 'packet' -- R-I2. What a judge received is part "
+                "of what its score means; two cards of one subject whose packets differ "
+                "are not two measurements of one thing.")
+        else:
+            if not [x for x in (packet.get("items") or []) if str(x).strip()]:
+                err("packet.items is empty -- R-I2. A card that does not say what its "
+                    "judge was handed cannot say whether another card was handed the same.")
+            for field in ("absent", "withheld"):
+                if field in packet and not isinstance(packet[field], list):
+                    err(f"packet.{field} must be a list, got "
+                        f"{type(packet[field]).__name__}")
+            withheld = packet.get("withheld") or []
+            if isinstance(withheld, list):
+                for item in withheld:
+                    # An item that EXISTS and was not passed owes a reason. An
+                    # item that does not exist belongs in `absent` and owes none.
+                    if not isinstance(item, dict) or not str(item.get("reason") or "").strip():
+                        err(f"packet.withheld entry {item!r} carries no reason. Withheld "
+                            f"is what existed and was NOT passed; without a reason it is "
+                            f"indistinguishable from `absent`, which is a different claim.")
+            if not str(packet.get("contamination") or "").strip():
+                err("packet.contamination is required and non-empty -- R-I3. The blindness "
+                    "claim is a field, not a sentence somewhere in the prose, and "
+                    "`NOT BLIND` is a legal value.")
+        if card.get("judging_practice") is not None:
+            err("judging_practice is not a field of an improvement card. Its question -- "
+                "did you seed a fault and run it against this artifact -- has no meaning "
+                "for a subject that is a record; what this card records instead is the "
+                "packet.")
+
     missing = [d for d in want_dims if d not in dims]
     if missing:
         err(f"missing dimensions: {', '.join(missing)}")
     extra = [d for d in dims if d not in want_dims]
     if extra:
-        if version >= RETIRED_AT and all(d in RETIRED_DIMS for d in extra):
+        if kind == KIND_EVAL and version >= RETIRED_AT \
+                and all(d in RETIRED_DIMS for d in extra):
             err(f"{', '.join(sorted(extra))} carry a score on a version {version} card. "
                 f"They are recorded notes from version {RETIRED_AT} -- put the answer in "
                 f"`notes.N-{sorted(extra)[0]}` and leave the number out. Restoring the "
@@ -990,14 +1216,14 @@ def check(card: dict, where: str, rubric: dict | None = None,
     # From version 4 the three retired questions are still asked and still
     # required. Dropping the question as well would be a different removal from
     # the one the version history declares.
-    if version >= RETIRED_AT and status != "unfilled":
+    if note_dims(version, kind) and status != "unfilled":
         card_notes = card.get("notes")
         if not isinstance(card_notes, dict):
             err(f"missing required field 'notes'. From scorecard_version {RETIRED_AT} a card "
                 f"records {', '.join(NOTE_KEY[d] for d in RETIRED_DIMS)} as prose instead of "
                 f"scoring them, and rule 10 says an empty note is not a legal card.")
             card_notes = {}
-        for dim in note_dims(version):
+        for dim in note_dims(version, kind):
             key = NOTE_KEY[dim]
             entry = card_notes.get(key)
             if not isinstance(entry, dict):
@@ -1012,13 +1238,15 @@ def check(card: dict, where: str, rubric: dict | None = None,
         stray = [k for k in card_notes if k not in {NOTE_KEY[d] for d in RETIRED_DIMS}]
         if stray:
             err(f"unknown notes: {', '.join(sorted(stray))}")
-    elif version < RETIRED_AT and card.get("notes") is not None:
-        err(f"`notes` is not a field of a version {version} card -- it arrives with "
-            f"version {RETIRED_AT}, where three dimensions stopped being scored")
+    elif not note_dims(version, kind) and card.get("notes") is not None:
+        err(f"`notes` is not a field of a version {version} {kind} card"
+            + (f" -- it arrives with version {RETIRED_AT}, where three dimensions "
+               f"stopped being scored" if kind == KIND_EVAL else
+               " -- this card scores every dimension it declares and records none"))
 
     # scorecard_version 2: what the judge DID is a field, not a private choice.
     executed = None
-    if version >= 2 and status != "unfilled":
+    if kind == KIND_EVAL and version >= 2 and status != "unfilled":
         practice = card.get("judging_practice")
         if not isinstance(practice, dict):
             err("missing required field 'judging_practice'. From scorecard_version 2 a card "
@@ -1088,13 +1316,15 @@ def check(card: dict, where: str, rubric: dict | None = None,
                          f"prompt to go and look, never a violation.")
 
     running = 0
-    for dim in DIMS:
+    all_names = {k: v for spec in KINDS.values() for k, v in spec["names"].items()}
+    for dim in ALL_DIMS:
         entry = dims.get(dim)
         if not isinstance(entry, dict):
             continue
-        if entry.get("name") and entry["name"] != NAMES[dim]:
-            err(f"{dim} is named {entry['name']!r}; this card version knows it as {NAMES[dim]!r}")
-        top = top_score(dim, version)
+        if entry.get("name") and entry["name"] != all_names[dim]:
+            err(f"{dim} is named {entry['name']!r}; this card version knows it as "
+                f"{all_names[dim]!r}")
+        top = top_score(dim, version, kind)
         if "anchors" in entry:
             keys = sorted(str(k) for k in (entry.get("anchors") or {}))
             if keys != [str(n) for n in range(top + 1)]:
@@ -1126,7 +1356,8 @@ def check(card: dict, where: str, rubric: dict | None = None,
                 f"without refuses_to_claim -- rule 3")
         # Rule 8 (scorecard_version 2): the one top anchor whose own text asks
         # the judge to run something.
-        if version >= 2 and score == 4 and dim in PRACTICE_GATED_DIMS and executed is False:
+        if kind == KIND_EVAL and version >= 2 and score == 4 \
+                and dim in PRACTICE_GATED_DIMS and executed is False:
             err(f"{dim} scored 4 while judging_practice.executed_own_faults is false. That "
                 f"anchor asks for a behavior-breaking change SHOWN TO BE CAUGHT -- a judge "
                 f"who executes one can say so; a judge reading a table is repeating the "
@@ -1134,7 +1365,8 @@ def check(card: dict, where: str, rubric: dict | None = None,
         # scorecard_version 3: the one anchor with two defensible readings says
         # WHICH ONE it was scored under. The bar is unchanged and neither reading
         # is corrected -- what changes is that two judges who split can be read.
-        if version >= 3 and dim == ANCHOR_READING_DIM and score in ANCHOR_READING_SCORES:
+        if kind == KIND_EVAL and version >= 3 and dim == ANCHOR_READING_DIM \
+                and score in ANCHOR_READING_SCORES:
             reading = entry.get("anchor_reading")
             if reading not in ANCHOR_READINGS:
                 err(f"{dim} scored {score} with anchor_reading {reading!r}; it must be one "
@@ -1156,7 +1388,16 @@ def check(card: dict, where: str, rubric: dict | None = None,
         # is never edited and a check that stops looking at it is a check that
         # stopped working.
         total = card.get("total")
-        if version >= 3:
+        # An improvement card has NO total at any version -- it was born after
+        # the eval card had already measured what a sum over unreadable terms
+        # costs, so there is no arithmetic branch to fall through to. Without
+        # this clause a version 1 improvement card would be checked by the
+        # `elif` below and refused for not carrying a total.
+        if kind != KIND_EVAL:
+            if total is not None:
+                err(f"total {total!r} is set on a {kind} card. This card has no total at "
+                    f"any version: read a dimension, not a headline.")
+        elif version >= 3:
             if total is not None:
                 err(f"total {total!r} is set on a version {version} card. There is no "
                     f"total from version 3: read a dimension, not a headline.")
@@ -1176,27 +1417,47 @@ def cmd_check(argv: list[str]) -> int:
     ap.add_argument("paths", nargs="+")
     ap.add_argument("--require-filled", action="store_true",
                     help="treat an unfilled skeleton as a problem (use at workflow close)")
-    ap.add_argument("--rubric", default=str(DEFAULT_RUBRIC))
+    ap.add_argument("--rubric", default=None,
+                    help="check every card against THIS card file. The default resolves "
+                         "each card against the file for its own `card_kind`.")
     args = ap.parse_args(argv)
 
-    try:
-        rubric = load_rubric(pathlib.Path(args.rubric))
-    except RubricError as exc:
-        print(f"WARNING rubric unreadable, digest checks skipped: {exc}", file=sys.stderr)
-        rubric = None
+    # SI-03. ONE RUBRIC PER KIND, resolved from the CARD rather than from a
+    # flag. `--rubric` used to default to the eval card and was handed to every
+    # card checked; an improvement card checked that way would be measured
+    # against a bar carrying none of its dimensions. An explicit `--rubric`
+    # still overrides, because re-scoring an old arm against a frozen bar is
+    # what the card's own change rule requires.
+    rubrics: dict[str, dict | None] = {}
+
+    def rubric_for(kind: str) -> dict | None:
+        if kind not in rubrics:
+            path = pathlib.Path(args.rubric) if args.rubric \
+                else REPO_ROOT / kind_spec(kind)["card_path"]
+            try:
+                rubrics[kind] = load_rubric(path)
+            except RubricError as exc:
+                print(f"WARNING rubric unreadable, digest checks skipped: {exc}",
+                      file=sys.stderr)
+                rubrics[kind] = None
+        return rubrics[kind]
 
     cards, problems, notes = [], [], []
-    if rubric is not None:
-        problems.extend(version_history_problems(rubric))
-        problems.extend(rubric_leak_problems(rubric))
     for arg in args.paths:
         cards.extend(load(pathlib.Path(arg)))
     if not cards:
         print("no scorecard.json found", file=sys.stderr)
         return 2
+    # The card file's own consistency is reported once per kind actually present.
+    for kind in sorted({card_kind_of(c) for _, c in cards}):
+        r = rubric_for(kind)
+        if r is not None:
+            problems.extend(version_history_problems(r))
+            problems.extend(rubric_leak_problems(r))
     unfilled = 0
     for path, card in cards:
-        bad, note = check(card, str(path), rubric, args.require_filled)
+        bad, note = check(card, str(path), rubric_for(card_kind_of(card)),
+                          args.require_filled)
         problems.extend(bad)
         notes.extend(note)
         if card.get("status") == "unfilled":
@@ -1311,10 +1572,22 @@ def _scores(group: dict, dim: str) -> list[tuple[dict, int]]:
     return out
 
 
+def group_dims(group: dict) -> tuple[str, ...]:
+    """The dimension keys the cards of this group actually carry.
+
+    A judge group is one artifact in one round, so its cards are all of one
+    kind; taking the kind from the cards rather than from a constant is what
+    lets `contested` and the tier split compute over an improvement round
+    without either being told which kind it is looking at.
+    """
+    kinds = {card_kind_of(c) for c in group["cards"]} or {KIND_EVAL}
+    return tuple(d for k in sorted(kinds) for d in dims_of(k))
+
+
 def contested_of(group: dict) -> dict[str, dict]:
     """Rule 5, computed: a spread greater than 1 across the judges of one artifact."""
     out: dict[str, dict] = {}
-    for dim in DIMS:
+    for dim in group_dims(group):
         pairs = _scores(group, dim)
         if len(pairs) < 2:
             continue
@@ -1388,7 +1661,7 @@ def tier_split_of(group: dict) -> dict[str, dict]:
     can no longer make it without naming the program that produced it.
     """
     out: dict[str, dict] = {}
-    for dim in DIMS:
+    for dim in group_dims(group):
         pairs = _scores(group, dim)
         by_tier: dict[str, list[int]] = {}
         family: dict[str, str] = {}
@@ -1486,7 +1759,11 @@ def cmd_contested(argv: list[str]) -> int:
 
 def cmd_serve(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(prog="score_tools.py serve")
-    ap.add_argument("--rubric", default=str(DEFAULT_RUBRIC))
+    ap.add_argument("--kind", default=KIND_EVAL, choices=sorted(KINDS),
+                    help="which card to serve. The default is the eval card, so every "
+                         "existing invocation means what it meant.")
+    ap.add_argument("--rubric", default=None,
+                    help="the card file to serve. Defaults to the file for --kind.")
     # No `choices`: the population is not a literal in this file, it is what the
     # rubric declares, and it is not known until the rubric is loaded. No
     # `default` either -- see `resolve_card_version`.
@@ -1497,6 +1774,8 @@ def cmd_serve(argv: list[str]) -> int:
     ap.add_argument("--out", default=None, help="write the served rubric here as well")
     ap.add_argument("--digest-only", action="store_true")
     args = ap.parse_args(argv)
+    if args.rubric is None:
+        args.rubric = str(REPO_ROOT / kind_spec(args.kind)["card_path"])
 
     try:
         rubric = load_rubric(pathlib.Path(args.rubric))
@@ -1566,6 +1845,13 @@ def cmd_index(argv: list[str]) -> int:
 
     versions = sorted({c.get("scorecard_version") for _, c in cards
                        if c.get("scorecard_version")})
+    # SI-03. The columns are the dimensions the CARDS carry, not a literal five.
+    # A round is normally one kind; a directory holding both prints both sets,
+    # with `—` where a card has no such dimension -- which is the same honest
+    # cell a version 4 card already gets for D1.
+    index_kinds = sorted({card_kind_of(c) for _, c in cards}) or [KIND_EVAL]
+    index_dims = [d for k in index_kinds for d in dims_of(k)]
+    index_names = {k2: v for k in index_kinds for k2, v in names_of(k).items()}
     out = [f"# Scorecards — {root.name}", ""]
     out.append("scorecard_version "
                + (", ".join(str(v) for v in versions) if versions else str(VERSION))
@@ -1594,10 +1880,10 @@ def cmd_index(argv: list[str]) -> int:
     out.append("changed is that it is no longer what a printed comparison is keyed on.")
     out.append("")
     header = ("| example | arm | judge | model | "
-              + " | ".join(f"D{i+1} {NAMES['D' + str(i + 1)]}" for i in range(5))
+              + " | ".join(f"{d} {index_names[d]}" for d in index_dims)
               + " | contested |")
     out.append(header)
-    out.append("|" + "---|" * 10)
+    out.append("|" + "---|" * (5 + len(index_dims)))
     disagree: list[str] = []
     for example in sorted(by_example):
         for card in sorted(by_example[example], key=lambda c: (str(c.get("arm")), c["run_id"])):
@@ -1609,7 +1895,8 @@ def cmd_index(argv: list[str]) -> int:
             # A version 4 card carries no D1, D4 or D5. `—` is the honest cell:
             # the question was asked and answered in `notes`, and there is no
             # number to put here. It is NOT a missing measurement.
-            row += [str(d[k]["score"]) if isinstance(d.get(k), dict) else "—" for k in DIMS]
+            row += [str(d[k]["score"]) if isinstance(d.get(k), dict) else "—"
+                    for k in index_dims]
             row.append(", ".join(sorted(con)) or "—")
             out.append("| " + " | ".join(row) + " |")
             declared = sorted(card.get("contested") or [])
@@ -1706,7 +1993,16 @@ def cmd_scaffold(argv: list[str]) -> int:
     ap.add_argument("--example", required=True)
     ap.add_argument("--arms", required=True, help="comma-separated REAL arm names, e.g. A,B,C")
     ap.add_argument("--judges", type=int, default=2)
-    ap.add_argument("--rubric", default=str(DEFAULT_RUBRIC))
+    ap.add_argument("--kind", default=KIND_EVAL, choices=sorted(KINDS),
+                    help="which card to scaffold. The default is the eval card, so every "
+                         "existing invocation means what it meant.")
+    ap.add_argument("--rubric", default=None,
+                    help="the card file to scaffold from. Defaults to the file for --kind.")
+    ap.add_argument("--subject-shape", default=None, choices=SUBJECT_SHAPES,
+                    help="improvement card only: the unit this card scores.")
+    ap.add_argument("--subject-ref", default=None,
+                    help="improvement card only: a reference a reader can still open "
+                         "(a PR number, a ticket id, a wave, an epic).")
     ap.add_argument("--run-date", default=None, help="YYYYMMDD; defaults to today")
     ap.add_argument("--run-tag", default=None, help="short tag inside the run id")
     ap.add_argument("--labels", default=None,
@@ -1732,11 +2028,17 @@ def cmd_scaffold(argv: list[str]) -> int:
                          "discontinuity a version bump creates can be MEASURED by "
                          "re-scoring under both, which is the card's own change rule.")
     args = ap.parse_args(argv)
+    if args.rubric is None:
+        args.rubric = str(REPO_ROOT / kind_spec(args.kind)["card_path"])
 
     try:
         rubric = load_rubric(pathlib.Path(args.rubric))
     except RubricError as exc:
         print(f"REFUSED: {exc}", file=sys.stderr)
+        return 2
+    if rubric.get("kind", KIND_EVAL) != args.kind:
+        print(f"REFUSED: --kind {args.kind!r} but {rubric['source']} is a "
+              f"{rubric.get('kind', KIND_EVAL)!r} card. Nothing was written.", file=sys.stderr)
         return 2
     args.card_version = resolve_card_version(args.card_version, rubric)
 
@@ -2150,7 +2452,9 @@ def _skeleton_json(args, rubric: dict, label: str, judge: int, rid: str) -> str:
     # accident on the dimensions: a rubric that no longer carries a dimension
     # cannot scaffold a version that scores it, and the error says which frozen
     # file to point at. It still refuses NOTHING about any artifact.
-    absent = [k for k in scored_dims(args.card_version) if k not in rubric["dimensions"]]
+    kind = rubric.get("kind") or KIND_EVAL
+    absent = [k for k in scored_dims(args.card_version, kind)
+              if k not in rubric["dimensions"]]
     if absent:
         raise RubricError(
             f"cannot scaffold a version {args.card_version} card from "
@@ -2159,7 +2463,7 @@ def _skeleton_json(args, rubric: dict, label: str, judge: int, rid: str) -> str:
             f"means pointing at the older bar: pass "
             f"`--rubric examples/validation/scorecards/rubric_v3_frozen.md`.")
     dims = {}
-    for key in scored_dims(args.card_version):
+    for key in scored_dims(args.card_version, kind):
         d = rubric["dimensions"][key]
         entry = {
             "name": d["name"],
@@ -2174,7 +2478,8 @@ def _skeleton_json(args, rubric: dict, label: str, judge: int, rid: str) -> str:
             entry["read_first"] = d["preamble"]
         if d["caveat"]:
             entry["caveat"] = d["caveat"]
-        if 3 <= args.card_version < RETIRED_AT and key == ANCHOR_READING_DIM:
+        if kind == KIND_EVAL and 3 <= args.card_version < RETIRED_AT \
+                and key == ANCHOR_READING_DIM:
             entry["anchor_reading"] = None
         dims[key] = entry
     card = {
@@ -2222,11 +2527,33 @@ def _skeleton_json(args, rubric: dict, label: str, judge: int, rid: str) -> str:
         "contested": [],
         "verdict": "",
     }
-    if args.card_version < 3:
+    if kind == KIND_IMPROVEMENT:
+        # The fields this kind adds. They are scaffolded EMPTY and `check`
+        # refuses a filled card that left them so -- the packet a judge received
+        # is a field, not a recollection reconstructed afterwards.
+        card["card_kind"] = KIND_IMPROVEMENT
+        card["subject_shape"] = getattr(args, "subject_shape", None) or ""
+        card["subject_ref"] = getattr(args, "subject_ref", None) or ""
+        card["packet"] = {
+            "items": [], "absent": [], "withheld": [], "contamination": "",
+            "note": ("REQUIRED. `items` is what you were handed, `absent` is what does "
+                     "not exist for this subject, and `withheld` is what exists and was "
+                     "NOT passed -- each withheld entry an object carrying a `reason`. "
+                     "Those three are different claims and collapsing them is not a "
+                     "legal card. `contamination` is the blindness note for the dispatch "
+                     "that actually happened, in the words of "
+                     "`references/blind_dispatch.md`; `NOT BLIND` is a legal value and a "
+                     "claim the dispatch did not buy is not."),
+        }
+        card["controls"] = {}
+        card["how_to_fill"].append(
+            "Fill `subject_shape` (ticket / wave / epic) and `subject_ref` with something "
+            "a reader can still open, then `packet`. Delete the `note` key once you have.")
+    if kind == KIND_EVAL and args.card_version < 3:
         card["total"] = None
         card["how_to_fill"].insert(
             2, "`total` is the sum of the five scores; the schema check recomputes it.")
-    if args.card_version >= 2:
+    if kind == KIND_EVAL and args.card_version >= 2:
         card["judging_practice"] = {
             "executed_own_faults": None,
             "what_was_run": [],
@@ -2244,7 +2571,7 @@ def _skeleton_json(args, rubric: dict, label: str, judge: int, rid: str) -> str:
             "Fill `judging_practice`: `executed_own_faults` true or false, and "
             "`what_was_run` listing what you ran. FALSE IS A LEGAL AND USEFUL ANSWER -- "
             "it is recorded, never corrected. Delete the `note` key once you have."))
-    if 3 <= args.card_version < RETIRED_AT:
+    if kind == KIND_EVAL and 3 <= args.card_version < RETIRED_AT:
         card["how_to_fill"].append(
             f"If you score {ANCHOR_READING_DIM} at "
             f"{' or '.join(str(s) for s in ANCHOR_READING_SCORES)}, set "
@@ -2253,7 +2580,7 @@ def _skeleton_json(args, rubric: dict, label: str, judge: int, rid: str) -> str:
             f"two defensible readings you scored under. Both are legal and neither is "
             f"corrected; recording it is what lets a reader tell a disagreement about "
             f"the artifact from a disagreement about the anchor.")
-    if args.card_version >= RETIRED_AT:
+    if note_dims(args.card_version, kind):
         card["notes"] = {
             NOTE_KEY[dim]: {
                 "name": (rubric.get("notes") or {}).get(NOTE_KEY[dim], {}).get("name", ""),
@@ -2261,7 +2588,7 @@ def _skeleton_json(args, rubric: dict, label: str, judge: int, rid: str) -> str:
                 "note": "",
                 "citations": [],
             }
-            for dim in note_dims(args.card_version)
+            for dim in note_dims(args.card_version, kind)
         }
         card["how_to_fill"].append(
             "Answer every entry in `notes`. They take NO score -- these three questions "
@@ -2278,6 +2605,7 @@ def _skeleton_md(args, rubric: dict, label: str, judge: int, rid: str) -> str:
     and the same bytes `rubric.served_digest` is taken over. One served surface,
     so a judge cannot be reading one rubric while the card records another.
     """
+    kind = rubric.get("kind") or KIND_EVAL
     out = [f"# Scorecard — {args.example}, artifact `{label}`, judge pass {judge}", ""]
     line = (f"`run_id`: `{rid}` · scorecard_version {args.card_version} · rubric "
             f"`{rubric['source']}` digest `{rubric['digest']}`")
@@ -2314,7 +2642,22 @@ def _skeleton_md(args, rubric: dict, label: str, judge: int, rid: str) -> str:
                "against your judgement is one of the numbered scoring rules below.")
     out.append("")
     out.append(served_rubric(rubric, args.card_version))
-    if args.card_version >= 2:
+    if kind == KIND_IMPROVEMENT:
+        out.append("## The packet you were handed")
+        out.append("")
+        out.append("**Items:** _(what you received)_")
+        out.append("")
+        out.append("-")
+        out.append("")
+        out.append("**Absent:** _(what does not exist for this subject)_")
+        out.append("")
+        out.append("**Withheld:** _(what exists and was not passed, each with a reason)_")
+        out.append("")
+        out.append("**Contamination:** _(the blindness note for the dispatch that actually "
+                   "happened. `NOT BLIND` is a legal answer; a claim the dispatch did not "
+                   "buy is not.)_")
+        out.append("")
+    if kind == KIND_EVAL and args.card_version >= 2:
         out.append("### Judging practice — your answer")
         out.append("")
         out.append("**Executed own faults:** _(true / false)_")
@@ -2325,9 +2668,9 @@ def _skeleton_md(args, rubric: dict, label: str, judge: int, rid: str) -> str:
         out.append("")
     out.append("## Your scores")
     out.append("")
-    for key in scored_dims(args.card_version):
-        top = top_score(key, args.card_version)
-        out.append(f"### {key} — {NAMES[key]}")
+    for key in scored_dims(args.card_version, kind):
+        top = top_score(key, args.card_version, kind)
+        out.append(f"### {key} — {names_of(kind)[key]}")
         out.append("")
         out.append(f"**Score:** _(0–{top})_")
         out.append("")
@@ -2339,17 +2682,18 @@ def _skeleton_md(args, rubric: dict, label: str, judge: int, rid: str) -> str:
         out.append("")
         out.append(f"**Refuses to claim** (required and non-null for a score of {top}):")
         out.append("")
-        if 3 <= args.card_version < RETIRED_AT and key == ANCHOR_READING_DIM:
+        if kind == KIND_EVAL and 3 <= args.card_version < RETIRED_AT \
+                and key == ANCHOR_READING_DIM:
             out.append(f"**Anchor reading** (required at "
                        f"{' or '.join(str(s) for s in ANCHOR_READING_SCORES)}; "
                        f"{' or '.join('`%s`' % r for r in ANCHOR_READINGS)}):")
             out.append("")
         out.append("**Rationale:**")
         out.append("")
-    if note_dims(args.card_version):
+    if note_dims(args.card_version, kind):
         out.append("## Your recorded notes — no score")
         out.append("")
-        for dim in note_dims(args.card_version):
+        for dim in note_dims(args.card_version, kind):
             key = NOTE_KEY[dim]
             out.append(f"### {key} — {NAMES[dim]}")
             out.append("")
@@ -3342,6 +3686,133 @@ AUDIT_CHECKS = {
 }
 
 
+# --------------------------------------------------------------------------
+# SI-03: the improvement card's own reading rules, executed
+# --------------------------------------------------------------------------
+#
+# A reading rule nothing executes will drift -- the rule this repository has
+# re-learned most often, and the reason `R-H5` was rejected within a minute of
+# being added without a check. So the improvement card declares `R-I1`..`R-I3`
+# and each one is here.
+#
+# They are kept in a SEPARATE registry from `AUDIT_CHECKS` rather than added to
+# it, and that is deliberate rather than tidy: `AUDIT_CHECKS` is compared for
+# equality against the rules the EVAL card declares, so adding an `R-I` to it
+# would report the eval card as declaring a rule it does not have -- which is
+# the same false statement the equality check exists to prevent, wearing the
+# other sign.
+
+def _improvement_rows(ctx: dict) -> list[dict]:
+    """Filled improvement cards. Everything below is about these and no others."""
+    return [r for r in ctx["all_rows"]
+            if card_kind_of(r["card"]) == KIND_IMPROVEMENT
+            and r["card"].get("status") != "unfilled"]
+
+
+def audit_ri1(ctx: dict) -> list[tuple[str, str]]:
+    """R-I1 subject: a card names a subject a reader can still open."""
+    out = []
+    rows = _improvement_rows(ctx)
+    if not rows:
+        return [(OK, "no improvement card in this tree")]
+    for r in rows:
+        c, key = r["card"], r["key"]
+        shape = c.get("subject_shape")
+        if shape not in SUBJECT_SHAPES:
+            out.append((VIOLATION, f"card `{key}`: subject_shape {shape!r} is not one of "
+                                   f"{list(SUBJECT_SHAPES)}"))
+            continue
+        ref = str(c.get("subject_ref") or "").strip()
+        if not ref:
+            out.append((VIOLATION, f"card `{key}`: carries no `subject_ref`. A subject "
+                                   f"identified only by a description cannot be re-scored, "
+                                   f"and a card nobody can re-score carries no delta."))
+            continue
+        cited = [x for d in (c.get("dimensions") or {}).values()
+                 for x in (d.get("citations") or [])]
+        if not cited:
+            out.append((OPEN, f"card `{key}` ({shape} {ref}): scores are recorded and no "
+                              f"dimension cites anything. Rule 2 caps an uncited 2 at 1; "
+                              f"this is the whole card saying nothing openable."))
+        else:
+            out.append((OK, f"card `{key}`: {shape} `{ref}`, {len(cited)} citation(s)"))
+    return out
+
+
+def audit_ri2(ctx: dict) -> list[tuple[str, str]]:
+    """R-I2 packet: what the judge received is recorded, and absent is not withheld."""
+    out = []
+    rows = _improvement_rows(ctx)
+    if not rows:
+        return [(OK, "no improvement card in this tree")]
+    by_subject: dict[tuple[str, str], list[tuple[str, list]]] = {}
+    for r in rows:
+        c, key = r["card"], r["key"]
+        packet = c.get("packet")
+        if not isinstance(packet, dict):
+            out.append((VIOLATION, f"card `{key}`: carries no `packet`. Two cards of one "
+                                   f"subject whose packets differ are not two measurements "
+                                   f"of one thing, and a card with no packet cannot be "
+                                   f"compared to either."))
+            continue
+        items = [str(x) for x in (packet.get("items") or []) if str(x).strip()]
+        if not items:
+            out.append((VIOLATION, f"card `{key}`: `packet.items` is empty"))
+            continue
+        for entry in packet.get("withheld") or []:
+            if not isinstance(entry, dict) or not str(entry.get("reason") or "").strip():
+                out.append((VIOLATION,
+                            f"card `{key}`: a `packet.withheld` entry carries no reason. "
+                            f"Withheld is what EXISTED and was not passed; with no reason "
+                            f"it is indistinguishable from `absent`, which is a different "
+                            f"claim about the same silence."))
+        by_subject.setdefault((r["round"], str(c.get("subject_ref"))), []).append(
+            (key, sorted(items)))
+        out.append((OK, f"card `{key}`: packet of {len(items)} item(s), "
+                        f"{len(packet.get('absent') or [])} absent, "
+                        f"{len(packet.get('withheld') or [])} withheld"))
+    for (rnd, ref), cards in sorted(by_subject.items()):
+        shapes = {tuple(items) for _, items in cards}
+        if len(shapes) > 1:
+            out.append((OPEN,
+                        f"`{rnd}` / `{ref}`: {len(cards)} cards were handed DIFFERENT "
+                        f"packets {sorted(shapes)}. A spread between them is not readable "
+                        f"as disagreement about the subject."))
+    return out
+
+
+def audit_ri3(ctx: dict) -> list[tuple[str, str]]:
+    """R-I3 contamination: a blindness claim is the dispatch's, not the author's."""
+    out = []
+    rows = _improvement_rows(ctx)
+    if not rows:
+        return [(OK, "no improvement card in this tree")]
+    for r in rows:
+        c, key = r["card"], r["key"]
+        note = str(((c.get("packet") or {}).get("contamination")) or "").strip()
+        if not note:
+            out.append((VIOLATION, f"card `{key}`: `packet.contamination` is empty. The "
+                                   f"blindness claim is a field, and `NOT BLIND` is a legal "
+                                   f"value -- silence is not."))
+        else:
+            out.append((OK, f"card `{key}`: contamination recorded ({len(note)} chars)"))
+    return out
+
+
+#: The improvement card's rules. Never merged into `AUDIT_CHECKS` -- see above.
+IMPROVEMENT_AUDIT_CHECKS = {
+    "R-I1": audit_ri1,
+    "R-I2": audit_ri2,
+    "R-I3": audit_ri3,
+}
+
+#: Which registry executes a given card kind's declared reading rules.
+AUDIT_CHECKS_BY_KIND = {
+    KIND_EVAL: AUDIT_CHECKS,
+    KIND_IMPROVEMENT: IMPROVEMENT_AUDIT_CHECKS,
+}
+
+
 def run_audit(root: pathlib.Path) -> tuple[dict[str, list[tuple[str, str]]], dict]:
     log = load_log(root)
     all_rows = collect_cards(root, None)
@@ -3359,7 +3830,13 @@ def run_audit(root: pathlib.Path) -> tuple[dict[str, list[tuple[str, str]]], dic
         "all_rows": all_rows,
         "keys": {r["key"] for r in all_rows},
     }
-    return {rid: fn(ctx) for rid, fn in AUDIT_CHECKS.items()}, ctx
+    # SI-03. The improvement card's rules run only where improvement cards
+    # exist. A tree with none gets byte-identical output to before this ticket,
+    # which is what keeps the shipped `audit` demonstrations reproducing.
+    checks = dict(AUDIT_CHECKS)
+    if any(card_kind_of(r["card"]) == KIND_IMPROVEMENT for r in all_rows):
+        checks.update(IMPROVEMENT_AUDIT_CHECKS)
+    return {rid: fn(ctx) for rid, fn in checks.items()}, ctx
 
 
 def cmd_audit(argv: list[str]) -> int:
@@ -3370,18 +3847,42 @@ def cmd_audit(argv: list[str]) -> int:
     verdict.add_verdict_argument(ap)
     args = ap.parse_args(argv)
     root = pathlib.Path(args.root)
-    try:
-        declared = [r["id"] for r in load_rubric(pathlib.Path(args.rubric))["reading_rules"]]
-    except RubricError:
-        declared = []
+    # SI-03. EACH CARD FILE'S DECLARED RULES ARE CHECKED AGAINST ITS OWN
+    # REGISTRY. A rule the eval card declares must have an eval check; a rule the
+    # improvement card declares must have an improvement check. Comparing either
+    # against the other's registry would report a card as declaring a rule it
+    # does not have, which is the same false statement this meta-check exists to
+    # prevent.
+    declared: list[tuple[str, dict]] = []
+    seen_rubrics: set[str] = set()
+    for candidate in (pathlib.Path(args.rubric),
+                      REPO_ROOT / kind_spec(KIND_IMPROVEMENT)["card_path"]):
+        try:
+            resolved = str(candidate.resolve())
+        except OSError:                                  # pragma: no cover - unreadable
+            continue
+        if resolved in seen_rubrics or not candidate.exists():
+            continue
+        seen_rubrics.add(resolved)
+        try:
+            r = load_rubric(candidate)
+        except RubricError:
+            continue
+        registry = AUDIT_CHECKS_BY_KIND.get(r.get("kind", KIND_EVAL), {})
+        declared += [(x["id"], registry) for x in r["reading_rules"]]
 
     results, ctx = run_audit(root)
     violations = 0
     print(f"# Reading-rule audit over {root}")
     print(f"# {len(ctx['rows'])} card(s), {len(ctx['changes'])} instrument change(s), "
           f"{len(ctx['claims'])} claim(s), {len(ctx['sealed'])} sealed digest(s)")
+    # The results carry whichever registries `run_audit` executed, so the
+    # docstring lookup has to span both. Keying it on `AUDIT_CHECKS` alone threw
+    # `KeyError: 'R-I1'` the first time an improvement card existed -- an audit
+    # that crashes on the cards it just learned to read.
+    known_checks = {**AUDIT_CHECKS, **IMPROVEMENT_AUDIT_CHECKS}
     for rid, findings in results.items():
-        doc = (AUDIT_CHECKS[rid].__doc__ or "").splitlines()[0].strip()
+        doc = (known_checks[rid].__doc__ or "").splitlines()[0].strip()
         print(f"\n## {doc}")
         for level, msg in findings:
             if level == OK and args.quiet_ok:
@@ -3389,7 +3890,7 @@ def cmd_audit(argv: list[str]) -> int:
             print(f"  {level:<10} {msg}")
             if level == VIOLATION:
                 violations += 1
-    unimplemented = [r for r in declared if r not in AUDIT_CHECKS]
+    unimplemented = [rid for rid, registry in declared if rid not in registry]
     if unimplemented:
         print(f"\n  {VIOLATION:<10} the rubric declares {unimplemented} with no check here "
               f"-- a reading rule nothing executes will drift")
@@ -3643,12 +4144,30 @@ def evaluate_claim(claim: dict, cards: list[dict], examples: set[str]) -> dict:
 
 def run_scope(root: pathlib.Path, scorecard_root: pathlib.Path,
               paths: list[pathlib.Path] | None = None) -> list[dict]:
-    cards = [c for _, c in load(scorecard_root) if c.get("status") != "unfilled"]
-    examples = {str(c.get("example")) for c in cards}
+    all_cards = [c for _, c in load(scorecard_root) if c.get("status") != "unfilled"]
+    # SI-03. A FIGURE NAMING `D<n>` IS A CLAIM ABOUT THE CARDS THAT SCORE `D<n>`.
+    #
+    # The population used to be every card in the tree. The moment a second card
+    # KIND existed that carries none of those keys, two improvement cards were
+    # counted as counterexamples to "D2 = 2 on 27 of 27 cards" -- because
+    # `.get("D2")` on a card that has no D2 returns nothing, and nothing is not
+    # 2. They were never in that claim's population, so refusing the claim with
+    # them is the denominator error R3 exists to catch, committed by the checker
+    # itself. Caught by `test_the_claim_that_justified_an_epic_is_refused`,
+    # whose pinned count went 20 -> 22.
+    #
+    # Scoped per claim rather than filtered once, because the population is a
+    # property of the dimension the figure names, not of this function.
+    by_dim: dict[str, list[dict]] = {}
+    for card in all_cards:
+        for dim in dims_of(card_kind_of(card)):
+            by_dim.setdefault(dim, []).append(card)
     files = paths if paths is not None else sweep_paths(root)
     out = []
     for f in files:
         for claim in find_claims(f, root):
+            cards = by_dim.get(str(claim["dim"]), [])
+            examples = {str(c.get("example")) for c in cards}
             out.append(evaluate_claim(claim, cards, examples))
     return out
 
