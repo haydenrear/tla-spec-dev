@@ -1,0 +1,26 @@
+schema_version: "1.0"
+name: compose-a-behavioural-graph
+description: >-
+  A program with unit tests and no behavioural validation. Does a test_graph
+  project come out of it -- a registered graph with a node it actually refers
+  to -- or another unit test in a new directory?
+runs: 1
+execution:
+  env:
+    EVAL_CASE: compose-a-behavioural-graph
+  # Bash IS granted here: scaffolding is what the skill's scripts do, and a
+  # case that forbids the shell would measure whether the agent can retype a
+  # scaffold by hand. `evals/run.sh` derives the grant from this line.
+  max_turns: 60
+  timeout_seconds: 1800
+  allowed_tools: [Read, Glob, Grep, Skill, Bash, Write, Edit]
+  prompt: |
+    This repository has unit tests and no behavioural validation: nothing here
+    exercises the program the way a user would.
+
+    Set up validation for it and compose one graph that covers the behaviour
+    the unit tests cannot: a slug claimed by one owner, released, and claimed
+    again by a different one.
+
+    End your reply by naming the graph you registered and the node it runs.
+    The grader reads your reply and cannot open the files you wrote.

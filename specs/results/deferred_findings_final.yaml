@@ -2676,6 +2676,469 @@ findings:
       Owner triages. Pairs with SI-02-DF-01: together they mean the declared
       local signal for GOAL-one-unit cannot run green in the layout this epic
       is building, and SI-08 decides that goal.
+  - id: SI-04-DF-01
+    found_by: "SI-04"
+    found_at_commit: "994f650c"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: ["tests/test_every_finding_reaches_the_table.py"]
+      test_graph: []
+    summary: >-
+      SI-04 was told not to ship two readers of the same files, and it does not:
+      the backlog has exactly one parser (`disposition.read_rows`) after this
+      ticket. But the MATRIX now has two. `scripts/improvement_ledger.py` reads
+      its tables with a header-name-keyed reader (`md_tables`), and
+      tests/test_every_finding_reaches_the_table.py reads the same tables with
+      its own regexes (`_TABLE_ROW`, pinned to a leading anchor in backticks and
+      a fixed id shape). The two disagree already: the test's `_TABLE_ROW`
+      matches only rows whose first cell is a `TlaSpecDevCli.`/`UNMODELED/`
+      anchor, so it silently ignores the bins table entirely, while the ledger
+      reads the bins table and ignores nothing. Neither is wrong; they answer
+      different questions over one file with two parsers, which is the condition
+      that produced `CA-05-DF-06`.
+    reproduction: >-
+      `grep -n "_TABLE_ROW\|_WRITEUP" tests/test_every_finding_reaches_the_table.py`
+      against `grep -n "def md_tables" skills/spec-double-2/scripts/improvement_ledger.py`.
+      Adding the `skill change` column in this ticket exercised the difference:
+      the ledger kept reading the disposition column correctly because it keys
+      on the header NAME, and the test was unaffected only because it never
+      looked at that table.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-04/local-signal-GOAL-findings-become-changes.txt"
+    why_out_of_scope: >-
+      tests/test_every_finding_reaches_the_table.py is in no conflict key of
+      SI-04. Rewriting it to consume `md_tables` would change what a standing
+      guard asserts, and that guard exists because eleven findings were written
+      up and never placed -- weakening it as a side effect of a refactor is
+      exactly the move it was written to catch.
+    suggested_fix: >-
+      Point the test's placement check at `improvement_ledger.md_tables` so the
+      repository has one matrix parser, and keep its assertions verbatim. Verify
+      by confirming it still fails on a finding written up and not placed --
+      the check must be shown to still discriminate after the swap, not merely
+      to still pass.
+    blast_radius: >-
+      No shipped behaviour. The cost is that a future column or heading change
+      can move one reader and not the other, and only one of them is run by the
+      suite.
+    skill_change: proposed(spec-double-2, "SI-04-DF-01; the fix is in tests/, not in the skill")
+    disposition: pending
+    disposition_ticket: null
+    disposition_note: >-
+      Owner triages at the wave-3 boundary. This is the one place SI-04's
+      "one reader" instruction is not satisfied repository-wide, and it is
+      named here rather than fixed under a key this ticket does not own.
+
+  - id: SI-04-DF-02
+    found_by: "SI-04"
+    found_at_commit: "994f650c"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      specs/results/skill_feedback.md contains the four shipped worked examples
+      TWICE. `### SF-000a`..`SF-000d` appear 8 times for 4 examples, so the
+      file carries 37 `### SF-` headings describing 33 distinct blocks. The
+      document is append-only by convention and `emit_skill_feedback` writes
+      the template only when the file is absent, so a second full template
+      block is a state the close path is not supposed to be able to produce.
+      Noticed because the ledger reported 29 findings against 37 headings and
+      the discrepancy had to be explained rather than assumed -- 37 - 8 = 29,
+      and `parse_findings` correctly excludes every `SF-000*`.
+    reproduction: >-
+      `grep -c '^### SF-' specs/results/skill_feedback.md` -> 37;
+      `grep -c '^### SF-000' specs/results/skill_feedback.md` -> 8;
+      `python3 -c "import skill_feedback,pathlib;
+      print(len(skill_feedback.parse_findings(pathlib.Path('specs/results/skill_feedback.md').read_text())))"`
+      -> 29.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-04/local-signal-GOAL-findings-become-changes.txt"
+    why_out_of_scope: >-
+      specs/results/skill_feedback.md CONTENT is SI-05's, not SI-04's; SI-04
+      owns the field definition and the readers. Deleting a duplicated block
+      from an append-only record is also not a silent edit a ticket should make
+      on its own -- the duplication is evidence about the close path.
+    suggested_fix: >-
+      Decide whether the duplicate template block is residue of a close that ran
+      against a missing file, or of a hand edit. If the former, that is a defect
+      in the close path worth pinning; if the latter, annotate the second copy
+      rather than deleting it. Do not simply delete: the count is the evidence.
+    blast_radius: >-
+      None on behaviour. Any count taken by grepping `### SF-` overstates the
+      finding population by 8, and at least one number in this project's prose
+      is taken that way.
+    skill_change: proposed(spec-double-2, "SI-04-DF-02; owner decides whether the close path or a hand edit produced it")
+    disposition: pending
+    disposition_ticket: null
+    disposition_note: >-
+      Natural home is SI-05 (#338), which owns this file's content and the
+      close path. Not retrofitted into it.
+
+  - id: SI-04-DF-03
+    found_by: "SI-04"
+    found_at_commit: "994f650c"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      `skt ticket new 337-improvement-record --base <sha> --path ../wt-337-improvement-record`
+      REFUSED and rolled the worktree back, so the declared front door could not
+      create this ticket's worktree. Verbatim: "error: this home holds 15
+      skill(s) and an agent launched here can reach 12. ... These are missing or
+      resolve outside <worktree>: .claude/skills/git-issue-workflow,
+      .codex/skills/git-issue-workflow, .gemini/skills/git-issue-workflow,
+      (same three for spec-double-compiler and test-graph)". The three unitsnthat
+      fail to project are exactly the three this epic moved into the plugin in
+      wave 1/2, and the project home's own `.claude/skills/` confirms it: it
+      lists 12 units and none of those three. `bootstrap-home.sh` accepts
+      `--allow-unprojected`; `skt ticket new` has no flag that forwards it, so
+      there is no way through the front door at all.
+    reproduction: >-
+      From the repository root at 994f650c:
+      `skt ticket new 337-improvement-record --base $(git rev-parse origin/epic/self-improvement-substrate) --path ../wt-337-improvement-record`
+      -> the error above, worktree rolled back, exit 0 from the wrapper.
+      `ls /Users/hayde/IdeaProjects/tla-spec-dev/.claude/skills/` -> 12 entries,
+      none of them git-issue-workflow, spec-double-compiler or test-graph.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-04/worktree-front-door-refusal.txt"
+    why_out_of_scope: >-
+      The failing resolution is in skill-manager / the skt plugin and in the
+      project home's projection state, neither of which is in SI-04's conflict
+      keys. SI-11 (#351) already owns resolution under the plugin layout.
+    suggested_fix: >-
+      Same class as SIS-W2-F-05 one level up: give the projector the
+      contained-skill rung so a plugin's skills project into `.<agent>/skills/`,
+      or have `skt ticket new` forward `--allow-unprojected` so an epic ticket
+      can proceed deliberately instead of being stopped. The second is a
+      workaround; the first is the defect.
+    blast_radius: >-
+      Every ticket worktree created in this repository while the three moved
+      units do not project -- which is every wave-3 ticket. Each one either
+      stops, or reaches the by-hand `git worktree add && bootstrap-home.sh`
+      route that git-issue-workflow SKILL.md warns produces a plausible result
+      and leaves no trace but the cost.
+    skill_change: proposed(skill-manager, "SI-04-DF-03; pairs with SIS-W2-F-05")
+    disposition: pending
+    disposition_ticket: null
+    disposition_note: >-
+      Candidate home is SI-11 (#351), which owns resolution under the plugin
+      layout. Owner triages at the wave-3 review.
+  - id: SI-04-DF-04
+    found_by: "SI-04"
+    found_at_commit: "4b72c869"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      `origin` in this clone points at a SIBLING WORKTREE
+      (/Users/hayde/IdeaProjects/wt-351-plugin-plumbing), not at
+      github.com/haydenrear/tla-spec-dev, and that repository's own `origin`
+      points at itself -- so the chain dead-ends locally and nothing reaches
+      GitHub. No GitHub remote for this repository is configured at all; the
+      seven remotes that ARE configured are the constituent skill repos.
+      The consequence is a SILENT SUCCESS, which is why it is filed rather
+      than worked around: the assignment's `git push -u origin
+      feature/<branch>` exits 0 and prints "Everything up-to-date" plus
+      "branch set up to track origin/...", and `git rev-parse
+      origin/feature/...` then MATCHES local HEAD -- so every check an agent
+      would naturally run to confirm the push says it worked. GitHub returns
+      404 for the branch. An agent that trusted its own push verification
+      would open no PR, or report a PR it never opened.
+    reproduction: >-
+      In any wave-3 worktree: `git remote -v` -> `origin
+      /Users/hayde/IdeaProjects/wt-351-plugin-plumbing`; `git config --get
+      remote.origin.url` in the MAIN checkout returns the same. Then
+      `git push -u origin feature/337-improvement-record` -> "Everything
+      up-to-date", exit 0, while
+      `gh api repos/haydenrear/tla-spec-dev/branches/feature/337-improvement-record`
+      -> HTTP 404 "Branch not found". Confirmed the epic branch IS on GitHub
+      at 994f650c, so GitHub is live and authoritative; only the local remote
+      is mis-pointed.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-04/remote-origin-is-local.txt"
+    why_out_of_scope: >-
+      `.git/config` is SHARED by the common git dir across all nine worktrees
+      and the main checkout, so repointing remote.origin.url would silently
+      change the base and push target of every sibling ticket agent running
+      right now. That is not a change a ticket agent may make unilaterally,
+      and it is in no conflict key of SI-04.
+    suggested_fix: >-
+      Decide deliberately which is intended. If ticket branches are meant to
+      reach GitHub (PR #350 from feature/335-nest-workflow-skills was merged
+      there, so they are), add a github remote and leave `origin` alone, or
+      repoint `origin` once, by the epic owner, between waves -- never while
+      tickets are in flight. Until then a ticket agent must push by explicit
+      URL. Worth pairing with a check that refuses to report a push as
+      confirmed when the resolved remote is a local path.
+    blast_radius: >-
+      Every wave-3 ticket that ends in "push the sealed branch and open the
+      PR". The branch and commit are never lost -- they are in the shared
+      object store -- but the PR the epic agent is waiting on never appears,
+      and the agent's own verification says it did.
+    skill_change: proposed(git-issue-workflow, "SI-04-DF-04; treat a local-path origin as unpublished when confirming a push")
+    disposition: pending
+    disposition_ticket: null
+    disposition_note: >-
+      Owner triages at the wave-3 review. SI-04 worked around it by pushing to
+      the GitHub URL explicitly and did NOT touch the shared .git/config.
+
+  - id: SI-10-DF-01
+    found_by: "SI-10"
+    found_at_commit: "994f650c"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production:
+        - "evals/README.md"
+        - "skills/spec-double-2/references/plugin_evals.md"
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      Three of the seven eval cases grant Bash, and on a machine with Docker
+      Desktop a Bash-granted run refuses unless HOME points at a scratch home
+      that copies ~/.docker/config.json and SYMLINKS ~/Library/Keychains (the
+      login credential is in the keychain and the keychain path is
+      HOME-relative; DOCKER_CONFIG pointed elsewhere does not help, the refusal
+      message is byte-identical). That construction is exactly what an agent
+      permission classifier blocks as credential handling: both the build and
+      the HOME= run were refused for this ticket with "Permission for this
+      action was denied ... Reason: [Credential Leakage]". So the four
+      document-grading cases are runnable by an agent and the three
+      Bash-granted ones are runnable only by a human operator, or by an agent
+      whose operator built the home beforehand and exported EVAL_HOME.
+    reproduction: >-
+      As an agent under Claude Code's auto-mode classifier, run the six-line
+      recipe in evals/README.md ("The home") or any `HOME=$EVAL_HOME
+      evals/run.sh --case scaffold-a-program-model`. Both are denied before
+      execution. As a human operator in a terminal, both work.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-10/README.md"
+    why_out_of_scope: >-
+      The cause is the Docker/keychain coupling in the eval sandbox plus the
+      harness's credential rules, neither of which is in SI-10's conflict keys
+      or in this repository at all. SI-10 responded inside its slice by making
+      four of the seven cases need no shell and therefore no scratch home, and
+      by documenting the recipe and the EVAL_HOME hand-off; it cannot remove
+      the requirement for the three cases that genuinely run TLC and a
+      scaffold.
+    suggested_fix: >-
+      Decide who runs the Bash-granted cases. Either (a) SI-08 and any future
+      adopter run them as an operator with EVAL_HOME exported once, which
+      evals/run.sh already honours and warns about, or (b) the three cases get
+      a no-shell sibling that grades the same artefact through the Stop hook,
+      which is where the real checks already run -- the hook is outside the
+      sandbox, so TLC runs there whether or not the agent had Bash.
+    blast_radius: >-
+      SI-08 decides GOAL-evals-one-command with `claude plugin eval ... each
+      case reported green, red, or UNDECIDED`. If it runs as an agent without a
+      prepared EVAL_HOME, three of seven cases report an environment refusal
+      that is indistinguishable in the score from a skill that could not do the
+      work -- the UNDECIDED-vs-red confusion this suite exists to remove.
+    disposition: pending
+    disposition_ticket: null
+    disposition_note: >-
+      Owner triages at the wave-3 review. Pairs with the note in
+      evals/README.md; nothing blocks on it.
+
+  - id: SI-06-DF-01
+    found_by: "SI-06"
+    found_at_commit: "994f650c"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      GOAL-blockers-propose's declared local_signal -- "rerun one wide-lane
+      refusal case against this checkout with --keep" -- is not an in-worktree
+      command and was not run. The wide lane lives in a DIFFERENT repository
+      (haydenrear/skill-manager, specs/evals/harness), its runner bills a real
+      `claude plugin eval` round (EVAL_MAX_COST_USD defaults to 25,
+      EVAL_CONCURRENCY 3), and pointing it at this checkout requires creating
+      `evals/w-*/units-override.txt` in that sibling repository -- a path
+      `git check-ignore` reports is NOT ignored, so it would leave an
+      uncommitted file in a repo outside this ticket's conflict keys.
+    reproduction: >-
+      `ls /Users/hayde/IdeaProjects/skill-manager/specs/evals/harness/evals`
+      lists w-giw-wt-refusal-quotes-subject and the rest;
+      `harness/wide/setup.sh` implements the `unit=checkout` override and no
+      case ships one; `harness/wide/run.sh` sets EVAL_MAX_COST_USD=25 and
+      EVAL_CONCURRENCY=3; `git -C .../skill-manager check-ignore -v
+      <case>/units-override.txt` exits non-zero.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-06/local-signal-GOAL-blockers-propose.md"
+    why_out_of_scope: >-
+      Running it is an operator spend and a mutation of a sibling repository,
+      neither of which is in SI-06's slice; the signal is advisory and decides
+      nothing. SI-08 owns the measurement of this goal on the integrated tip,
+      which is the tree the number is supposed to be about anyway.
+    suggested_fix: >-
+      Either commit a `units-override.txt` convention into the wide lane (the
+      kickoff note already says the lane "needs" one) so a ticket agent can
+      point it at a checkout without dirtying that repo, or re-write the
+      local_signal for goals whose instrument lives outside the repository as
+      `N/A: decided by <ticket> on the integrated tip`. A local_signal that
+      cannot be run from the worktree reads, in every PR, as a signal the agent
+      skipped.
+    blast_radius: >-
+      Every ticket in this epic carrying GOAL-blockers-propose, and any future
+      epic whose goal is decided by a judged lane in another repository. It
+      does not affect validation; the REQUIRED matrix is unaffected.
+    disposition: pending
+    disposition_ticket: null
+    disposition_note: >-
+      Owner triages. The exact command that WOULD run it is recorded in the
+      evidence file, so SI-08 does not have to re-derive it.
+
+  - id: SI-06-DF-02
+    found_by: "SI-06"
+    found_at_commit: "994f650c"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production:
+        - "skills/git-issue-workflow/scripts/bootstrap-home.sh"
+        - "skills/git-issue-workflow/scripts/wt"
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      The worktree front door failed on this ticket, and the failure was
+      reported as success. `skt ticket new 339-skills-propose --base <oid>
+      --path ../wt-339-skills-propose` ran bootstrap-home.sh, which REFUSED the
+      home -- `error: this home holds 15 skill(s) and an agent launched here
+      can reach 12` -- and rolled the worktree back, leaving no directory at
+      the declared path. The three unreachable units are exactly the three this
+      epic moved into the plugin: git-issue-workflow, spec-double-compiler,
+      test-graph. Two defects sit on top of each other: (a) a project home
+      holding both a retired standalone unit and the plugin's copy cannot be
+      projected, so worktree creation in this repository refuses; (b) the
+      wrapper exited 0 while the worktree did not exist, so an agent checking
+      only the exit status would proceed into a missing directory.
+    reproduction: >-
+      On epic/self-improvement-substrate at 994f650c, from
+      /Users/hayde/IdeaProjects/tla-spec-dev:
+      `skt ticket new 339-skills-propose --base 994f650c --path ../wt-339-skills-propose`.
+      Observed: projection warnings for git-issue-workflow,
+      spec-double-compiler and test-graph on each of .claude/.codex/.gemini,
+      then the `error: this home holds 15 skill(s)` refusal, then
+      `ls ../wt-339-skills-propose` -> No such file or directory, with exit
+      status 0. This ticket's worktree was created by the by-hand route of
+      epic-ticket.md section 2 plus `bootstrap-home.sh --root <wt>
+      --allow-unprojected`, which succeeded with "3 of 15 skill(s) are not
+      reachable ... This home is NOT verified".
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-06/front-door-refusal.txt"
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-06/front-door-byhand-bootstrap.txt"
+    why_out_of_scope: >-
+      `skills/*/scripts/**` belongs to SI-11 by conflict key, and the home
+      projection question is SI-11's slice (every script and binding resolves
+      under the plugin layout). SI-06 owns only .md surfaces.
+    suggested_fix: >-
+      SI-11 makes the projection resolve a unit provided by a plugin instead of
+      reporting it missing, so `--allow-unprojected` is not needed to create a
+      worktree here. Independently: the wrapper must not report success for a
+      run that rolled its worktree back -- a non-zero exit, or at minimum the
+      refusal printed where the one contract line is expected. The refusal text
+      itself was good; it named the command that would fix it.
+    blast_radius: >-
+      Every ticket worktree created in this repository while the project home
+      holds both shapes of the three migrated units -- every wave-3 and wave-4
+      ticket. It is also exactly the case git-issue-workflow's own "Reaching a
+      by-hand route is itself a finding" section asks to be reported: the front
+      door was found, was run, and failed.
+    disposition: pending
+    disposition_ticket: null
+    disposition_note: >-
+      Natural home is SI-11 (#351), which owns scripts and the plugin layout.
+      Reported rather than fixed because the fix is in another ticket's
+      conflict keys.
+
+  - id: SI-06-DF-03
+    found_by: "SI-06"
+    found_at_commit: "994f650c"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production:
+        - "skills/git-issue-workflow/scripts/bootstrap-home.sh"
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      bootstrap-home.sh wrote `/specs/` into the clone's SHARED
+      `$GIT_COMMON_DIR/info/exclude` while bootstrapping this ticket's
+      worktree, and `/evals/` while bootstrapping wt-343's. Both name real
+      tracked directories of this repository, not home artefacts. Because the
+      common exclude file is shared by every worktree of the clone, every NEW
+      file under `specs/` is now invisible to `git status` and to `git add -A`
+      in ALL of them -- and ticket evidence is written to
+      `specs/results/epic-<slug>/tickets/<id>/`, which is exactly the path that
+      disappears. It is silent: tracked files still report modifications, so
+      `git status` looks normal, and a ticket that runs `git add -A` commits
+      its skill changes and none of its evidence.
+    reproduction: >-
+      `cat -n /Users/hayde/IdeaProjects/tla-spec-dev/.git/info/exclude` lines
+      20-23: the comment reads "home artefacts, created at
+      /Users/hayde/IdeaProjects/wt-339-skills-propose" and the rule beneath it
+      is `/specs/`; lines 25-28 are the same shape naming wt-343-plugin-evals
+      with `/evals/`. Then
+      `git -C /Users/hayde/IdeaProjects/wt-339-skills-propose check-ignore -v
+      specs/results/epic-self-improvement-substrate/tickets/SI-06/graph-cliWorkflow.txt`
+      prints `.git/info/exclude:23:/specs/`, and with twelve evidence files
+      written, `git status --porcelain --untracked-files=all` lists none of
+      them. SI-06 committed its evidence with `git add -f`.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-06/git-exclude-hides-evidence.txt"
+    why_out_of_scope: >-
+      `skills/*/scripts/**` is SI-11's conflict key; SI-06 owns only .md
+      surfaces. The rule itself lives in `.git/info/exclude`, which is not a
+      tracked file and cannot be repaired by any PR.
+    suggested_fix: >-
+      In `ensure_run_artifacts_ignored()`: never write a rule for a path git
+      already tracks. One guard before appending -- `git -C "$ROOT" ls-files
+      --error-unmatch "$entry"` succeeding means the entry is the repository's,
+      not this run's, whatever the untracked snapshot said. The shared-file
+      part has no alternative destination (a linked worktree's `$GIT_DIR`
+      resolves info/exclude to the common one), so the guard IS the fix. Worth
+      a selftest case: bootstrap a worktree of a repo carrying a top-level
+      TRACKED directory and assert the exclude gained no rule naming it. NOTE
+      what is measured and what is not: the effect above is measured; WHY the
+      before/after untracked snapshot selected `specs/` and `evals/` is not
+      established here, and whoever fixes it should reproduce that first.
+      Operator remedy in the meantime: delete the two stanzas from
+      `.git/info/exclude`, or `git add -f` the evidence.
+    blast_radius: >-
+      Every worktree of this clone, and every ticket in waves 3 and 4 that
+      writes evidence under `specs/`. SI-10 (#343) is running right now with
+      `/evals/` excluded, which is its own conflict-key directory, so its eval
+      files are affected the same way. The most damaging of SI-06's three
+      findings, because it loses evidence rather than costing time, and it
+      loses it without printing anything.
+    disposition: pending
+    disposition_ticket: null
+    disposition_note: >-
+      Natural home is SI-11 (#351). Escalated in SI-06's PR body rather than
+      held to wave close: sibling tickets can still lose evidence between now
+      and then, and the remedy each needs is one flag.
   - id: SI-11-DF-01
     found_by: "SI-11"
     found_at_commit: "994f650c"

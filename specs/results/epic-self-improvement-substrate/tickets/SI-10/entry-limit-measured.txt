@@ -1,0 +1,15 @@
+# The 20,000-entry refusal, measured at HEAD (d536ed8b), CLI 2.1.275
+
+$ claude plugin eval . --case epic-mode-is-not-main --ablation none --trust-plugin
+Plugin under test: "tla-spec-dev" version "0.1.0" at "<the checkout>"
+  epic-mode-is-not-main run 1/1: score 0.00  $0.00  error: case ""epic-mode-is-not-main"":
+  a plugin directory holds more than 20000 entries to check for eval directories
+  — point the case at a smaller plugin directory
+
+checkout entries at HEAD : 98814
+staged view entries      : 6296
+the limit                : 20000
+
+The refusal costs $0.00 and arrives before any agent launches, so this is
+cheap to re-measure. It fires with or without an explicit plugins: entry in
+the case; a plugins: ["../.."] naming the same root changes nothing.

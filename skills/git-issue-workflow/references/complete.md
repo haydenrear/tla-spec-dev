@@ -121,6 +121,47 @@ git -C <repo-root> merge --no-ff feature/<ticket>
 A dirty tree or an unwired constituent here means the merge is not safe to fan out
 — stop and reconcile before step 7.
 
+## 5a. Propose the change that blocked you
+
+Steps 1–5 report the change. This step reports the **substrate**: what got in
+your way while you made it, and what you propose doing about it. The PR body
+carries a `## Skill changes proposed` section — three columns, one row per
+blocker you actually met. A skill instruction that did not work, a script that
+refused, a flag that silently did nothing, a gate that could not be satisfied:
+
+```markdown
+## Skill changes proposed
+
+| Unit | What I hit | Proposed change |
+| --- | --- | --- |
+| git-issue-workflow | `wt new` refused and rolled the worktree back (error quoted) | applied in `<sha>` |
+| spec-double-2 | `run spec-unit-tests --ticket <id>` resolved two targets, ran the first, said nothing about the second | diff below |
+```
+
+`none met` — one line in place of the table — when nothing blocked you. That is
+a common and legitimate answer, and writing it is what lets a reader tell it
+apart from a section nobody filled in.
+
+Four rules keep it cheap:
+
+- **It asks you to run nothing new.** Every row already happened while you did
+  the ticket. Do not re-investigate or audit the skills to fill it; the wide
+  eval lane measured that every added instruction costs turns, and this one is
+  meant to cost none.
+- **Apply it where the unit is in reach.** When the unit's files live in the
+  repository you are working in and the path is inside your slice, make the
+  change and link the commit. Otherwise put the diff in the row, or name the one
+  line you would change.
+- **Being unable to fix it is still a row.** Two worked examples, both real: an
+  agent hit a defect in a command it was *forbidden* to run and reported it
+  instead of working around it silently; another found a second defect and
+  declined to file it — filing would have contradicted an explicit instruction —
+  and handed it over instead. Both are the behaviour this section exists to make
+  routine. "Blocked, reported, not fixed" is a complete row.
+- **Nothing blocks on it.** The section is required in shape and is never a gate
+  on merge, never a reason to hold a PR, and never a licence to widen the
+  ticket. A defect worth acting on is a deferred finding *as well as* a row.
+
 ## 6. Close out the worktree's home, then remove the worktree, then sync the root
 
 Only once the merge is verified (PLAIN: PR merged; INTEGRATION: merged to main and
@@ -285,6 +326,8 @@ its *own* spec/test-graph loops downstream. Do this now via
 - [ ] Committed and pushed to `feature/<ticket>`
 - [ ] PLAIN: PR opened with `Closes #<n>`, rebase-merged into `main` via `gh pr merge --rebase`, merge verified
 - [ ] PR body carries `## Goal contribution` (or `None declared`)
+- [ ] PR body carries `## Skill changes proposed` — one row per blocker met
+      (unit, what was hit, the proposed change), or `none met`
 - [ ] INTEGRATION: parent merged to main and `verify.sh` clean
 - [ ] `home close-out` run and clean (or every blocker cleared by `home sync --merge` / `unit publish`) **before** any removal — epic ticket: gate run read-only, verdict in the PR body, no `home sync` into the project home, no removal (`references/epic-ticket.md`)
 - [ ] Any skill improvement made inside the worktree's home published to that unit's own repo

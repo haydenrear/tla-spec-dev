@@ -113,7 +113,20 @@ result. Do not encode the cadence in `mode`.
 - Start the worktree from the latest `origin/epic/<slug>` after all
   `depends_on` PRs are merged.
 - Run `tla-spec-dev --spec-root specs open ticket <stable-ticket-id>`; never
-  scaffold another workflow.
+  scaffold another workflow. **Where the canonical plan carries
+  `planning_rules.model_ownership_rule`, render a *Model ownership* note in place
+  of this line**: the epic agent scaffolded this ticket's `desired`/`current`
+  before dispatch and closes and promotes the spec ticket at wave merge, so the
+  ticket agent runs no `open ticket`, `close ticket`, `close_tickets.py`, or
+  `--accept-new`; it moves `current` toward `desired`, runs the spec tests the
+  assignment names, may make only small corrections to `desired`, and returns a
+  structural change to `desired` in the PR body.
+- The PR body also carries `## Skill changes proposed`: three columns, one row
+  per blocker the agent met in the substrate — the unit, what was hit, and the
+  proposed change as a diff or a link to the commit that applied it — or
+  `none met`. It asks the agent to run nothing new and is never a gate on merge.
+  A blocker the agent was forbidden to fix, or handed over rather than filing
+  because filing would have contradicted an instruction, is a row like any other.
 - Before close, wait for `promotion_predecessor`, reconcile the latest epic tip,
   and rerun the validation matrix.
 - Mark and close only this spec ticket with every evidence path. Never run the

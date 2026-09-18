@@ -30,7 +30,9 @@ After commit and push, open a PR whose base is `ticket.pr_base` (the epic branch
 and whose body uses `Refs #<issue-number>`. Include the exact commands, evidence
 paths, close-history path, resulting commit SHA, the `## Goal contribution`
 section below, a `## Deferred findings` section (each backlog ID filed with its
-severity and one-line summary, or `None`), the worktree `home close-out`
+severity and one-line summary, or `None`), a `## Skill changes proposed` section
+(one row per blocker met in the substrate, or `none met` — §5a), the worktree
+`home close-out`
 verdict, and a `## Review input` section — then stop for external review. The
 epic-owner agent merges this PR into the epic branch at wave close; do not
 self-merge, target the default branch, or close the GitHub issue.
@@ -154,6 +156,34 @@ and how an evaluation ticket executes — is `git-issue-workflow`'s
 identical on both sides: this skill tells the author what to ask the implementer
 for, and that skill tells the implementer what to produce.
 
+## 5a. Ask for the blockers as proposed changes
+
+Step 5 reports whether anything got better. This one asks what got in the
+implementer's way. The issue tells them the PR body carries a
+`## Skill changes proposed` section — three columns, one row per blocker met in
+the substrate:
+
+| Unit | What I hit | Proposed change |
+| --- | --- | --- |
+| <the skill, script, or CLI that blocked them> | <what happened, quoted where it printed something> | <a diff, or a link to the commit that applied it> |
+
+`none met` is the expected answer most of the time, and the issue says so
+explicitly: an implementer who reads the section as a demand for findings will go
+looking for some, which is the cost this shape exists to avoid. Three lines to
+embed with it:
+
+- it asks for **no new run** — every row is something that already happened while
+  the ticket was worked;
+- an implementer who **could not** fix what blocked it still writes the row.
+  Reporting a defect in a command it was forbidden to run, or handing one over
+  because filing it would have contradicted an explicit instruction, is exactly
+  the behaviour the section is for;
+- it is **never a gate**: required in shape, advisory in content, and no reason to
+  hold a PR, weaken a test, or widen the issue.
+
+Where the unit's files live in the same repository the work is happening in, tell
+them to apply the change and link the commit rather than only proposing it.
+
 ## 6. Commit and push to the feature branch
 
 Only after 1–5 pass:
@@ -244,6 +274,9 @@ form of these two lines into the issue instead of the ordinary form
 - [ ] Evaluation issues only: `## Goal verdicts` instead — baseline → measured →
       target with a `met` / `missed` / `unmeasured` verdict per goal, from the
       run that actually happened
+- [ ] `## Skill changes proposed` in the PR body — one row per blocker met in the
+      substrate (unit, what was hit, the proposed change), or `none met`. No new
+      run is asked for and nothing merges or fails on it
 - [ ] Committed and pushed to `feature/<issue-number>-<slug>`
 - [ ] Worktree torn down with `"$WT" close <issue-number>-<slug>` (the gate runs
       first; clear every blocker it names with `unit publish` / `home sync
