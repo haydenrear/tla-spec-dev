@@ -1779,28 +1779,48 @@ git -C "$TRK" init -q -b main
 git -C "$TRK" config user.email selftest@example.invalid
 git -C "$TRK" config user.name "selftest"
 printf 'x\n' > "$TRK/README.md"
-# A tracked top-level directory, exactly like `specs/` — committed, and then
-# EMPTIED from the working tree so git reports it as untracked on the next
-# status. That is the state the defect needs, and reproducing it honestly is the
-# whole fixture: a directory that is merely present would never reach the loop.
+# A tracked top-level directory holding a NEW, untracked subdirectory. That is
+# the real incident, and getting here took one wrong fixture first: emptying the
+# tracked directory does NOT produce `?? specs/`, because git keeps reporting
+# the index entry as ` D specs/keep.txt` and names the untracked file
+# individually. A directory collapses to `?? <dir>/` only when git has nothing
+# tracked to say about the path it is reporting.
+#
+# The collapse that matters happens one level up, in `untracked_root_entries`:
+# it takes ANY untracked path with a slash in it and prints only the FIRST
+# segment. So `?? specs/results/.../SI-11/` — a ticket writing its evidence,
+# which is the single most ordinary thing that happens in this repository —
+# arrives at the exclude loop as the bare entry `specs/`. Nothing about the
+# tracked directory itself ever had to look unusual.
 mkdir -p "$TRK/specs"
 printf 'model\n' > "$TRK/specs/keep.txt"
 git -C "$TRK" add -A
 git -C "$TRK" -c commit.gpgsign=false commit -qm "fixture with a tracked specs/ directory"
-command rm -rf "$TRK/specs"
-# Re-create it with only UNTRACKED content, which is what a ticket writing new
-# evidence into a tracked directory actually looks like.
-mkdir -p "$TRK/specs"
-printf 'new evidence nobody wants hidden\n' > "$TRK/specs/evidence.txt"
+# The new evidence, in a NEW subdirectory, exactly as a ticket writes it. A new
+# file directly in specs/ would be reported as `?? specs/evidence.txt` and
+# collapse to `specs/` just the same; a subdirectory is used because that is
+# what the measured incident looked like.
+mkdir -p "$TRK/specs/results"
+printf 'new evidence nobody wants hidden\n' > "$TRK/specs/results/evidence.txt"
 
-# Non-vacuity, and the section rests on it: git must really be calling this
-# tracked directory untracked. If it does not, the loop never sees `specs/` and
-# a passing result below would prove nothing at all.
+# Non-vacuity, and the section rests on it: git must really be reporting an
+# untracked path under the tracked directory, or the loop never derives the
+# `specs/` entry and every check below would pass for the wrong reason.
 git -C "$TRK" status --porcelain > "$SCRATCH/trk-before.txt"
-check "$(yesno command grep -q '^?? specs/$' "$SCRATCH/trk-before.txt")" \
-  "git_really_does_report_the_tracked_specs_directory_as_untracked" \
-  "the fixture did not reproduce the precondition — git does not report 'specs/' as untracked,
-        so ensure_run_artifacts_ignored never considers it and this section is vacuous:
+check "$(yesno command grep -q '^?? specs/' "$SCRATCH/trk-before.txt")" \
+  "git_reports_an_untracked_path_under_the_tracked_specs_directory" \
+  "the fixture did not reproduce the precondition — git reports nothing untracked under
+        specs/, so ensure_run_artifacts_ignored never derives the 'specs/' entry and this
+        section is vacuous:
+$(command sed 's/^/        /' "$SCRATCH/trk-before.txt")"
+
+# And the collapse itself, asserted rather than assumed, because it is the step
+# that turns an ordinary evidence directory into a top-level exclude rule. This
+# is the one fact that makes the defect reachable at all.
+check "$(yesno contains 'specs/' "$(printf '%s\n' "$(git -C "$TRK" status --porcelain --untracked-files=normal | command sed -n 's|^?? \([^/]*\)/.*|\1/|p')")")" \
+  "an_untracked_subpath_collapses_to_the_tracked_top_level_directory" \
+  "git status does not yield a first-segment entry of 'specs/', so the exclude loop would
+        never see the tracked directory as a candidate:
 $(command sed 's/^/        /' "$SCRATCH/trk-before.txt")"
 
 TRK_RC=0
@@ -1832,7 +1852,7 @@ git -C "$TRK" add -A
 # Captured first: `yesno` runs a COMMAND, so a pipeline cannot be passed to it —
 # the pipe would bind to yesno's own output and the check would measure nothing.
 TRK_STAGED="$(git -C "$TRK" diff --cached --name-only 2>/dev/null || true)"
-check "$(yesno contains 'specs/evidence.txt' "$TRK_STAGED")" \
+check "$(yesno contains 'specs/results/evidence.txt' "$TRK_STAGED")" \
   "git_add_still_stages_new_files_under_the_tracked_directory" \
   "\`git add -A\` did not stage specs/evidence.txt — new work under a tracked directory is
         invisible to the command every ticket ends with, and nothing printed a warning"
