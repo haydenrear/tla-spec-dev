@@ -1,0 +1,22 @@
+verify.sh's two bundle checks, replicated over REPOSITORY FILES ONLY
+=====================================================================
+
+Why a replication: verify.sh greps from '.', so it also reads
+  (a) ./.skill-manager/  -- this worktree's gitignored Skill Manager HOME,
+      which still holds the OLD STANDALONE INSTALLS. Those are the thing the
+      home migration removes; they are not repository files and no commit can
+      fix them.
+  (b) examples/**/evidence/**, examples/validation/agent_rounds/** -- SEALED
+      transcripts recording what an agent typed at the time. Rewriting them
+      would falsify a record.
+  (c) its own prescribed fix: an import rewritten to
+      'unit: tla-spec-dev' + 'path: skills/<skill>/<file>' contains the literal
+      'skills/<bundled>/' and is flagged, though imports.md prescribes exactly
+      that form.
+Everything below is scoped to files this PR can actually own.
+
+--- CHECK 1: store path naming a bundled unit, no plugins/*/skills rung ---
+  unfixed repository files: 0
+
+--- CHECK 2: skill-imports frontmatter naming a bundled skill as a UNIT ---
+  intra-bundle imports remaining: 0

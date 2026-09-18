@@ -148,7 +148,7 @@ figure of "four files" is sealed at `eab2883` and is wrong.
 ### `spec-double-compiler` is this repository, installed
 
 Confirmed rather than assumed. The installed unit at
-`$SKILL_MANAGER_HOME/skills/spec-double-compiler/` carries `.git`, its top-level
+`$(for d in "$SKILL_MANAGER_HOME"/skills/spec-double-compiler "$SKILL_MANAGER_HOME"/plugins/*/skills/spec-double-compiler; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/` carries `.git`, its top-level
 listing is this repository's listing, its `SKILL.md` head is byte-identical to
 this repository's, and **its `references/eval_scorecard.md` is byte-identical to
 this repository's copy at `a527305`**. Its matches are 979 files carrying about

@@ -1,20 +1,43 @@
-# Spec Double Compiler
+# tla-spec-dev
 
-Development repository for the `spec-double-compiler` skill.
+Development repository for the **`tla-spec-dev` plugin**: the TLA+ program-model
+toolchain and the workflow skills that drive it, versioned, installed, synced and
+improved as ONE unit.
 
-User-facing workflow guidance lives in:
+It used to be one skill. SI-01 made the repository a plugin and moved the skill
+surface to `skills/spec-double-2/`; SI-02 nested the five workflow skills beside
+it. Downstream that is a single `skill-manager install`, a single version, and a
+single `skt check` notification — see *Install Locally* below.
 
-- `SKILL.md`
-- `references/typical_workflow.md`
-- `references/generation_modes.md`
-- `references/runtime_requirements.md`
-- `references/codegen_contract.md`
-- `references/conformance_testing.md`
-- `references/testgraph_adapters.md`
-- `references/edge-cases.md`
-- `references/tla_profile.md`
-- `references/spec_evolution.md`
-- `references/workflows.md`
+| contained skill | invoked as | upstream repository |
+|---|---|---|
+| `spec-double-2` | `tla-spec-dev:spec-double-2` | *(none — this repository is its history)* |
+| `git-epic-workflow` | `tla-spec-dev:git-epic-workflow` | `haydenrear/git-epic-skill` |
+| `git-issue-workflow` | `tla-spec-dev:git-issue-workflow` | `haydenrear/git-issue-workflow-skill` |
+| `git-issue` | `tla-spec-dev:git-issue` | `haydenrear/git-issue-skill` |
+| `discovery` | `tla-spec-dev:discovery` | `haydenrear/discovery-skill` |
+| `test-graph` | `tla-spec-dev:test-graph` | `haydenrear/test_graph_skill` |
+
+The five with an upstream repository are **constituents** (`integration.toml`),
+nested with `git subtree` at full history. They are ordinary tracked files — no
+submodules, no gitlinks — and upstream work still reaches this repository with
+`git subtree pull --prefix=skills/<name> <remote> main` until the owner declares
+the freeze. The recipe and the remotes table are in
+`specs/results/epic-self-improvement-substrate/migration/pulling-upstream.md`.
+
+User-facing workflow guidance for the toolchain lives in:
+
+- `skills/spec-double-2/SKILL.md`
+- `skills/spec-double-2/references/typical_workflow.md`
+- `skills/spec-double-2/references/generation_modes.md`
+- `skills/spec-double-2/references/runtime_requirements.md`
+- `skills/spec-double-2/references/codegen_contract.md`
+- `skills/spec-double-2/references/conformance_testing.md`
+- `skills/spec-double-2/references/testgraph_adapters.md`
+- `skills/spec-double-2/references/edge-cases.md`
+- `skills/spec-double-2/references/tla_profile.md`
+- `skills/spec-double-2/references/spec_evolution.md`
+- `skills/spec-double-2/references/workflows.md`
 
 ## Install Locally
 
@@ -23,8 +46,87 @@ skill-manager install file://$(pwd) --dry-run
 skill-manager install file://$(pwd)
 ```
 
-The skill declares CLI dependencies for `jinja2`, `pytest`, and a
-`skill-script` installed `tlc2` wrapper. The `tlc2` wrapper requires Java.
+This installs the **plugin**, and every contained skill comes with it at one
+version. `skill-manager list` gets one row (`KIND=plugin`), not six.
+
+The contained `spec-double-2` skill declares CLI dependencies for `jinja2`,
+`pytest`, and a `skill-script` installed `tlc2` wrapper. The `tlc2` wrapper
+requires Java.
+
+### Migrating a home that still carries the old standalone units
+
+Run this **per home** — the operator's `~/.skill-manager`, then each project or
+worktree `.skill-manager`. Until it is run, a home carries the same skill twice,
+at two versions, with two sync paths and no rule about which one an agent read.
+That duplication is the thing the bundle exists to remove, and installing the
+plugin does **not** remove it on its own.
+
+```bash
+# 0. Name the home EXPLICITLY, by using its own entrypoint.
+#    Exporting SKILL_MANAGER_HOME is NOT enough and is not silently ignored:
+#    each shim binds the home it lives in, so the operator's ~/.skill-manager
+#    shim REFUSES rather than edit a home it does not own --
+#      "refusing to run against a home you did not name ...
+#       this entrypoint binds the home it lives in, so it cannot honour
+#       SKILL_MANAGER_HOME."
+#    Use that home's own shim (or pass --home to any other one).
+HOME_DIR=/path/to/.skill-manager                 # or $HOME/.skill-manager
+SM="$HOME_DIR/bin/cli/skill-manager"             # equivalently: skill-manager --home "$HOME_DIR"
+
+# 1. Install the bundle.
+#    Once merged, straight from the coord:
+"$SM" install github:haydenrear/tla-spec-dev --yes
+#
+#    From a CHECKOUT while the change is unmerged, stage it first with
+#    `git archive`. Do NOT use `file://$(pwd)` on a checkout that carries its
+#    own `.skill-manager/`: the installer stages the whole directory, including
+#    that gitignored home, and recurses into
+#    `.skill-manager/cache/stage-*/staged/.skill-manager/cache/stage-*/...`
+#    until the path blows up. Measured; it fails with
+#    "BuildResolveGraphFromSource: 1 coord(s) failed to resolve".
+STAGE=$(mktemp -d) && git archive HEAD | tar -x -C "$STAGE"
+"$SM" install "file://$STAGE" --yes
+
+# 2. Remove the now-duplicated standalone units. `uninstall`, not `remove`:
+#    `remove` is lower-level and leaves agent symlinks and MCP registrations
+#    behind, which is how a "removed" skill keeps resolving.
+for u in spec-double-compiler git-epic-workflow git-issue-workflow \
+         git-issue discovery test-graph; do
+  "$SM" uninstall "$u" --yes 2>/dev/null || true   # absent is fine
+done
+
+# 3. Confirm: ONE unit, six contained skills, and no standalone leftovers.
+"$SM" show tla-spec-dev                  # lists the contained skills
+"$SM" list | grep -E 'tla-spec-dev|spec-double|git-issue|git-epic|discovery|test-graph'
+ls "$HOME_DIR/plugins/tla-spec-dev/skills/"
+"$SM" show test-graph                    # expected: "unit not found" -- it is contained now
+```
+
+Order matters in one direction only: install before uninstall, so the home is
+never briefly without the skills. Uninstalling first and then hitting a failed
+install leaves the home carrying neither — which is exactly what happened the
+first time this sequence was run, and why step 1 is written the way it is.
+
+Two things change for anything that addressed those skills by their **old**
+identity, and both are silent rather than loud:
+
+- a contained skill's bytes are at
+  `<home>/plugins/tla-spec-dev/skills/<unit>/`, **not** `<home>/skills/<unit>/`,
+  so a hardcoded store path stops existing;
+- a `skill-imports: unit: <contained-skill>` no longer validates — address the
+  plugin instead (`unit: tla-spec-dev`, `path: skills/<unit>/<file>`);
+- a `skill_references = ["github:haydenrear/<bundled-repo>"]` does **not**
+  error. It installs a second standalone copy. Point it at this repository's
+  coord instead.
+
+`plugin-repository/references/imports.md` has the measured evidence for all
+three. `plugin-repository/scripts/verify.sh`, run from this repository's root,
+checks the first two inside the bundle.
+
+**`skills/<name>/` never gets its own `.git` here.** The constituents were
+nested with `git subtree`, so they are already plain tracked files; there is no
+`finalize.sh` step to run and running one would restore state this model does
+not use.
 
 ## Develop
 
@@ -210,8 +312,8 @@ disposable git repository under the graph build directory:
 # NOT `~/.skill-manager`: the test-graph unit lives in the home THIS checkout is
 # bound to (a project or worktree `.skill-manager`), and only that copy matches
 # the units this checkout was resolved against. See references/runtime_requirements.md.
-"$SKILL_MANAGER_HOME"/skills/test-graph/scripts/discover.py specWorkflow
-"$SKILL_MANAGER_HOME"/skills/test-graph/scripts/run.py specWorkflow
+$(for d in "$SKILL_MANAGER_HOME"/skills/test-graph "$SKILL_MANAGER_HOME"/plugins/*/skills/test-graph; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/discover.py specWorkflow
+$(for d in "$SKILL_MANAGER_HOME"/skills/test-graph "$SKILL_MANAGER_HOME"/plugins/*/skills/test-graph; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/run.py specWorkflow
 ```
 
 At the end of a desired/current workflow:
@@ -230,18 +332,28 @@ New onboarding documentation should lead with `tla-spec-dev`.
 
 ## Repository Shape
 
-- `scripts/`: scaffold, generation, TLC-case, adapter-runner, history, and workflow-closeout CLIs.
-- `spec_double_compiler/`: importable runtime used by generated case runners.
-- `templates/`: Jinja templates for generated Python/TLA artifacts.
-- `examples/`: checked-in examples and generated artifacts.
-- `references/`: user-facing skill references, including
-  `eval_scorecard.md` (the judged evaluation rubric),
+The root is the PLUGIN. Skill surface lives under `skills/<name>/`; everything
+the plugin is *about* — the model, the tests, the examples, the graphs — stays at
+the root, because it belongs to the repository rather than to any one skill.
+
+- `.claude-plugin/plugin.json`, `skill-manager-plugin.toml`: the plugin markers.
+  Their `name` and `version` must agree; `plugin-repository/scripts/release.sh`
+  is the only thing that should change a version, because it writes both.
+- `integration.toml`: the constituent list — the five nested skill repos, their
+  remotes and branches. Read by `verify.sh`, `refresh.sh` and `propagate.sh`.
+- `skills/spec-double-2/`: the toolchain skill — `SKILL.md`, and the
+  `scripts/`, `spec_double_compiler/`, `templates/`, `references/`, `prompts/`
+  and `skill-scripts/` that used to sit at this repository's root.
+  `references/` includes `eval_scorecard.md` (the judged evaluation rubric),
   `hexagonal_prompting.md` (architecture as a prompt, not a check), and
   `architecture_advice.md` (what the removed static architecture scanners
   established, as rules to follow and as the specification a replacement must
-  meet).
-- `prompts/`: sub-agent prompts shipped as artifacts — the coverage audit, the
-  implementation brief, aspect decomposition, and the hexagonal ask.
+  meet). `prompts/` are the sub-agent prompts shipped as artifacts — the
+  coverage audit, the implementation brief, aspect decomposition, and the
+  hexagonal ask.
+- `skills/{git-epic-workflow,git-issue-workflow,git-issue,discovery,test-graph}/`:
+  the nested workflow skills, each still its own upstream repository.
+- `examples/`: checked-in examples and generated artifacts.
 - `examples/validation/`: eval fixtures, A/B arms, seeded fault catalogues, and
   `scorecards/score_tools.py` (the scorecard schema checker and indexer).
 - `specs/results/scorecards/`: judged scorecards per epic, plus

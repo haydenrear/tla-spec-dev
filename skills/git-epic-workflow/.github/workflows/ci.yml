@@ -1,0 +1,112 @@
+# CI for git-epic-workflow.
+#
+# This repository had NO workflows. It carries real suites over the two
+# validators this skill ships — scripts/validate_epic_plan.py, which every
+# epic's ticket plan is checked against, and scripts/validate_assignment.py,
+# which checks a *rendered* assignment block because that schema is specified
+# here, written by git-issue, and parsed by git-issue-workflow, and three copies
+# of one schema drift silently — and nothing had ever executed either except a
+# human choosing to.
+#
+# Two jobs:
+#
+#   validator  scripts/tests/test_validate_epic_plan.py and
+#              scripts/tests/test_validate_assignment.py. Both are PEP 723
+#              scripts (`uv run --script` reads its own dependency header), so
+#              CI runs them exactly the way a developer does — no separate
+#              requirements file to drift out of agreement with the header. Run
+#              on the declared interpreter floor and on the version the fleet
+#              runs.
+#
+#   units      SKILL.md frontmatter and the unit manifest still parse, and the
+#              shipped Python still compiles and still answers --help.
+#
+#              The frontmatter half is the one with a body count. An unquoted
+#              `: ` in one unit's description made its frontmatter invalid YAML;
+#              the parser dropped the unit from a sync without a word, and the
+#              symptom surfaced as descendant worktrees deadlocking on exit 6
+#              while everyone blamed links (skill-dev-skill#4,
+#              git-issue-workflow#16). This check finds that in seconds.
+#
+#              --help is checked because it is not decoration here: a shipped
+#              entry point that acts on `--help` has already caused damage in
+#              this fleet (git-integration-skill#7 — `propagate.sh --help` ran a
+#              real fan-out), and `--help` exiting 0 without doing anything is
+#              the cheapest observation of the opposite.
+#
+# The interpreter is pinned rather than inherited. Bare `python3` on the
+# machines these scripts are developed on is 3.14 without pytest while only 3.13
+# has it, and an unpinned job would carry that ambiguity into the one place
+# meant to remove it.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validator:
+    name: validators (python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Run the ticket-plan validator suite
+        run: uv run --python ${{ matrix.python-version }} --script scripts/tests/test_validate_epic_plan.py
+
+      - name: Run the assignment validator suite
+        run: uv run --python ${{ matrix.python-version }} --script scripts/tests/test_validate_assignment.py
+
+  units:
+    name: unit manifest and frontmatter
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Validate the unit manifest and SKILL.md frontmatter
+        run: uv run --python 3.13 --script .github/scripts/check_units.py --root .
+
+      - name: Byte-compile the shipped scripts
+        run: uv run --python 3.13 python -m compileall -q scripts
+
+      # `--help` must describe the tool and do nothing else. A validator that
+      # started validating on --help would be the same defect that made
+      # `propagate.sh --help` run a fan-out in a sibling skill.
+      #
+      # validate_assignment.py reads stdin when --assignment is omitted, so
+      # --help acting instead of describing would hang the job rather than fail
+      # it: it is run with stdin closed so that shows up as an error.
+      - name: The shipped entry points answer --help without acting
+        run: |
+          uv run --script scripts/validate_epic_plan.py --help > /tmp/plan-help.txt
+          grep -q -- "--plan\|plan" /tmp/plan-help.txt
+          uv run --script scripts/validate_assignment.py --help < /dev/null > /tmp/assignment-help.txt
+          grep -q -- "--assignment" /tmp/assignment-help.txt

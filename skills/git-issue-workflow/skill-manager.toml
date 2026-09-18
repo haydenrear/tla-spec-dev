@@ -1,0 +1,53 @@
+# git-issue-workflow — skill-manager unit manifest.
+#
+# This is the implementer-side companion to git-issue: it executes the ticket
+# workflow that a git-issue work order names. Its hard skill_references are the
+# skills the workflow actually drives at runtime, so installing this skill pulls
+# them in. Coordinates are git repo ROOTS (github:owner/repo), NOT installed
+# skill names — the resolver clones the repo and detects the unit from its root
+# marker files. The repo name usually differs from the [skill].name it installs:
+#
+#   github:haydenrear/test_graph_skill      -> skill "test-graph"            (validation graphs)
+#   github:haydenrear/tla-spec-dev          -> skill "spec-double-compiler"  (installs the tla-spec-dev CLI)
+#   github:haydenrear/deploy-cdc            -> skill "deploy-helm"           (deployable-surface validation)
+#
+# git-issue itself is a *semantic* import only (see SKILL.md skill-imports): the
+# work order is read via gh, so completing a ticket does not require the git-issue
+# skill to be installed. Do not add it here just because the two are paired.
+#
+# git-integration-skill IS DELIBERATELY NOT HERE ANY MORE.
+#
+# It used to be, because integration provisioning ran that unit's `scripts/wt`.
+# Those scripts now ship HERE — `wt`, new-change.sh, close-change.sh,
+# bootstrap-home.sh, agent-home.sh, lib.sh — because a ticket and a worktree
+# exist for every repo while an integration repository is a specialization, and
+# an agent selects a skill by its description. The arrow reversed with them:
+#
+#   git-integration-repo  ->  git-issue-workflow  ->  git-issue
+#
+# git-integration-repo now hard-references THIS unit. Listing it here as well
+# would close that into a cycle, and it would make every plain-repo ticket pull
+# in onboarding, propagation and fan-out it will never run.
+#
+# What still needs it is one file on the FAN-OUT path only:
+# `$SKILL_MANAGER_HOME/skills/git-integration-repo/scripts/propagate.sh`, named
+# by references/integration-fanout.md and by `wt`'s PROPAGATE key. That path is
+# only ever reached in an integration repo, whose own skill-project.toml
+# declares the unit, so the file is present exactly where it is used. `wt` emits
+# the install command instead of a dead path when it is not.
+skill_references = [
+  "github:haydenrear/deploy-cdc",
+]
+
+# The GitHub CLI, installed via Homebrew. Used to read the issue, open the PR,
+# close the issue, and apply agent tags to constituent PRs. GitLab-hosted
+# integration repos use glab instead (assumed on PATH; the fan-out degrades to
+# printing steps if neither host CLI is present — see git-integration-repo).
+[[cli_dependencies]]
+spec = "brew:gh"
+on_path = "gh"
+
+[skill]
+name = "git-issue-workflow"
+version = "0.4.1"
+description = "Execute a git-issue work order in its selected mode: for marker-assigned epic tickets, branch from the declared origin/epic branch, validate and promote only the assigned spec ticket, then open an evidence-backed PR to the epic branch for external review; for unmarked tickets, preserve the ordinary/integration worktree, full close-out, merge verification, fan-out, and agent-tagged PR receiver workflow. A ticket that declares goals reads its expected effect before implementing, runs the declared local signal as advisory evidence beside the REQUIRED matrix, and reports goal contribution in the PR; a role: evaluation ticket runs the owned goal harness on the integrated epic tip and reports a met/missed/unmeasured verdict without tuning, selective re-runs, or scope widening."

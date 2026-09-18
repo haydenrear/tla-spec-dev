@@ -1019,8 +1019,8 @@ repo:
 # NOT `~/.skill-manager`: the test-graph unit lives in the home THIS checkout is
 # bound to (a project or worktree `.skill-manager`), and only that copy matches
 # the units this checkout was resolved against. See references/runtime_requirements.md.
-"$SKILL_MANAGER_HOME"/skills/test-graph/scripts/discover.py specWorkflow
-"$SKILL_MANAGER_HOME"/skills/test-graph/scripts/run.py specWorkflow
+$(for d in "$SKILL_MANAGER_HOME"/skills/test-graph "$SKILL_MANAGER_HOME"/plugins/*/skills/test-graph; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/discover.py specWorkflow
+$(for d in "$SKILL_MANAGER_HOME"/skills/test-graph "$SKILL_MANAGER_HOME"/plugins/*/skills/test-graph; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/run.py specWorkflow
 ```
 
 ## Generated Artifacts
