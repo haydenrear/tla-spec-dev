@@ -697,6 +697,26 @@ consults it. It exits non-zero on this repository's own record, and that is its
 demonstrated failing input rather than a defect in it — see
 `examples/validation/instruments/instruments.toml`.
 
+## There is a second card, and it is not a version of this one
+
+`references/improvement_card.md` scores the **loop** — what an agent did when
+this substrate blocked it — where this card scores an **artifact**. It is a
+separate card with its own dimensions, its own anchors, its own scoring rules
+and its own reading rules, and `score_tools.py` tells the two apart by a
+`card_kind` field.
+
+**A card that declares no kind is one of these, permanently.** Every card sealed
+before `SI-03` carries no such field, `R-H4` forbids editing one, and so the
+absent declaration has to keep meaning exactly what it always meant.
+
+Why a second card rather than a sixth version of this one: a version bump is the
+claim that *this* bar moved, and every rule in [Reading history](#reading-history)
+is written on that claim. The loop's dimensions are not these dimensions, so
+folding them in here would have made `R-H1` a statement about something it is not
+about. What the two share — the anchor ladder, the citation rule, the
+top-of-scale refusal, blinding, sealing, `R-H1`..`R-H6`, and the rule below — is
+shared *code and prose*, cited from there rather than copied into it.
+
 ## Changing this card
 
 Bump `scorecard_version`, keep the old anchors in the file, and re-score at
