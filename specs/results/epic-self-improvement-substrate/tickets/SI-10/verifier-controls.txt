@@ -1,22 +1,91 @@
 # Verifier controls: known-good and known-bad, per check
 
-Run before trusting any score from this suite, per plugin_evals.md "run the
-verifier against a known-good workspace and a known-bad one". Each line is
-place.sh -> write the artefact -> verify.sh -> is the verdict path present?
+Run before trusting any score from this suite, per plugin_evals.md: "run the
+verifier against a known-good workspace and a known-bad one, under the same
+HOME the hook will have". Each arm is place.sh -> write the artefact ->
+verify.sh -> is the verdict path present?
 
 check                        good  bad   result
-epic_plan.py                 1     0     DISCRIMINATES
+epic_plan.py                 1     0     DISCRIMINATES (three arms, below)
 front_door.py                1     0     DISCRIMINATES
 discovery_map.py             1     0     DISCRIMINATES
-work_order.py (after fix)    1     0     DISCRIMINATES
+work_order.py                1     0     DISCRIMINATES
 testgraph_scaffold.py        1     0     DISCRIMINATES
 
-work_order.py FAILED this control on the first attempt: a known-GOOD fixture
-of 483 characters was refused by a 600-character floor -- a false negative in
-the verifier, caught before it billed a run rather than after. The floor is
-now 200 and the five structural properties decide.
-
-Refusal reasons logged by the known-bad arms (from .eval/verify.log):
+Refusal reasons logged by the known-bad arms (.eval/verify.log):
   epic_plan:   the plan never names epic/shortlink-hardening, the branch the assignment declares
   work_order:  the issue does not carry: [references, goal, instrument, worktree, close-out]
   testgraph:   graphs ['slugHandoff'] refer to none of the node files ['reclaim_after_release.py']
+  front_door:  the plan hand-rolls `git worktree add` with no home step
+
+
+## THREE DEFECTS IN THE VERIFIER, ALL FALSE NEGATIVES
+
+Every one charged the agent for the checker's own opinion. That is the
+direction that matters: a verifier that misses a good run wastes it, and the
+score is indistinguishable from the skill failing.
+
+### 1. work_order.py refused a known-GOOD fixture (caught by the control, $0)
+
+Five well-formed sections, every property present, naming the program, 483
+characters -- refused by a 600-character floor as "too short to be a work
+order". A length proxy that punishes brevity. Floor is 200 now; the five
+structural properties decide.
+
+### 2. A regex grader THREW, and the run was charged for it ($1.34)
+
+`start-from-the-spec-not-the-source` scored 0.67 with
+
+    grader threw: Invalid regular expression: unrecognized character after (?
+
+The pattern opened with `(?s)`. Python accepts that inline flag; the CLI's
+JavaScript engine has never had it. The pattern was valid everywhere it was
+tested and invalid in the only place it runs. `[\s\S]` spans newlines in both.
+
+Two graders carried it. Both fixed, and pinned so it cannot return:
+`test_every_regex_grader_compiles_where_the_grader_actually_runs`.
+
+### 3. epic_plan.py read a QUOTED PROHIBITION as a proposal ($0.71 + $0.82)
+
+The most instructive of the three, and the reason to keep sandboxes.
+
+`epic-mode-is-not-main` scored 0.33 twice. The kept sandbox (`--keep-temp`,
+then chmod the sealed tree) holds the answer in `.eval/verify.log`:
+
+    epic branch named: True; Refs: True; Closes: True; self-merge: True; targets main: False
+    the plan closes the GitHub issue; an epic ticket leaves it open for the owner
+
+The agent had written a 13,403-character plan that got epic mode exactly
+right. The two `Closes` hits were both the agent stating the rule:
+
+    line 231: never `Closes #77`, because the epic keeps the GitHub issue open
+    line 268: do not close #77 or use a `Closes` keyword, do not run `gh pr merge`
+
+The checker read the prohibition as the proposal. This repository already pins
+the same class one layer down -- `test_prose_inside_a_heredoc_is_not_read_as_a_command`
+-- and a plan is prose ABOUT commands, so the whole artefact is that hazard.
+
+A forbidden move now counts only on a line that is not negating it.
+
+FIRST HYPOTHESIS WAS WRONG, AND IS RECORDED AS WRONG. The first 0.33 was
+diagnosed from the summary line as the `Refs #` clause grading something the
+prompt never asks for. That clause was made advisory -- a correct change on its
+own terms -- and the case scored 0.33 again, which is what sent me to the kept
+sandbox. The report JSON carries prompts, graders and scores but NOT the
+agent's response, so no diagnosis from it is possible; only the sandbox has it.
+
+### The control that proves the repair, three arms
+
+  arm                   chars  verdict  reason logged
+  good                  577    1        epic mode ok: epic branch as base, not main, no Closes, stops at PR open
+  bad                   390    0        the plan never names epic/shortlink-hardening
+  quoted-prohibition    471    1        epic mode ok  <- the exact shape that scored 0.33 twice
+
+The first attempt at this control was VACUOUS and said so: the good and bad
+fixtures were 191 and 168 characters, under the 200-character floor, so both
+arms were refused before reaching any clause. A control that cannot fail for
+the reason it is testing is a claim, not a control. The fixtures above clear
+the floor and exercise the logic.
+
+Length floors, audited together afterwards so a fourth one is not found later:
+discovery_map 400, front_door 200, epic_plan 200, work_order 200.

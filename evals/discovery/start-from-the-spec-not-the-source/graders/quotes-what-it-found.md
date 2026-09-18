@@ -1,6 +1,6 @@
 ---
 type: regex
-pattern: '(?s)`[A-Z][A-Za-z0-9_]*`|\b(Internal|External|Core)\.tla\b|specs/program_model'
+pattern: '`[A-Z][A-Za-z0-9_]*`|\b(Internal|External|Core)\.tla\b|specs/program_model'
 weight: 1
 ---
 

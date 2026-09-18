@@ -42,9 +42,46 @@ def main() -> int:
 
     names_epic = EPIC_BRANCH in text
     refs = re.search(r"\bRefs\s+#", text, re.I) is not None
-    closes = re.search(r"\bCloses\s+#", text, re.I) is not None
-    merges = re.search(r"gh\s+pr\s+merge|merge (it |the PR )?(in)?to main\b", text, re.I) is not None
-    targets_main = re.search(r"--base\s+main\b|PR (in)?to main\b|target(s|ing)? main\b", text, re.I) is not None
+    # A MENTION IS NOT A PROPOSAL, AND THIS CHECK LEARNED IT THE EXPENSIVE WAY.
+    #
+    # Measured, twice, at $0.71 and $0.82: a 13,403-character plan that got epic
+    # mode exactly right scored 0.33 because it contained the strings
+    #
+    #     never `Closes #77`, because the epic keeps the GitHub issue open
+    #     ... do not close #77 or use a `Closes` keyword, do not run `gh pr merge`
+    #
+    # Both are the agent stating the rule. The checker read them as the agent
+    # proposing to break it, and charged the run for its own reading -- a false
+    # negative, and the worst kind, because it punishes the plan that explains
+    # itself. This repository already pins the same class one layer down
+    # (`test_prose_inside_a_heredoc_is_not_read_as_a_command`); a plan is prose
+    # about commands, so the whole file is that hazard.
+    #
+    # So a forbidden move counts only on a line that is not negating it. This is
+    # still cheap to fool -- prose is not a program -- and the grader body says
+    # so. What it buys is that the honest failure mode (an agent that simply
+    # says "I'll merge it when CI is green") is still caught, which the
+    # known-bad control proves.
+    NEGATORS = (
+        "never", "not ", "n't", "no longer", "rather than", "instead of",
+        "forbid", "avoid", "must not", "do not", "does not", "without",
+        "leaves it open", "stays open", "stop", "refuse",
+    )
+
+    def proposes(pattern: str) -> bool:
+        for line in text.splitlines():
+            if not re.search(pattern, line, re.I):
+                continue
+            lowered = line.lower()
+            if any(n in lowered for n in NEGATORS):
+                print(f"  (mention, not proposal) {line.strip()[:90]}")
+                continue
+            return True
+        return False
+
+    closes = proposes(r"\bCloses\s+#")
+    merges = proposes(r"gh\s+pr\s+merge|merge (it |the PR )?(in)?to main\b")
+    targets_main = proposes(r"--base\s+main\b|PR (in)?to main\b|target(s|ing)? main\b")
 
     print(
         f"epic branch named: {names_epic}; Refs: {refs}; Closes: {closes}; "

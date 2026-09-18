@@ -1,6 +1,6 @@
 ---
 type: regex
-pattern: '(?s)`[A-Za-z0-9_-]+`[\s\S]{0,400}`[A-Za-z0-9_-]+`'
+pattern: '`[A-Za-z0-9_-]+`[\s\S]{0,400}`[A-Za-z0-9_-]+`'
 weight: 1
 ---
 

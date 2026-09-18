@@ -1047,6 +1047,44 @@ def test_no_grader_reads_a_path_the_agent_can_simply_write(tmp_path) -> None:
         )
 
 
+def test_every_regex_grader_compiles_where_the_grader_actually_runs() -> None:
+    """A `regex` grader is evaluated by the CLI's own JavaScript engine.
+
+    Measured, at $1.34: `start-from-the-spec-not-the-source` scored 0.67 with
+
+        grader threw: Invalid regular expression: unrecognized character after (?
+
+    because the pattern opened with `(?s)`. Python accepts that inline flag;
+    JavaScript has never had it. So the pattern was valid everywhere it was
+    tested and invalid in the only place it runs.
+
+    A grader that THROWS is worse than one that fails: it scores 0 against the
+    agent while the fault is entirely the suite's, which is the direction this
+    file exists to make impossible. `[\\s\\S]` spans newlines in both engines
+    and is what to use instead.
+    """
+    import re
+
+    unsupported = ("(?s)", "(?i)", "(?m)", "(?x)", "(?P<", "(?<=", "(?<!")
+    checked = 0
+    for grader in sorted(g for c in EVAL_CASES for g in (c / "graders").glob("*.md")):
+        text = grader.read_text(encoding="utf-8")
+        if "type: regex" not in text:
+            continue
+        pattern = re.search(r"^pattern:\s*'(.*)'\s*$", text, re.M)
+        assert pattern, f"{grader.name}: a regex grader with no single-quoted pattern"
+        body = pattern.group(1)
+        checked += 1
+        for token in unsupported:
+            assert token not in body, (
+                f"{grader.name} uses {token}, which Python accepts and the CLI's "
+                "JavaScript engine rejects at grading time -- the grader throws, "
+                "and the run scores 0 for a reason that is not the agent's"
+            )
+        re.compile(body)
+    assert checked, "no regex graders were checked, so this pin asserts nothing"
+
+
 # --------------------------------------------------------------------------
 # Two cases, one plugin, and the CLI the run actually executes.
 # --------------------------------------------------------------------------
