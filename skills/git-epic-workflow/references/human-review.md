@@ -63,6 +63,35 @@ git fetch origin && git log --oneline -1 origin/epic/<slug>
   its agent to reconcile and re-close. Do not resolve it on the epic branch:
   the resolution would be a semantic change with no ticket, no evidence, and no
   history entry.
+
+  **A *mechanical* conflict is still that agent's.** The distinction is about
+  cost, not authority. A conflict is mechanical when both sides are pure
+  tail-appends to one append-only file and neither side deleted or changed a
+  line against the merge base — the shape a shared findings backlog produces
+  when several tickets in a wave each file their own rows. Everything else is
+  semantic, and the rule above is unchanged for those.
+
+  Naming the mechanical case buys two things, and neither is a waiver:
+
+  1. **The resolution is a procedure, not a judgement**, so the round-trip is
+     one command chain rather than a re-read. Prove both sides are tail-appends
+     (`head -n <base-lines>` byte-identical on each side), re-derive your own
+     block from your pre-reconcile commit, produce literally `tip ++ my_block`,
+     then verify `diff <(git show <parent>:<file>) <file> | grep -c '^<'`
+     returns **0 against both parents** — a row count alone cannot catch a
+     swap. Measured in one wave of this skill's own epic: four reconciles, one
+     ticket twice, every one of them this.
+  2. **It is the case that should not have happened**, so it is evidence about
+     the plan rather than work for the agent. Record it in `merges.md` and fix
+     it in the schedule with `deferment_policy.per_ticket_backlog`
+     (`references/deferment.md`), which makes the merge a no-op instead of a
+     resolution.
+
+  **The epic agent still does not resolve it either way.** Proving a conflict
+  is mechanical means knowing which rows are that ticket's own, and the
+  authority for that is the ticket's pre-reconcile commit — which the ticket
+  has and the epic branch does not. Resolving from `found_by` fields instead is
+  a guess at the one moment a guess is invisible.
 - **Do not delete a ticket branch whose worktree still stands.** The worktree
   holds a Skill Manager home nobody has closed out yet (finalize.md §1b), and
   its author may still need the branch to reconcile.
@@ -248,24 +277,76 @@ would settle it. Label a row with no reproduction as a suspicion in the row
 itself. A hunch is allowed here and is never filed to the backlog —
 deferment.md's rule stands: an entry with no reproduction is not a finding.
 
-### 3.4 Architectural changes worth making, including to the epic's own machinery
+### 3.4 What the epic agent applied, and what it still owes
 
-Keep two targets apart, because they ship through different doors:
+This section used to be a recommendation list that "re-entered as a ticket".
+For the machinery half that was a way of writing improvements down and never
+making them: the skills lived in a gitignored Skill Manager home, so the
+recommendation was the only thing that could survive a wave, and it routinely
+was the only thing that did.
 
-- **The repository's architecture** — the program the epic is changing. It ships
-  as a new ticket in this epic (a plan amendment) or an issue on the default
-  branch. Nothing here is implemented during a review.
+Two targets still ship through different doors, but the doors have changed:
+
+- **The repository's architecture** — the program the epic is changing. It
+  still ships as a new ticket in this epic (a plan amendment) or an issue on
+  the default branch. Nothing here is implemented during a review, and that
+  rule is unchanged.
 - **The machinery that ran the epic** — the skills, scripts, validators, plan
-  schema, harnesses, and instruments. This is the self-improvement half, and it
-  has a hazard the first half does not: that machinery lives in a Skill Manager
-  home, which is gitignored, so an improvement made during a ticket **is in no
-  PR, no branch, and no epic**. It survives only through
-  `skill-manager unit publish` — or `home sync --merge` to reach one tier up —
-  and it dies with the worktree otherwise (SKILL.md rule 10, finalize.md §1b).
+  schema, harnesses, and instruments. **Where those files are tracked in the
+  repository the epic is running in, the epic agent applies the change here,
+  in the epic worktree, and says so below.** Where they are not — a unit
+  outside the bundle, `skt`, another repository — the old route is still the
+  only one: `skill-manager unit publish`, or `home sync --merge` to reach one
+  tier up, and it dies with the worktree otherwise (SKILL.md rule 10,
+  finalize.md §1b).
 
-That hazard is why this section belongs at a wave boundary rather than at
+That split is why this section belongs at a wave boundary rather than at
 finalization: the ticket worktrees are still standing and their authors are
 still reachable.
+
+#### The five blocks
+
+**The epic agent is the one writer of the loop.** Ticket agents report
+upward — in the PR body, the close-out, and `## Skill changes proposed` — and
+the epic agent places what they reported. That is what keeps naming stable
+without a taxonomy, a merge step, or a reconciliation pass: there is only ever
+one party naming things.
+
+So this section carries five named blocks. Write every one of them, including
+when the answer is `none` — `none` is a claim, and an absent block is not one.
+`scripts/validate_epic_plan.py` warns, once per wave, when a committed artifact
+does not show one of them, and **exits 0**: the block schema is a report, not a
+gate, so there is nothing to force past.
+
+| Block | What it records | Absent means |
+| --- | --- | --- |
+| **Model delta applied** | every edit the epic agent made this wave to `specs/desired_program_model`, `specs/current` and `specs/program_model`, and each `UNMODELED/<bin>` that reached `MODELABLE` and the ticket scheduled for it | nobody can tell a wave with no model delta from a wave whose delta was never applied |
+| **Anchors placed** | the `<Module>.<Action>` or `UNMODELED/<bin>` anchor placed for each finding this wave produced, and the count they moved | findings were filed and never anchored, which the matrix reads as a model that is thin everywhere |
+| **Improvement-card row** | this wave's row on the improvement card — the card scores the loop, not the artifact | the epic's own delta is invisible across epics, which is the thing the card exists to make visible |
+| **Skill changes applied or declined** | one row per `## Skill changes proposed` row in this wave's ticket PRs: unit, what was hit, and `applied(<commit>)` or `declined(<reason>)` | a proposal with no disposition is a finding that was routed rather than consumed |
+| **Model corrections owed by merged tickets** | every ticket that corrected the epic-owned `specs/tickets/<id>/desired` so its ticket could run, and the matching change to `specs/current`, `program_model` and `desired_program_model` the epic agent now owes | see below |
+
+**On the fifth block.** It exists because the debt is real and nothing tracked
+it. Twice in one epic a ticket agent corrected the epic-owned workspace so its
+ticket could run — which `model_ownership_rule` explicitly permits as a *small*
+correction — obliging the epic agent to make the matching change to the project
+model. That change can only be committed *after* the ticket merges, so between
+the two there is a window where the model and the tree disagree, and it is
+observable: `BuildSkillCli` reported `accepted: false` for exactly that
+interval. The rule works. What was missing was a ledger, and this is it.
+
+A row is owed until the correction is committed. Carry an unpaid row forward
+into the next wave's artifact rather than dropping it, and do not close the
+epic with one outstanding — finalize.md §2 will not agree that `specs/current`
+equals the target while one is.
+
+**Applying is not reviewing.** The prohibition in §6 stands: the epic agent
+does not hand-fix on the epic branch what the review surfaced in the
+*repository's* code. What it applies here is the substrate — the skill files,
+the validators, the plan schema — which has no ticket to re-enter through and
+is the half this whole section exists to stop losing.
+
+#### Then the recommendations that remain
 
 Look for evidence the wave produced, not for wishes:
 

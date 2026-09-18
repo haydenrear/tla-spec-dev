@@ -44,7 +44,40 @@ deferment_policy:
   blocking: escalate     # escalate | ask   (blocking findings only)
   budget: 5              # max deferred findings per ticket before the agent stops
   backlog: "specs/desired_program_model/deferred_findings.yaml"
+  per_ticket_backlog: "specs/results/deferred/{ticket}.yaml"   # see below
 ```
+
+### `per_ticket_backlog`: partition the file, or schedule the collisions
+
+`backlog` alone is one mutable file that every ticket in a wave appends to, and
+that is **a shared mutable namespace with no per-agent partition, where
+collision is certain rather than careless.** Measured: four tickets in one wave
+appending rows to the end of one 45-row cumulative ledger from the same base
+produced four reconciles, one ticket twice. Every branch showed zero deleted
+lines — the instruction to re-fetch worked — and not one of them could avoid
+the conflict.
+
+`conflict_keys` cannot express this, which is why it keeps happening past a
+validated schedule: each ticket legitimately owns only *its own rows*, and no
+lane name partitions the inside of a file.
+
+Set `per_ticket_backlog` to a path template containing `{ticket}`. Each agent
+appends **only** to its own rendered path, the cumulative `backlog` stays the
+canonical thing readers and sealed `filed_as` references point into, and the
+epic agent concatenates the wave's per-ticket files onto it at wave close —
+which is an append nobody contends, not a resolution.
+
+**Not a union merge driver**, and the reason is the one that matters: a union
+driver silently produces a valid-looking file when it is wrong. That is the
+same shape as the defect it would be papering over — a check whose negative
+result is indistinguishable from not having looked — so it trades four visible
+reconciles for one invisible corruption. A per-ticket file makes the merge a
+no-op instead; the judgement is recorded here because it was argued from a
+wave that paid for both halves.
+
+`validate_epic_plan.py` warns when any wave carries more than one ticket and no
+`per_ticket_backlog` is set, and exits 0. A single-ticket-per-wave epic does
+not need one.
 
 Modes:
 

@@ -70,6 +70,33 @@ GOAL_RETIREMENT_FIELDS = frozenset(
 
 GATES_ENV = "SKILL_GATES"
 
+# The blocks a wave-close review artifact carries once the epic agent is the
+# one writer of the loop (`references/human-review.md` §3.4). Each entry is a
+# label and the substrings that count as having written it, matched
+# case-insensitively so a reworded heading still resolves.
+#
+# EVERY diagnostic these produce is appended to `warnings`, never to `errors`.
+# That is not a convention, it is the mechanism: `validate_plan` splits
+# `errors` into blocking and advisory and `--strict` promotes the advisory
+# half, while `warnings` passes through both paths untouched. So there is no
+# flag, and no combination of flags, that turns a missing block into a refusal
+# — which is what `GOAL-no-new-gates` asks for, and the predecessor epic
+# measured that a gate here reads to an agent as a stop.
+WAVE_BLOCKS: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("model delta applied", ("model delta",)),
+    ("anchors placed", ("anchors placed", "anchor placed")),
+    ("improvement-card row", ("improvement-card row", "improvement card row")),
+    (
+        "skill changes applied or declined",
+        ("skill changes applied", "skill changes declined"),
+    ),
+    (
+        "model corrections owed by merged tickets",
+        ("model corrections owed", "corrections owed by merged"),
+    ),
+)
+WAVE_DIR = re.compile(r"\Awave-(\d+)\Z")
+
 
 class Blocking(str):
     """A diagnostic that fails the plan by default.
@@ -1263,12 +1290,138 @@ def _validate_review_policy(
         )
 
 
-def validate_plan(plan: object, strict: bool = False) -> PlanReport:
+def _validate_wave_artifacts(
+    plan: object, repo_root: Path | None, warnings: list[str]
+) -> None:
+    """Warn — never error — when a committed wave artifact lacks a block.
+
+    The epic agent is the one writer of the loop, so the wave-close artifact is
+    where it shows what it applied: the model delta, the anchors it placed, the
+    improvement-card row, the disposition of every proposed skill change, and
+    the model corrections merged tickets still owe it. A block that is absent
+    is a step no reader can tell apart from a step that was skipped, which is
+    the same reason `review_policy` is recorded at all.
+
+    Nothing here refuses, under any flag — see `WAVE_BLOCKS`. Waves that
+    predate the block schema warn exactly as they should: they are the
+    baseline shape, and the warning is what measures the change.
+    """
+    if not isinstance(plan, dict) or repo_root is None:
+        return
+    policy = plan.get("review_policy")
+    if not isinstance(policy, dict):
+        return
+    artifact_root = policy.get("artifact_root")
+    if not isinstance(artifact_root, str) or not artifact_root.strip():
+        return
+    root = repo_root / artifact_root.strip()
+    if not root.is_dir():
+        # Before the first wave closes there is nothing to read, and a plan
+        # validated outside its own repository is not this check's business.
+        # Saying nothing is correct in both cases.
+        return
+
+    waves = []
+    for path in root.iterdir():
+        match = WAVE_DIR.fullmatch(path.name)
+        if path.is_dir() and match:
+            waves.append((int(match.group(1)), path))
+    for _, wave in sorted(waves):
+        review = wave / "review.md"
+        if not review.is_file():
+            warnings.append(
+                f"{wave.name}: no review.md; at finalization a review nobody "
+                "produced cannot be told apart from one nobody chose to skip "
+                "(references/human-review.md §3)"
+            )
+            continue
+        try:
+            text = review.read_text(encoding="utf-8").lower()
+        except OSError as error:
+            warnings.append(f"{wave.name}: cannot read review.md: {error}")
+            continue
+        missing = [
+            label
+            for label, needles in WAVE_BLOCKS
+            if not any(needle in text for needle in needles)
+        ]
+        if missing:
+            warnings.append(
+                f"{wave.name}: review artifact does not show {missing}; the epic "
+                "agent writes these at wave close (references/human-review.md "
+                "§3.4) -- advisory, nothing here refuses"
+            )
+
+
+def _validate_findings_partition(
+    plan: object, tickets: dict[str, Ticket], warnings: list[str]
+) -> None:
+    """Warn when a wave shares one mutable backlog with no per-agent partition.
+
+    Measured three times in one wave of this skill's own epic: four tickets
+    appending to the end of one cumulative ledger produced four reconciles, one
+    ticket twice. `conflict_keys` cannot express it, because each ticket
+    legitimately owns only *its own rows* and none of them wrote a line another
+    one wrote.
+
+    The remedy on the record is a per-ticket findings file merged at wave
+    close, and deliberately **not** a union merge driver: a union driver
+    silently produces a valid-looking file when it is wrong, which is the same
+    shape as the defect it would be papering over.
+    """
+    if not isinstance(plan, dict):
+        return
+    policy = plan.get("deferment_policy")
+    if not isinstance(policy, dict):
+        return
+    partition = policy.get("per_ticket_backlog")
+    if isinstance(partition, str) and partition.strip():
+        return
+
+    by_wave: dict[int, list[str]] = defaultdict(list)
+    for ticket in tickets.values():
+        if not ticket.retired and ticket.wave is not None:
+            by_wave[ticket.wave].append(ticket.id)
+    shared = sorted(wave for wave, ids in by_wave.items() if len(ids) > 1)
+    if not shared:
+        return
+    warnings.append(
+        f"waves {shared} run more than one ticket against the single backlog "
+        f"{policy.get('backlog')!r}; collision is then certain rather than "
+        "careless. Add deferment_policy.per_ticket_backlog so each ticket "
+        "appends to its own file and the epic agent merges them at wave close "
+        "(references/deferment.md) -- advisory, nothing here refuses"
+    )
+
+
+def _default_repo_root(plan_path: Path) -> Path | None:
+    """The repository the plan describes, inferred from the canonical layout.
+
+    This skill puts the plan at `specs/desired_program_model/ticket_plan.yaml`,
+    so two levels above its directory is the repository root. Anything else
+    falls back to the working directory, and a wrong guess costs nothing: the
+    checks above find no directory and say nothing rather than guessing louder.
+    """
+    try:
+        resolved = plan_path.resolve()
+    except OSError:
+        return None
+    parent = resolved.parent
+    if parent.name == "desired_program_model" and parent.parent.name == "specs":
+        return parent.parent.parent
+    return Path.cwd()
+
+
+def validate_plan(
+    plan: object, strict: bool = False, repo_root: Path | None = None
+) -> PlanReport:
     """Return deterministic diagnostics; no errors means the plan is usable.
 
     By default only `Blocking` diagnostics are errors and everything else is a
     warning, so a shape or policy slip never stops an epic. `strict` restores
-    the full rule set as errors.
+    the full rule set as errors — except the wave-artifact and findings-
+    partition checks, which are appended to `warnings` and are therefore
+    advisory under every flag.
     """
     errors: list[str] = []
     warnings: list[str] = []
@@ -1285,6 +1438,8 @@ def validate_plan(plan: object, strict: bool = False) -> PlanReport:
         _validate_conflicts(tickets, errors)
         _validate_promotion_lane(tickets, errors)
         _validate_goal_alignment(goals, tickets, retirements, errors, warnings)
+        _validate_findings_partition(plan, tickets, warnings)
+    _validate_wave_artifacts(plan, repo_root, warnings)
     if strict:
         return PlanReport(errors=errors, warnings=warnings)
     blocking = [error for error in errors if isinstance(error, Blocking)]
@@ -1317,6 +1472,15 @@ def _parser() -> argparse.ArgumentParser:
         "--verbose",
         action="store_true",
         help="list every warning instead of a short summary",
+    )
+    parser.add_argument(
+        "--repo-root",
+        type=Path,
+        default=None,
+        help=(
+            "repository the plan describes, for the wave-artifact block check "
+            "(default: inferred from the plan path, else the working directory)"
+        ),
     )
     return parser
 
@@ -1363,7 +1527,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 2
 
     force = gates_forced(args.force)
-    report = validate_plan(plan, strict=args.strict)
+    repo_root = args.repo_root or _default_repo_root(args.plan)
+    report = validate_plan(plan, strict=args.strict, repo_root=repo_root)
     print_diagnostics(args.plan, report, force, args.verbose)
     if report.errors and not force:
         return 1

@@ -54,9 +54,13 @@ DEFERMENT_MODES = ("batch", "ask", "inline")
 DEFERMENT_BLOCKING = ("escalate", "ask")
 GOAL_KINDS = ("perf", "eval", "integration", "quality")
 CONTRIBUTIONS = ("direct", "enabling", "guard")
+GUARD = "guard"
 TICKET_ROLES = ("implementation", "evaluation")
 EVALUATION = "evaluation"
 NOT_APPLICABLE = "N/A"
+# `--ticket SI-07`, `--ticket=SI-07`. Used to check that a command the
+# assignment tells an agent to run names a workspace that exists.
+TICKET_FLAG = re.compile(r"--ticket[=\s]+(\S+)")
 
 EPIC_STRINGS = ("id", "workflow", "branch", "base_sha", "plan_commit", "default_branch")
 TICKET_STRINGS = ("spec_id", "feature_branch", "worktree", "pr_base")
@@ -397,11 +401,25 @@ def _validate_goals(
 
         contribution = goal.get("contribution", MISSING)
         if role == EVALUATION:
-            if contribution is not MISSING:
+            # SIS-KICKOFF-F-01. Three places specified this field and only this
+            # one disagreed. `references/epic-ticket.md` and `git-issue`'s
+            # `references/epic-assignment.md` both SHOW `contribution: "guard"`
+            # on the evaluation-ticket variant, and the canonical plan schema
+            # requires a contribution on every goal relation — so `guard` is
+            # authoritative and the warning that used to fire on it was the
+            # drift. It fired once per owned goal: seven times for a correctly
+            # rendered SI-08.
+            if contribution is MISSING:
                 warnings.append(
-                    f"{path}.contribution is set on an evaluation ticket; an "
-                    "evaluation ticket decides goals rather than contributing to "
-                    "them (see the evaluation-ticket variant)"
+                    f"{path}.contribution is absent; an evaluation ticket copies "
+                    f"{GUARD!r} from its canonical plan entry, which requires the "
+                    "field on every goal relation"
+                )
+            elif contribution != GUARD:
+                warnings.append(
+                    f"{path}.contribution is {contribution!r} on an evaluation "
+                    "ticket; it decides this goal rather than contributing to it, "
+                    f"so the spelling is {GUARD!r}"
                 )
         elif contribution not in CONTRIBUTIONS:
             errors.append(f"{path}.contribution must be one of {list(CONTRIBUTIONS)}")
@@ -514,16 +532,74 @@ def _validate_deferment(assignment: dict[str, Any], errors: list[str]) -> None:
     _require_str(deferment, "deferment", "backlog", errors)
 
 
+def _validate_ticket_workspace(
+    assignment: dict[str, Any],
+    ticket: dict[str, Any] | None,
+    repo_root: Path | None,
+    warnings: list[str],
+) -> None:
+    """Warn when a command names `--ticket <id>` and no workspace exists.
+
+    SIS-KICKOFF-F-03. Ten assignments told their agents to run
+    `--ticket <id>` against a ticket-local workspace only the epic agent can
+    create, and it had not created them. The agent discovers that by running
+    the command and getting nothing useful back.
+
+    `planning_rules.model_ownership_rule` already *promises* that the epic
+    agent "scaffolds this ticket's desired and current before dispatch". This
+    is that promise made checkable, one line, before the issue URL is handed
+    out — which is the last moment it is cheap.
+
+    It runs only where `specs/tickets` exists, so validating a saved body from
+    outside the repository stays silent rather than warning about a tree it
+    cannot see. Nothing here refuses; it is appended to `warnings`, which
+    `--strict` does not promote.
+    """
+    if repo_root is None or ticket is None:
+        return
+    workspaces = repo_root / "specs" / "tickets"
+    if not workspaces.is_dir():
+        return
+    matrix = assignment.get("validation")
+    if not isinstance(matrix, dict):
+        return
+
+    raw_spec_id = ticket.get("spec_id")
+    spec_id = raw_spec_id.strip() if isinstance(raw_spec_id, str) else None
+
+    named: set[str] = set()
+    for value in matrix.values():
+        if isinstance(value, str):
+            for match in TICKET_FLAG.finditer(value):
+                named.add(match.group(1).strip().strip("\"'`<>"))
+
+    for candidate in sorted(named):
+        if not STABLE_ID.fullmatch(candidate):
+            continue
+        if (workspaces / candidate).is_dir():
+            continue
+        owner = "this ticket's" if candidate == spec_id else f"ticket {candidate}'s"
+        warnings.append(
+            f"validation names --ticket {candidate}, but {owner} workspace "
+            f"specs/tickets/{candidate} does not exist on this branch; the epic "
+            "agent scaffolds it before dispatch "
+            "(planning_rules.model_ownership_rule)"
+        )
+
+
 def validate_assignment(
     assignment: object,
     expect_ticket: str | None = None,
     expect_epic_branch: str | None = None,
     strict: bool = False,
+    repo_root: Path | None = None,
 ) -> AssignmentReport:
     """Return deterministic diagnostics; no errors means the block is usable.
 
     By default only `Blocking` diagnostics are errors and the rest are
-    warnings. `strict` restores every rule as an error.
+    warnings. `strict` restores every rule as an error — except the
+    ticket-workspace check, which is appended to `warnings` and is therefore
+    advisory under every flag.
     """
     errors: list[str] = []
     warnings: list[str] = []
@@ -543,6 +619,7 @@ def validate_assignment(
     _validate_validation(assignment, errors)
     _validate_review(assignment, errors)
     _validate_deferment(assignment, errors)
+    _validate_ticket_workspace(assignment, ticket, repo_root, warnings)
 
     if expect_ticket is not None and ticket is not None:
         spec_id = ticket.get("spec_id")
@@ -602,6 +679,15 @@ def _parser() -> argparse.ArgumentParser:
         action="store_true",
         help="list every warning instead of a short summary",
     )
+    parser.add_argument(
+        "--repo-root",
+        type=Path,
+        default=None,
+        help=(
+            "repository holding specs/tickets, so a `--ticket <id>` the epic "
+            "agent has not scaffolded is reported (default: working directory)"
+        ),
+    )
     return parser
 
 
@@ -660,6 +746,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         expect_ticket=args.expect_ticket,
         expect_epic_branch=args.expect_epic_branch,
         strict=args.strict,
+        repo_root=args.repo_root or Path.cwd(),
     )
     print_diagnostics(source, report, force, args.verbose)
     if report.errors and not force:

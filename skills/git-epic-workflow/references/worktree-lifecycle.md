@@ -108,6 +108,29 @@ Do this at wave close, immediately after merging the wave's ticket PRs and
 before the review artifact is written — the reconciliation result is one of the
 things the review reports.
 
+**How much of this still applies depends on where the skill's files are, and
+the two cases are not close.** This machinery exists because a skill edit lived
+in a gitignored home and reached nothing by being merged. Once a skill's files
+are *tracked in the repository the epic is running in*, that is no longer true
+of it:
+
+| The unit | Where an edit to it lives | What §3 is for |
+| --- | --- | --- |
+| **Tracked in this repository** (a nested skill, a plugin constituent) | the ticket branch, then the epic branch, like any other file | **largely moot.** The edit arrives through the PR; it is reviewed as a diff; `conflict_keys` cover it. The wave artifact records it as an applied skill change (`human-review.md` §3.4), not as a home reconciliation |
+| **Outside the repository** (`skt`, an unbundled skill, anything installed from its own coordinate) | only `<worktree>/.skill-manager`, gitignored | **fully load-bearing.** Nothing else moves it, and `git worktree remove` deletes it without asking |
+
+So run the gate on every worktree regardless — it is read-only and cheap, and
+the question "did this agent change a unit I cannot see" is not answerable by
+inspecting the diff. But read a clean verdict on a bundle-only wave as the
+expected result rather than as a surprise, and spend the attention on the
+second row, where a blocker is still an improvement somebody made and nobody
+published.
+
+A useful consequence: a ticket that proposes a change to a skill whose files
+are in the repository should **apply it in the PR** rather than describe it in
+a home nobody will read (`references/epic-ticket.md`, `## Skill changes
+proposed`). That is the cheap door, and it only exists for the first row.
+
 `close-out` writes nothing, so audit every worktree in any order, concurrently
 if you like:
 
