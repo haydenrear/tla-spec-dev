@@ -3376,3 +3376,71 @@ findings:
     disposition_note: >-
       SI-08 decides GOAL-one-unit and should use the executable check rather
       than the grep count.
+  - id: SI-07-DF-01
+    found_by: SI-07
+    found_at_commit: 21a71448
+    schedule_revision: 1
+    severity: major
+    surface:
+      production:
+      - the agent scratchpad directory shared by every ticket agent in a wave
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: 'The per-session agent scratchpad is SHARED across the epic''s ticket agents, and several of
+      them write the same generic basenames into it -- pr-body.md, base.yaml, tip.yaml, mine.yaml, my-block.yaml.
+      Measured in wave 3: SI-11''s pr-body.md overwrote SI-06''s at 08:32, and it was caught only because
+      SI-06 happened to grep the file before using it. One `gh pr edit --body-file` would have silently
+      replaced SI-06''s PR body with SI-11''s. Wave 4 reproduced the precondition: this ticket''s scratchpad
+      opened already holding 40+ files from waves 1-3, including pr-body.md, pr-body-v2.md and si11-pr-body-v3.md.
+      This is the third instance of the shape wave 3 named -- a shared mutable namespace with no per-agent
+      partition, where collision is certain rather than careless -- and the only one of the three nobody
+      filed. SI-06 deliberately did not file it mid-wave because filing would have handed the epic agent
+      a 54th-row backlog conflict during the merge, which is itself an instance of the same shape.'
+    reproduction: 'Start two ticket agents in one wave of the same repository and have each write <scratchpad>/pr-body.md.
+      The second write wins with no error, no prompt and no trace. Observed directly on 2026-09-18: `ls
+      <scratchpad>` from SI-07 lists pr-body.md (08:32), si06-pr-body-reconciled.md, si11-pr-body-v3.md
+      and base/tip/mine/my-block .yaml pairs from three prior tickets.'
+    evidence:
+    - specs/results/epic-self-improvement-substrate/review/wave-3/review.md (section 4)
+    why_out_of_scope: The scratchpad is allocated by the agent harness, not by any file in this repository,
+      and SI-07's conflict key is skills/git-epic-workflow/** alone. No PR to this repository can repartition
+      it.
+    suggested_fix: Give each ticket agent a scratchpad subdirectory named for its ticket, or have the assignment
+      instruct agents to prefix every scratchpad basename with the ticket id. The second is a one-line change
+      to the assignment template and needs no harness change.
+    blast_radius: Every epic that runs more than one ticket agent concurrently; worst case is a PR body
+      or an evidence file silently replaced.
+    disposition: pending
+    disposition_ticket: null
+  - id: SI-07-DF-02
+    found_by: SI-07
+    found_at_commit: 21a71448
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production:
+      - skills/git-epic-workflow/scripts/validate_epic_plan.py
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: 'The wave-artifact block check SI-07 adds can only report on artifacts that EXIST. A wave that
+      merged and produced no review.md at all is invisible to it: the validator enumerates wave-<n> directories
+      under review_policy.artifact_root, so a wave with no directory produces no diagnostic. That is the
+      same silent-vacuity shape the epic has now found repeatedly -- a negative result indistinguishable
+      from not having looked -- and it is shipped deliberately, because the validator reads the plan and
+      the filesystem and has no way to know which waves have actually merged.'
+    reproduction: Delete specs/results/epic-<slug>/review/wave-2/ entirely and re-run `uv run --script skills/git-epic-workflow/scripts/validate_epic_plan.py
+      specs/desired_program_model/ticket_plan.yaml --verbose`. Wave 2 is not mentioned. Deleting only wave-2/review.md
+      while keeping the directory IS reported.
+    evidence:
+    - specs/results/epic-self-improvement-substrate/tickets/SI-07/local-signal-GOAL-epic-owns-the-model.txt
+    why_out_of_scope: Closing it needs the set of merged waves, which lives in git history and the ticket
+      statuses rather than in the plan -- deriving it is a new capability, not a fix to this check. SI-07's
+      slice is the block schema itself.
+    suggested_fix: Have the validator compare wave-<n> directories against the distinct waves of tickets
+      whose plan status is delivered, and warn for a delivered wave with no artifact directory. Still advisory.
+    blast_radius: validate_epic_plan.py only; a wave review nobody produced stays undetected until finalize.md
+      section 2b reads the artifacts.
+    disposition: pending
+    disposition_ticket: null

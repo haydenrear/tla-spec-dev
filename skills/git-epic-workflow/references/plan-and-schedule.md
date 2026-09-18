@@ -306,6 +306,15 @@ If the epic genuinely needs a backlog scoped to itself, give it a **new path**
 and record that path in `ticket_plan.yaml`; do not repoint an existing
 cumulative ledger at a fresh file.
 
+**Partition the backlog when a wave runs more than one ticket.** A single
+append-only file that every agent in a wave appends to makes collision certain,
+not careless — four tickets in one wave of this skill's own epic cost four
+reconciles, one of them twice, and `conflict_keys` cannot express it because
+each ticket owns only its own rows. Set `per_ticket_backlog` alongside
+`backlog`; the validator warns when a multi-ticket wave has no partition.
+Prefer it to a union merge driver, which silently produces a valid-looking file
+when it is wrong (`references/deferment.md`).
+
 Read `references/deferment.md` for scope classification, entry format, agent
 behavior, and triage.
 

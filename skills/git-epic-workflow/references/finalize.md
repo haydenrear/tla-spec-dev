@@ -200,6 +200,47 @@ Never edit a target to match the measurement, and never close an epic with a
 silently unmeasured goal. A regression a goal harness uncovers is a finding: it
 enters the backlog and the normal ticket path, not a hand fix on the epic branch.
 
+### The improvement-card delta, beside the goal table
+
+The goal table says whether the epic hit what it aimed at. It says nothing
+about whether the **substrate** got better at running epics, and that is a
+separate question with its own instrument: the improvement card scores the
+loop — blockers reported, reports carrying a proposed change, proposals applied
+or declined on the record, anchors placed and the model updated where it
+implied a change, and honesty.
+
+Report it beside the goal table, never inside it. A card row is not a goal
+verdict and merging the two invites reading a process score as a delivery
+result:
+
+| Card | Epic | Dimension | Previous epic | This epic | Delta |
+| --- | --- | --- | --- | --- | --- |
+
+- **The delta is the point, not the level.** No number here is a target. The
+  card exists so the movement becomes visible across epics; a single epic's
+  score read on its own is the per-example generalisation this programme has
+  paid for more than once.
+- **Cite the sealed card**, the way a judged goal's baseline cites one
+  (`references/goals-and-evaluation.md`). A directory is not a card.
+- **Where no previous epic was carded**, say `unmeasured` and record this
+  epic's row as the first. Do not backfill a predecessor from its artifacts
+  after the fact — a score derived once the outcome is known is not a baseline.
+
+Then run the improvement ledger over the whole record and paste its summary
+into the epic PR:
+
+```bash
+python3 skills/spec-double-2/scripts/improvement_ledger.py --repo-root .
+```
+
+It reads every place a finding is written down and reports the one thing none
+of them reported before: whether the substrate changed. Its `recorded-local,
+filed nowhere` and `D4: skill-anchored, not applied/declined` counts are the
+ones to read at close — each is a finding this epic routed rather than
+consumed. **It is advisory by construction and has no exit-code path**, so a
+nonzero count is a fact for the PR body and a decision for the user, never a
+refusal to close.
+
 For a goal named in a verified retirement receipt, do not fabricate a harness
 result. Report the explicit disposition instead:
 

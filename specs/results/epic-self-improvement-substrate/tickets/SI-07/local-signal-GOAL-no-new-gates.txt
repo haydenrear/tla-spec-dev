@@ -1,0 +1,29 @@
+GOAL-no-new-gates -- local signal
+expected_effect: the validator warns on a missing block and exits 0
+
+### 1. default run
+$ uv run --script skills/git-epic-workflow/scripts/validate_epic_plan.py specs/desired_program_model/ticket_plan.yaml --verbose
+WARNING: waves [3, 4] run more than one ticket against the single backlog 'specs/results/deferred_findings_final.yaml'; collision is then certain rather than careless. Add deferment_policy.per_ticket_backlog so each ticket appends to its own file and the epic agent merges them at wave close (references/deferment.md) -- advisory, nothing here refuses
+WARNING: wave-1: review artifact does not show ['model delta applied', 'anchors placed', 'improvement-card row', 'skill changes applied or declined', 'model corrections owed by merged tickets']; the epic agent writes these at wave close (references/human-review.md §3.4) -- advisory, nothing here refuses
+WARNING: wave-2: review artifact does not show ['model delta applied', 'anchors placed', 'improvement-card row', 'skill changes applied or declined', 'model corrections owed by merged tickets']; the epic agent writes these at wave close (references/human-review.md §3.4) -- advisory, nothing here refuses
+WARNING: wave-3: review artifact does not show ['model delta applied', 'anchors placed', 'improvement-card row', 'skill changes applied or declined']; the epic agent writes these at wave close (references/human-review.md §3.4) -- advisory, nothing here refuses
+OK: specs/desired_program_model/ticket_plan.yaml has a valid epic schedule (11 tickets, 0 retired, 11 active/delivered across 6 waves, 7 goals)
+EXIT=0
+
+### 2. --strict (promotes advisory ERRORS to blocking; must NOT promote these)
+$ uv run --script skills/git-epic-workflow/scripts/validate_epic_plan.py specs/desired_program_model/ticket_plan.yaml --strict --verbose
+WARNING: waves [3, 4] run more than one ticket against the single backlog 'specs/results/deferred_findings_final.yaml'; collision is then certain rather than careless. Add deferment_policy.per_ticket_backlog so each ticket appends to its own file and the epic agent merges them at wave close (references/deferment.md) -- advisory, nothing here refuses
+WARNING: wave-1: review artifact does not show ['model delta applied', 'anchors placed', 'improvement-card row', 'skill changes applied or declined', 'model corrections owed by merged tickets']; the epic agent writes these at wave close (references/human-review.md §3.4) -- advisory, nothing here refuses
+WARNING: wave-2: review artifact does not show ['model delta applied', 'anchors placed', 'improvement-card row', 'skill changes applied or declined', 'model corrections owed by merged tickets']; the epic agent writes these at wave close (references/human-review.md §3.4) -- advisory, nothing here refuses
+WARNING: wave-3: review artifact does not show ['model delta applied', 'anchors placed', 'improvement-card row', 'skill changes applied or declined']; the epic agent writes these at wave close (references/human-review.md §3.4) -- advisory, nothing here refuses
+OK: specs/desired_program_model/ticket_plan.yaml has a valid epic schedule (11 tickets, 0 retired, 11 active/delivered across 6 waves, 7 goals)
+EXIT=0
+
+### 3. SKILL_GATES=off (the force case the wide lane exercises)
+EXIT=0
+
+### reading
+All three exit 0. The four new diagnostics appear as WARNING under --strict
+exactly as they do without it, because they are appended to the report's
+`warnings` list and validate_plan only ever promotes `errors`. There is no
+flag, and no combination of flags, that turns a missing block into a refusal.

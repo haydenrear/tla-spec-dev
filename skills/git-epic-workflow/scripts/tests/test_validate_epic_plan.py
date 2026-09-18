@@ -56,6 +56,9 @@ def valid_plan() -> dict:
             "blocking": "escalate",
             "budget": 5,
             "backlog": "specs/desired_program_model/deferred_findings.yaml",
+            # This fixture runs more than one ticket in wave 1, so it needs the
+            # partition for the same reason a real multi-ticket wave does.
+            "per_ticket_backlog": "specs/results/deferred/{ticket}.yaml",
         },
         "review_policy": {
             "cadence": "wave",
@@ -824,6 +827,125 @@ class EpicPlanValidatorTests(unittest.TestCase):
         plan["epic_goals"][0]["evaluation_ticket"] = "EPIC-1"
         errors = "\n".join(validator.validate_plan(strict=True, plan=plan).errors)
         self.assertIn("must declare role: evaluation", errors)
+
+
+class FindingsPartitionTests(unittest.TestCase):
+    """A wave with several tickets and one backlog file makes collision certain."""
+
+    def unpartitioned(self) -> dict:
+        plan = valid_plan()
+        del plan["deferment_policy"]["per_ticket_backlog"]
+        return plan
+
+    def test_warns_when_a_multi_ticket_wave_shares_one_backlog(self) -> None:
+        warnings = validator.validate_plan(self.unpartitioned()).warnings
+        self.assertTrue(any("per_ticket_backlog" in w for w in warnings))
+
+    def test_silent_when_the_backlog_is_partitioned(self) -> None:
+        warnings = validator.validate_plan(valid_plan()).warnings
+        self.assertFalse(any("per_ticket_backlog" in w for w in warnings))
+
+    def test_never_becomes_an_error_even_under_strict(self) -> None:
+        report = validator.validate_plan(self.unpartitioned(), strict=True)
+        self.assertFalse(any("per_ticket_backlog" in e for e in report.errors))
+        self.assertTrue(any("per_ticket_backlog" in w for w in report.warnings))
+
+
+class WaveArtifactBlockTests(unittest.TestCase):
+    """The wave artifact's five blocks warn when absent and never refuse."""
+
+    ARTIFACT_ROOT = "results/epic-example/review"
+    ALL_BLOCKS = (
+        "# Wave 1 review\n\n"
+        "### Model delta applied\n\nnone\n\n"
+        "### Anchors placed\n\nnone\n\n"
+        "### Improvement-card row\n\nnone\n\n"
+        "### Skill changes applied or declined\n\nnone\n\n"
+        "### Model corrections owed by merged tickets\n\nnone\n"
+    )
+
+    def plan_at(self, *, body: str | None, wave: str = "wave-1") -> tuple[dict, Path]:
+        plan = valid_plan()
+        plan["review_policy"]["artifact_root"] = self.ARTIFACT_ROOT
+        holder = tempfile.TemporaryDirectory()
+        self.addCleanup(holder.cleanup)
+        root = Path(holder.name)
+        if body is not None:
+            wave_dir = root / self.ARTIFACT_ROOT / wave
+            wave_dir.mkdir(parents=True)
+            (wave_dir / "review.md").write_text(body, encoding="utf-8")
+        return plan, root
+
+    def warnings_for(self, **kwargs) -> list[str]:
+        plan, root = self.plan_at(**kwargs)
+        return list(validator.validate_plan(plan, repo_root=root).warnings)
+
+    def test_complete_artifact_warns_about_no_block(self) -> None:
+        warnings = self.warnings_for(body=self.ALL_BLOCKS)
+        self.assertFalse(any("does not show" in w for w in warnings))
+
+    def test_names_every_missing_block(self) -> None:
+        warnings = self.warnings_for(body="# Wave 1 review\n\nnothing here.\n")
+        missing = [w for w in warnings if "does not show" in w]
+        self.assertEqual(len(missing), 1)
+        for label in (
+            "model delta applied",
+            "anchors placed",
+            "improvement-card row",
+            "skill changes applied or declined",
+            "model corrections owed by merged tickets",
+        ):
+            self.assertIn(label, missing[0])
+
+    def test_names_only_the_block_that_is_absent(self) -> None:
+        body = self.ALL_BLOCKS.replace("### Anchors placed\n\nnone\n\n", "")
+        missing = [w for w in self.warnings_for(body=body) if "does not show" in w]
+        self.assertEqual(len(missing), 1)
+        self.assertIn("anchors placed", missing[0])
+        self.assertNotIn("improvement-card row", missing[0])
+
+    def test_warns_when_the_wave_directory_has_no_review(self) -> None:
+        plan, root = self.plan_at(body=None)
+        (root / self.ARTIFACT_ROOT / "wave-2").mkdir(parents=True)
+        warnings = validator.validate_plan(plan, repo_root=root).warnings
+        self.assertTrue(any("no review.md" in w for w in warnings))
+
+    def test_silent_before_any_wave_has_closed(self) -> None:
+        warnings = self.warnings_for(body=None)
+        self.assertFalse(any("does not show" in w for w in warnings))
+        self.assertFalse(any("no review.md" in w for w in warnings))
+
+    def test_ignores_directories_that_are_not_numbered_waves(self) -> None:
+        plan, root = self.plan_at(body=None)
+        kickoff = root / self.ARTIFACT_ROOT / "wave-0-kickoff"
+        kickoff.mkdir(parents=True)
+        (kickoff / "review.md").write_text("kickoff only", encoding="utf-8")
+        warnings = validator.validate_plan(plan, repo_root=root).warnings
+        self.assertFalse(any("does not show" in w for w in warnings))
+
+    def test_silent_without_a_repo_root(self) -> None:
+        plan = valid_plan()
+        plan["review_policy"]["artifact_root"] = self.ARTIFACT_ROOT
+        warnings = validator.validate_plan(plan).warnings
+        self.assertFalse(any("does not show" in w for w in warnings))
+
+    def test_a_missing_block_never_becomes_an_error_even_under_strict(self) -> None:
+        plan, root = self.plan_at(body="# Wave 1 review\n\nnothing here.\n")
+        report = validator.validate_plan(plan, strict=True, repo_root=root)
+        self.assertFalse(any("does not show" in e for e in report.errors))
+        self.assertTrue(any("does not show" in w for w in report.warnings))
+
+    def test_main_exits_zero_on_an_artifact_with_no_blocks(self) -> None:
+        plan, root = self.plan_at(body="# Wave 1 review\n\nnothing here.\n")
+        plan_path = root / "ticket_plan.yaml"
+        plan_path.write_text(yaml.safe_dump(plan), encoding="utf-8")
+        err = io.StringIO()
+        with redirect_stdout(io.StringIO()), redirect_stderr(err):
+            code = validator.main(
+                [str(plan_path), "--repo-root", str(root), "--verbose"]
+            )
+        self.assertEqual(code, 0)
+        self.assertIn("does not show", err.getvalue())
 
 
 if __name__ == "__main__":

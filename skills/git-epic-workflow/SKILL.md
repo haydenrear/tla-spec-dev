@@ -85,10 +85,34 @@ This skill has three roles:
    goal disposition (`references/plan-and-schedule.md`).
 4. **The epic assignment wins.** Its marker-delimited block overrides ordinary
    `git-issue` instructions that branch from or merge to the default branch.
-5. **Ticket agents close one ticket only.** They run `open ticket <id>`, update
-   the implementation, specs, spec-unit adapters, Test Graph adapters/nodes,
-   record evidence, and run `close ticket <id>`. They never run
-   `close_tickets.py` or promote the whole workflow.
+5. **The epic agent owns the model; ticket agents move `current` toward it.**
+   One shared TLA+ workflow with several agents writing it is a shared mutable
+   namespace with no partition, and the epic agent is the partition. Before
+   dispatch it scaffolds each ticket's `desired` and `current`, validates them,
+   and runs TLC on what it scaffolded. At wave merge it closes and promotes the
+   spec ticket, applies the wave's model delta, and places every attribution
+   anchor (`references/human-review.md` §3.4).
+
+   A ticket agent **does not run** `open ticket`, `close ticket`,
+   `close_tickets.py`, or `--accept-new`. It moves ticket-local `current`
+   toward `desired` for its slice, runs the spec tests its assignment names,
+   and records evidence under the evidence root. `desired` is the structure it
+   validates against: a **small** correction to it is the ticket's to make, and
+   a **structural** change comes back to the epic agent in the PR body instead.
+
+   **A small correction is a debt, not a closed transaction.** It obliges the
+   epic agent to make the matching change to `specs/current`, `program_model`
+   and `desired_program_model` after the ticket merges, and between the two the
+   model and the tree disagree — measured, with `BuildSkillCli` reporting
+   `accepted: false` for exactly that window. That is why the wave artifact
+   carries *model corrections owed by merged tickets* as a block of its own.
+
+   Record this reversal in the canonical plan as
+   `planning_rules.model_ownership_rule` so a ticket agent reads it from the
+   plan rather than inferring it, and restate it as a *Model ownership* note in
+   every assignment. An epic that wants the older shape — ticket agents opening
+   and closing their own spec tickets — says so in that same rule; it is a
+   decision on the record either way.
 6. **Parallel work; serialized promotion.** `depends_on` controls when work may
    start. A separate total `promotion_predecessor` order controls when a ticket
    may rebase onto the latest epic tip, close/promote its ticket, and enter the
@@ -104,7 +128,11 @@ This skill has three roles:
    the merge is reversible, and finalize.md §3 still gates everything before it
    reaches the default branch. A merge conflict is a stop, not a task — it means
    the ticket closed against a tree that no longer exists, so it goes back to
-   its agent to reconcile. Read `references/human-review.md` §1.
+   its agent to reconcile. That holds for a *mechanical* conflict too (both
+   sides pure tail-appends to one append-only file): what changes there is that
+   the resolution is a stated procedure rather than a judgement, and that the
+   conflict is evidence the schedule needs
+   `deferment_policy.per_ticket_backlog`. Read `references/human-review.md` §1.
 8. **Only finalization closes the workflow.** After all delivered ticket PRs are
    on the epic branch and every retired ticket has its verified no-delivery
    receipt, the finalizer runs integrated validation, promotes the accepted
@@ -189,9 +217,29 @@ This skill has three roles:
     - `skt` is installed but was not on `PATH`;
     - you looked where a plugin never is (`skills/`);
     - you found it and it **failed** — quote its `error:` line verbatim;
-    - you found it and could not read the home it pointed at.
+    - you found it and could not read the home it pointed at;
+    - you found it, it printed `error:` **and exited 0**.
 
-    All four are front-door defects, not facts about the repository. An epic
+    **That last case is live, and the exit code will lie to you.** Measured on
+    four of five agents in one wave: `skt ticket new` failed its home bootstrap,
+    printed `worktree and branch rolled back`, and **returned 0**. An agent that
+    branches on `$?` concludes the worktree exists and then works in a directory
+    that was never created. So do not test the exit code — test the path:
+
+    ```bash
+    "$SKT" ticket new <ticket> --base "$commit_oid" --path <declared-worktree>
+    test -d <declared-worktree> || { echo "rolled back despite exit 0"; }
+    ```
+
+    When it has rolled back, the by-hand pair below is the correct response and
+    the rollback is clean — no stray branch, path, or retention ref — so there
+    is nothing to undo first. Read the bootstrap's own `fix:` line before
+    replaying it: it usually names the remedy, and
+    `bootstrap-home.sh --root <worktree> --allow-unprojected` is the documented
+    way to accept a home whose unreachable units are ones you are not using.
+    Say which of these you were in either way.
+
+    All five are front-door defects, not facts about the repository. An epic
     agent has two places to put that line — the wave review artifact
     (`references/human-review.md`) for its own provisioning, and the ticket's
     PR body when a ticket agent reports it — and files it against the skill
@@ -269,10 +317,16 @@ This skill has three roles:
     After merging a wave and before handing out any issue URL from the next one,
     write a committed review artifact and walk the user through it: hot spots in
     what landed, decisions made implicitly and guardrails overridden, where the
-    bugs probably are, architectural changes worth making — including to the
-    epic's own machinery, which lives in gitignored homes and reaches nothing by
-    being merged — and the recommended next steps read together with the
-    deferred-findings backlog. Then stop and wait. The user may change the
+    bugs probably are, what the epic agent applied to the epic's own machinery,
+    and the recommended next steps read together with the deferred-findings
+    backlog. Then stop and wait.
+
+    **That fourth section carries five named blocks** — model delta applied,
+    anchors placed, the improvement-card row, every proposed skill change
+    applied or declined with a reason, and the model corrections merged tickets
+    still owe. Write each one even when the answer is `none`; `none` is a claim
+    and an absent block is not one. `scripts/validate_epic_plan.py` warns once
+    per wave when a committed artifact does not show a block, and exits 0. The user may change the
     cadence, drop the gate, or take the merges back; that answer is recorded as
     `review_policy` in the canonical plan, because at finalization a review
     nobody chose to skip is indistinguishable from one that never happened.

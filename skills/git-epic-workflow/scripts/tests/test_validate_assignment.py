@@ -433,13 +433,29 @@ class EvaluationTicketTests(unittest.TestCase):
         assignment["ticket"]["role"] = "evaluation"
         assignment["ticket"]["owns_goals"] = ["GOAL-1"]
         assignment["goals"][0]["decided_by"]["ticket"] = "CA-03"
-        del assignment["goals"][0]["contribution"]
+        # SIS-KICKOFF-F-01: `guard` is the authoritative spelling, shown by
+        # references/epic-ticket.md and git-issue's references/epic-assignment.md
+        # and required by the canonical plan on every goal relation.
+        assignment["goals"][0]["contribution"] = "guard"
         return assignment
 
     def test_accepts_an_evaluation_ticket(self) -> None:
         report = check(self.evaluation())
         self.assertEqual(report.errors, ())
         self.assertEqual(report.warnings, ())
+
+    def test_guard_on_an_evaluation_ticket_is_silent(self) -> None:
+        report = check(self.evaluation())
+        self.assertFalse(any("contribution" in w for w in report.warnings))
+
+    def test_warns_when_an_evaluation_ticket_omits_the_contribution(self) -> None:
+        assignment = self.evaluation()
+        del assignment["goals"][0]["contribution"]
+        report = check(assignment)
+        self.assertEqual(report.errors, ())
+        self.assertTrue(
+            any("contribution is absent" in w for w in report.warnings)
+        )
 
     def test_requires_owns_goals(self) -> None:
         assignment = self.evaluation()
@@ -461,13 +477,13 @@ class EvaluationTicketTests(unittest.TestCase):
             )
         )
 
-    def test_warns_when_an_evaluation_ticket_declares_a_contribution(self) -> None:
+    def test_warns_when_an_evaluation_ticket_claims_it_contributes(self) -> None:
         assignment = self.evaluation()
         assignment["goals"][0]["contribution"] = "direct"
         report = check(assignment)
         self.assertEqual(report.errors, ())
         self.assertTrue(
-            any("decides goals rather than" in w for w in report.warnings)
+            any("decides this goal rather than" in w for w in report.warnings)
         )
 
     def test_rejects_owns_goals_on_an_implementation_ticket(self) -> None:
@@ -744,6 +760,90 @@ class FixtureIntegrityTests(unittest.TestCase):
         second = copy.deepcopy(first)
         first["ticket"]["wave"] = 99
         self.assertEqual(second["ticket"]["wave"], 2)
+
+
+class TicketWorkspaceTests(unittest.TestCase):
+    """SIS-KICKOFF-F-03: `--ticket <id>` against a workspace nobody scaffolded.
+
+    Every case here runs through `check`, which sets `strict=True`, so the
+    absence of these messages from `report.errors` is asserted throughout
+    rather than only in the one test that says so.
+    """
+
+    def repo(self, *scaffolded: str) -> Path:
+        holder = tempfile.TemporaryDirectory()
+        self.addCleanup(holder.cleanup)
+        root = Path(holder.name)
+        workspaces = root / "specs" / "tickets"
+        workspaces.mkdir(parents=True)
+        for ticket in scaffolded:
+            (workspaces / ticket).mkdir()
+        return root
+
+    def naming_ticket(self, ticket: str = "CA-03") -> dict:
+        assignment = valid_assignment()
+        assignment["validation"]["spec_unit"] = (
+            f"tla-spec-dev --spec-root specs run spec-unit-tests --ticket {ticket}"
+        )
+        return assignment
+
+    def test_warns_when_the_workspace_does_not_exist(self) -> None:
+        report = check(self.naming_ticket(), repo_root=self.repo())
+        self.assertTrue(
+            any("specs/tickets/CA-03 does not exist" in w for w in report.warnings)
+        )
+
+    def test_silent_when_the_epic_agent_scaffolded_it(self) -> None:
+        report = check(self.naming_ticket(), repo_root=self.repo("CA-03"))
+        self.assertFalse(any("does not exist" in w for w in report.warnings))
+
+    def test_silent_when_no_command_names_a_ticket(self) -> None:
+        report = check(valid_assignment(), repo_root=self.repo())
+        self.assertFalse(any("does not exist" in w for w in report.warnings))
+
+    def test_silent_without_a_repo_root(self) -> None:
+        report = check(self.naming_ticket())
+        self.assertFalse(any("does not exist" in w for w in report.warnings))
+
+    def test_silent_outside_a_repository_with_ticket_workspaces(self) -> None:
+        holder = tempfile.TemporaryDirectory()
+        self.addCleanup(holder.cleanup)
+        report = check(self.naming_ticket(), repo_root=Path(holder.name))
+        self.assertFalse(any("does not exist" in w for w in report.warnings))
+
+    def test_names_a_sibling_ticket_the_matrix_refers_to(self) -> None:
+        report = check(self.naming_ticket("CA-09"), repo_root=self.repo("CA-03"))
+        self.assertTrue(
+            any("ticket CA-09's workspace" in w for w in report.warnings)
+        )
+
+    def test_reads_the_equals_spelling(self) -> None:
+        assignment = valid_assignment()
+        assignment["validation"]["spec_unit"] = (
+            "tla-spec-dev run spec-unit-tests --ticket=CA-03"
+        )
+        report = check(assignment, repo_root=self.repo())
+        self.assertTrue(any("specs/tickets/CA-03" in w for w in report.warnings))
+
+    def test_never_becomes_an_error_even_under_strict(self) -> None:
+        report = check(self.naming_ticket(), repo_root=self.repo())
+        self.assertFalse(any("does not exist" in e for e in report.errors))
+        self.assertTrue(any("does not exist" in w for w in report.warnings))
+
+    def test_main_exits_zero_when_the_workspace_is_absent(self) -> None:
+        root = self.repo()
+        body = rendered(self.naming_ticket())
+        path = root / "issue-body.md"
+        path.write_text(body, encoding="utf-8")
+        err = io.StringIO()
+        out = io.StringIO()
+        with redirect_stdout(out), redirect_stderr(err):
+            code = validator.main(
+                ["--assignment", str(path), "--repo-root", str(root), "--verbose"]
+            )
+        self.assertEqual(code, 0)
+        self.assertIn("OK:", out.getvalue())
+        self.assertIn("does not exist", err.getvalue())
 
 
 if __name__ == "__main__":

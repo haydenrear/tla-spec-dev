@@ -52,7 +52,8 @@ goals:
     local_signal: "<cheap in-worktree command, or 'N/A: reason'>"
 validation:
   tlc: "<exact command or N/A: reason>"
-  spec_unit: "<exact command>"
+  # Name the target. `--ticket <id>` resolves two and runs one (SIS-KICKOFF-F-04).
+  spec_unit: "<exact command, --target per target>"
   repository_unit: "<exact command or N/A: reason>"
   graphs: ["<affected-repository-graph>"]
   spec_graph: "<repository spec-conformance graph or N/A: reason>"
@@ -188,6 +189,18 @@ goals:
     local_signal: "N/A: this ticket is the measurement"
 ```
 
+**`contribution: "guard"` is the spelling, and this file is where that is
+settled.** It drifted three ways and cost a correctly rendered evaluation
+assignment one spurious warning per owned goal — seven for a seven-goal
+ticket (`SIS-KICKOFF-F-01`). This file and `git-issue`'s
+`references/epic-assignment.md` both showed `guard`; the canonical plan schema
+requires a contribution on *every* goal relation, evaluation tickets included;
+only `scripts/validate_assignment.py` warned against it. The validator was the
+outlier and the validator moved. It now accepts `guard` silently, and warns
+only when the field is absent or says `direct`/`enabling` — an evaluation
+ticket decides its goals rather than contributing to them, and that is what
+`guard` records.
+
 Its issue body states, in addition to the shared assignment rules:
 
 - run each owned harness from a fresh start on the reconciled epic tip, after
@@ -317,7 +330,36 @@ which finds a hand-made `../wt-<issue-number>-<slug>` by search.
 Resume the declared branch/worktree instead of creating another when it already
 exists. Never use `origin/<default-branch>` in epic mode.
 
-### 3. Open only the assigned ticket
+### 3. Check who owns the model before running anything against `specs/`
+
+**The epic agent owns the TLA+ work** (SKILL.md rule 5), recorded as
+`planning_rules.model_ownership_rule` in the canonical plan and restated as a
+*Model ownership* note in the assignment. Read that rule first: it decides
+whether this section applies to you at all.
+
+**When the epic owns the model** — the normal case, and what rule 5 says — the
+epic agent scaffolded this ticket's `desired` and `current` before dispatch and
+closes and promotes the spec ticket at wave merge. The ticket agent's half is:
+
+- **Do not run** `open ticket`, `close ticket`, `close_tickets.py`, or
+  `--accept-new`. §6 below is not yours either; skip it and say so in the PR.
+- **Do** move ticket-local `current/` toward `desired/` for your slice, run the
+  spec tests the assignment names, and record evidence under the evidence root.
+- `desired/` is the structure you validate against. A **small** correction to
+  it is yours to make — a path substitution that makes the workspace runnable
+  is the worked example, and without it one scaffolded workspace produced 94
+  "could not locate repository root" errors and could not run at all. A
+  **structural** change comes back to the epic agent in the PR body instead.
+- **Say in the PR that you corrected it, and what you changed.** That is a debt
+  the epic agent owes the project model after your ticket merges, and it is a
+  named block of the wave artifact (`human-review.md` §3.4). Between your merge
+  and that correction the model and the tree disagree; the only thing that
+  closes the window is your having said so.
+- Spec tests may be handed to you explicitly. If the assignment does not name
+  them, they are not your slice.
+
+**Where the plan's rule says otherwise**, the older shape holds and the ticket
+opens exactly its own workspace, never a second workflow:
 
 ```bash
 tla-spec-dev --spec-root specs open ticket <stable-ticket-id>
@@ -342,10 +384,26 @@ running it and use Test Graph's saved-context loop for isolated failures. At a
 minimum, record:
 
 ```bash
-tla-spec-dev --spec-root specs run spec-unit-tests --ticket <stable-ticket-id>
+# Name the target explicitly, once per target. See the warning below.
+tla-spec-dev --spec-root specs run spec-unit-tests --target specs/current
+tla-spec-dev --spec-root specs run spec-unit-tests \
+  --target specs/tickets/<stable-ticket-id>/desired
 <test-graph-skill>/scripts/discover.py <graph>
 <test-graph-skill>/scripts/run.py <graph>
 ```
+
+**Do not use `--ticket <id>` as the measurement.** Confirmed at source
+(`SIS-KICKOFF-F-04`): it resolves both targets, **executes only the first**,
+and prints both — so it reports a target it never ran, and a green line covers
+a suite that did not execute. It is the same silent-vacuity shape as a stale
+pathspec that matches nothing: the negative result is indistinguishable from
+not having looked. `--target` runs exactly what it names, so run it twice and
+say in the PR which targets you ran.
+
+A second reason to name the target: `--ticket <id>` addresses a ticket-local
+workspace that only the epic agent creates. Where it has not been scaffolded
+the command has nothing to resolve — ten assignments shipped in that state
+before `validate_assignment.py` learned to warn about it.
 
 Also run TLC, repository unit tests, the repository's assigned spec-conformance
 graph, and any adapter commands from the issue. `specWorkflow` is the
@@ -419,7 +477,18 @@ If reconciliation changes scope or reveals a semantic conflict, stop and ask
 for an amendment/reconciliation ticket. Do not patch workflow-wide state
 silently.
 
-### 6. Close only this spec ticket
+### 6. Close only this spec ticket — unless the epic owns the model
+
+**Skip this whole section when `planning_rules.model_ownership_rule` reserves
+the TLA+ work to the epic agent**, which is what SKILL.md rule 5 says by
+default. In that case the epic agent sets the plan status, closes the ticket,
+and promotes at wave merge; a ticket agent that runs `close ticket` here has
+promoted a model into the shared workflow that the epic did not schedule, and
+it cannot be un-promoted without rewriting append-only history. Push your
+evidence, open the PR, say in the body that §6 was not yours, and stop.
+
+The rest of this section is for an epic whose plan rule says ticket agents
+close their own spec tickets.
 
 **First** set this ticket's `status` to closed/done in the canonical plan,
 `specs/desired_program_model/ticket_plan.yaml` — and only this ticket's. This is
