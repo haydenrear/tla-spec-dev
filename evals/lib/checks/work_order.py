@@ -22,7 +22,21 @@ from __future__ import annotations
 import pathlib
 import re
 
-MIN_CHARS = 600
+# A FLOOR AGAINST A STUB, NOT A LENGTH REQUIREMENT.
+#
+# This was 600, and a known-GOOD control fixture -- five well-formed sections,
+# every property present, naming the program -- was 483 characters and got
+# refused with "too short to be a work order". That is a false negative in the
+# verifier, which is the direction that matters: it charges the agent for the
+# checker's opinion about length.
+#
+# Found by running the verifier against a known-good and a known-bad workspace
+# before trusting a score from it, which is the cheapest rule in the reference
+# and the only reason this was caught before it billed a run rather than after.
+#
+# The five properties below plus the program-name check are what decide. This
+# number now only excludes an empty file or a one-line token.
+MIN_CHARS = 200
 
 # Each property is a list of alternative spellings: an issue may say "measurable
 # outcome" or "goal" or "metric", and pinning one wording would grade phrasing.

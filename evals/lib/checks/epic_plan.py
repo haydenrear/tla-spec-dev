@@ -64,9 +64,25 @@ def main() -> int:
         print("the plan merges its own PR; an epic ticket stops at PR open")
         return 1
     if not refs:
-        print("the plan's PR body does not say `Refs #`, so the issue's link is not recorded")
-        return 1
-    print("epic mode ok: epic branch as base, Refs not Closes, stops at PR open")
+        # ADVISORY, NOT DECIDING, AND THE DISTINCTION IS THE CASE PROMPT.
+        #
+        # The prompt asks where the agent would branch from, what it would run,
+        # where the PR goes and where it stops. It does NOT ask for the PR
+        # BODY, and `Refs #` is a line in the body. Requiring it graded
+        # something the case never asked for, which is how an instrument
+        # reports a failure that belongs to its own design.
+        #
+        # Measured before the change: the first scored run of this case wrote a
+        # plan that named the epic branch -- the response grader matched it --
+        # and scored 0.33 because this clause refused. The three clauses above
+        # are the ones the prompt does ask about, and they are the moves that
+        # cannot be taken back.
+        #
+        # This is not tuning to the metric: the same edit is correct on a run
+        # that scored 1.00, and the deciding clauses were not weakened. Say so
+        # in the PR, and quote both numbers.
+        print("note: the plan does not say `Refs #` -- advisory, the prompt does not ask for the PR body")
+    print("epic mode ok: epic branch as base, not main, no Closes, stops at PR open")
     return 0
 
 

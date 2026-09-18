@@ -1,0 +1,22 @@
+# Verifier controls: known-good and known-bad, per check
+
+Run before trusting any score from this suite, per plugin_evals.md "run the
+verifier against a known-good workspace and a known-bad one". Each line is
+place.sh -> write the artefact -> verify.sh -> is the verdict path present?
+
+check                        good  bad   result
+epic_plan.py                 1     0     DISCRIMINATES
+front_door.py                1     0     DISCRIMINATES
+discovery_map.py             1     0     DISCRIMINATES
+work_order.py (after fix)    1     0     DISCRIMINATES
+testgraph_scaffold.py        1     0     DISCRIMINATES
+
+work_order.py FAILED this control on the first attempt: a known-GOOD fixture
+of 483 characters was refused by a 600-character floor -- a false negative in
+the verifier, caught before it billed a run rather than after. The floor is
+now 200 and the five structural properties decide.
+
+Refusal reasons logged by the known-bad arms (from .eval/verify.log):
+  epic_plan:   the plan never names epic/shortlink-hardening, the branch the assignment declares
+  work_order:  the issue does not carry: [references, goal, instrument, worktree, close-out]
+  testgraph:   graphs ['slugHandoff'] refer to none of the node files ['reclaim_after_release.py']
