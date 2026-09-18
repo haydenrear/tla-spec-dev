@@ -1,0 +1,23 @@
+schema_version: "1.0"
+name: a-work-order-not-a-wish
+description: >-
+  A problem report and a small program. Does the issue that comes out of it
+  carry what an implementer needs -- references, a measurable outcome and the
+  instrument that decides it, a branch, and what closes it out -- or is it a
+  restatement of the complaint?
+runs: 1
+execution:
+  env:
+    EVAL_CASE: a-work-order-not-a-wish
+  max_turns: 40
+  timeout_seconds: 1200
+  allowed_tools: [Read, Glob, Grep, Skill, Write]
+  prompt: |
+    The README records a problem nobody has turned into work yet.
+
+    Write the issue an agent would pick up and implement, to `ISSUE.md`. There
+    is no network here, so write the file rather than filing it.
+
+    End your reply by stating what would be measurably better once the issue is
+    done, and what decides it. The grader reads your reply and cannot open the
+    file you wrote.

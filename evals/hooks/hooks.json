@@ -1,0 +1,46 @@
+{
+  "_comment": [
+    "THIS FILE IS NOT LOADED FROM HERE, AND THAT IS THE POINT.",
+    "A plugin's hooks live at <plugin>/hooks/hooks.json. This plugin is the",
+    "repository, so a hooks.json committed at the repository root would fire in",
+    "every session of every user who installs tla-spec-dev -- a SessionStart",
+    "shell script nobody asked for, and (exit 2 being blocking) a way for an",
+    "eval-only fixture script to refuse somebody's ordinary session.",
+    "So it is staged instead: evals/run.sh copies this file to",
+    "<view>/hooks/hooks.json inside the throwaway view it builds, where it is",
+    "loaded for the eval run and for nothing else. The shipped plugin gains no",
+    "hooks and no new way to refuse (GOAL-no-new-gates).",
+    "${CLAUDE_PLUGIN_ROOT} is the view, so the two scripts resolve inside it.",
+    "Verified on 2.1.275: a probe case whose SessionStart hook wrote a file and",
+    "whose Stop hook wrote another scored 1.00 with both verdict paths present,",
+    "with no Bash grant and no scratch HOME.",
+    "SessionEnd carries the same verifier as Stop deliberately: measured in the",
+    "skill-manager wide lane (2026-09-14, 2.1.270), a run that ends",
+    "error_max_turns fires SessionEnd and NOT Stop, and a round registered only",
+    "on Stop lost every verdict on 12 capped runs and scored them red. Both",
+    "derive the same verdicts, so the second write is harmless."
+  ],
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/evals/lib/place.sh", "timeout": 300 }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/evals/lib/verify.sh", "timeout": 900 }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/evals/lib/verify.sh", "timeout": 900 }
+        ]
+      }
+    ]
+  }
+}

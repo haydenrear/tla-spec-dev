@@ -1,0 +1,36 @@
+#!/bin/sh
+# THE CHECKOUT'S CLI, NOT THE INSTALLED ONE.
+#
+# Without this shim first on PATH an eval grades whatever `tla-spec-dev` the
+# operator happens to have installed. Measured (2.1.261, and unchanged since):
+# a run's `which -a tla-spec-dev` returned the installed wrapper three times
+# and nothing else, and a traceback resolved the code from the installed
+# skill's scripts/ directory. The branch under review was never executed.
+#
+# Three ways that DO NOT work, each measured rather than assumed:
+#   * a plugin `bin/` directory. Documented to join the Bash tool's PATH while
+#     the plugin is enabled; inside `plugin eval` it never appears.
+#   * `execution.env` in case.yaml. Refused: "only EVAL_* keys can be set from
+#     case.yaml. Anything else must come from the operator's shell."
+#   * a shim under /tmp. The PATH entry reaches the run, but `which` never
+#     found it.
+#
+# So `evals/run.sh` prepends THIS directory, which lives inside the checkout,
+# and the run gets this file.
+#
+# WHY IT RESOLVES THE CHECKOUT AND NOT THE STAGED VIEW: run.sh puts the
+# checkout's own evals/bin on PATH, so `$here/../..` is the checkout even while
+# the plugin under test is the view staged from it. Both hold the same code --
+# the view is a copy of this working tree made seconds earlier -- and pointing
+# at the checkout keeps the answer to "which code ran" a path a human can open
+# afterwards, rather than a temp directory that may already be gone.
+set -eu
+here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+repo=$(CDPATH= cd -- "$here/../.." && pwd)
+
+test -f "$repo/skills/spec-double-2/scripts/tla_spec_dev.py" || {
+    echo "tla-spec-dev shim: no checkout at $repo -- refusing to fall through" \
+         "to an installed copy, which would grade code nobody is reviewing" >&2
+    exit 127
+}
+exec python3 "$repo/skills/spec-double-2/scripts/tla_spec_dev.py" "$@"

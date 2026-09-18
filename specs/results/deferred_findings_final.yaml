@@ -2896,3 +2896,62 @@ findings:
     disposition_note: >-
       Owner triages at the wave-3 review. SI-04 worked around it by pushing to
       the GitHub URL explicitly and did NOT touch the shared .git/config.
+
+  - id: SI-10-DF-01
+    found_by: "SI-10"
+    found_at_commit: "994f650c"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production:
+        - "evals/README.md"
+        - "skills/spec-double-2/references/plugin_evals.md"
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      Three of the seven eval cases grant Bash, and on a machine with Docker
+      Desktop a Bash-granted run refuses unless HOME points at a scratch home
+      that copies ~/.docker/config.json and SYMLINKS ~/Library/Keychains (the
+      login credential is in the keychain and the keychain path is
+      HOME-relative; DOCKER_CONFIG pointed elsewhere does not help, the refusal
+      message is byte-identical). That construction is exactly what an agent
+      permission classifier blocks as credential handling: both the build and
+      the HOME= run were refused for this ticket with "Permission for this
+      action was denied ... Reason: [Credential Leakage]". So the four
+      document-grading cases are runnable by an agent and the three
+      Bash-granted ones are runnable only by a human operator, or by an agent
+      whose operator built the home beforehand and exported EVAL_HOME.
+    reproduction: >-
+      As an agent under Claude Code's auto-mode classifier, run the six-line
+      recipe in evals/README.md ("The home") or any `HOME=$EVAL_HOME
+      evals/run.sh --case scaffold-a-program-model`. Both are denied before
+      execution. As a human operator in a terminal, both work.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-10/README.md"
+    why_out_of_scope: >-
+      The cause is the Docker/keychain coupling in the eval sandbox plus the
+      harness's credential rules, neither of which is in SI-10's conflict keys
+      or in this repository at all. SI-10 responded inside its slice by making
+      four of the seven cases need no shell and therefore no scratch home, and
+      by documenting the recipe and the EVAL_HOME hand-off; it cannot remove
+      the requirement for the three cases that genuinely run TLC and a
+      scaffold.
+    suggested_fix: >-
+      Decide who runs the Bash-granted cases. Either (a) SI-08 and any future
+      adopter run them as an operator with EVAL_HOME exported once, which
+      evals/run.sh already honours and warns about, or (b) the three cases get
+      a no-shell sibling that grades the same artefact through the Stop hook,
+      which is where the real checks already run -- the hook is outside the
+      sandbox, so TLC runs there whether or not the agent had Bash.
+    blast_radius: >-
+      SI-08 decides GOAL-evals-one-command with `claude plugin eval ... each
+      case reported green, red, or UNDECIDED`. If it runs as an agent without a
+      prepared EVAL_HOME, three of seven cases report an environment refusal
+      that is indistinguishable in the score from a skill that could not do the
+      work -- the UNDECIDED-vs-red confusion this suite exists to remove.
+    disposition: pending
+    disposition_ticket: null
+    disposition_note: >-
+      Owner triages at the wave-3 review. Pairs with the note in
+      evals/README.md; nothing blocks on it.
