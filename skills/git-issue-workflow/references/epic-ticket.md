@@ -159,11 +159,34 @@ Never start an epic ticket from `origin/main`, another default branch, the stale
 create per-constituent branches: the epic assignment owns the branch topology for
 this ticket.
 
-## 3. Open only the assigned spec ticket
+## 3. Open only the assigned spec ticket — unless the epic owns the model
 
-The epic workflow already exists. If the declared branch already contains the
-assigned ticket workspace, verify it and resume it. Otherwise open exactly the
-assigned ticket:
+**Check who owns the model before running anything against `specs/`.** An epic
+may reserve the TLA+ work to the epic agent, recorded as
+`planning_rules.model_ownership_rule` in its canonical plan and restated as a
+*Model ownership* note in the assignment. That rule **reverses** what this
+section and `git-epic-workflow` SKILL.md rule 5 otherwise say, and it wins.
+
+When the epic owns the model — the epic agent scaffolded this ticket's `desired`
+and `current` before dispatch and closes and promotes the spec ticket at wave
+merge — your half is:
+
+- **Do not run** `open ticket`, `close ticket`, `close_tickets.py`, or
+  `--accept-new`. §6 below is not yours either; skip it and say so in the PR.
+- **Do** move ticket-local `current` toward `desired` for your slice, run the
+  spec tests the assignment names, and record the evidence under the evidence
+  root.
+- `desired` is the structure you validate against. A **small** correction to it
+  is yours to make. A **structural** change to it comes back to the epic agent
+  in the PR body — under `## Review input`, or as a row in
+  `## Skill changes proposed` when what needs changing is the substrate rather
+  than the model — rather than being made in the ticket.
+- Spec tests may be handed to you explicitly. If the assignment does not name
+  them, they are not your slice.
+
+Otherwise the ordinary rule holds. The epic workflow already exists; if the
+declared branch already contains the assigned ticket workspace, verify it and
+resume it, and otherwise open exactly the assigned ticket:
 
 ```bash
 tla-spec-dev --spec-root specs open ticket <stable-ticket-id>
@@ -289,8 +312,14 @@ amendment or reconciliation ticket.
 
 ## 6. Close and promote only the assigned ticket
 
-When ticket-local current semantically equals desired and all required validation
-is green, mark only the assigned entry in `ticket_plan.yaml` closed/done and
+**Skip this whole section when the epic owns the model** (§3). There the epic
+agent marks the plan entry and closes and promotes the spec ticket at wave merge.
+A ticket agent that closes it anyway has promoted a model it does not own and
+sealed a close record before the wave's other tickets landed. Say in the PR body
+that the close is the epic agent's, and list the evidence paths it will need.
+
+Otherwise, when ticket-local current semantically equals desired and all required
+validation is green, mark only the assigned entry in `ticket_plan.yaml` closed/done and
 record its run ids and evidence paths. Leave every sibling entry and all
 workflow-wide dependency/order metadata unchanged. Then close exactly the
 assigned ticket with every durable evidence path:
@@ -361,7 +390,17 @@ The PR body must contain:
   being able to see inside it, so this line and the *Machinery friction* list
   below are the only places that fact survives;
 - a `## Deferred findings` section with one line per backlog ID this ticket filed
-  — the ID, its severity, and a one-line summary — or `None`; and
+  — the ID, its severity, and a one-line summary — or `None`;
+- a `## Skill changes proposed` section — three columns, one row per blocker you
+  met in the substrate: the unit, what you hit, and the change you propose as a
+  diff or a link to the commit that applied it — or `none met`. Where the unit's
+  files live in this repository and the path is inside your conflict keys, apply
+  the change and link the commit rather than only proposing it. It asks you to
+  run nothing new, every row is something that already happened, and **nothing
+  blocks on it**: required in shape, never a gate on merge. A blocker you were
+  forbidden to fix, or one you handed over rather than filing because filing
+  would have contradicted an instruction, is a row like any other
+  (`references/complete.md` §5a); and
 - a `## Review input` section, written for a human who has ten minutes and did not
   read the ticket. Four short lists, evidence-cited, no padding — the epic owner
   composes the wave review from these rather than re-deriving them from the diff:
@@ -498,10 +537,16 @@ things change, and the full contract is "The evaluation ticket" in
 - [ ] `role: evaluation` only: every owned `harness` run fresh on the reconciled
       tip, results under the goal's `evidence_root`, verdict per goal
 - [ ] Promotion predecessor merged and latest epic tip reconciled
+- [ ] Model ownership checked before touching `specs/`: where the epic owns the
+      model, no `open ticket` / `close ticket` / `--accept-new` was run and every
+      structural `desired` change came back in the PR body
 - [ ] Only the assigned ticket closed/promoted; no bypass or whole close used
+      (or: close is the epic agent's and the PR says so)
 - [ ] PR opened with `Refs #<issue>` and base `epic/*`
 - [ ] PR body carries `## Deferred findings` (each backlog ID with severity and a
       one-line summary, or `None`)
+- [ ] PR body carries `## Skill changes proposed` (unit / what was hit / proposed
+      change, one row per blocker met, or `none met`) — advisory, never a gate
 - [ ] PR body carries `## Review input` — hot spots, decisions and overrides,
       where I'd look for bugs, machinery friction — each evidence-cited
 - [ ] `home close-out` run as a read-only gate and its verdict stated in the PR

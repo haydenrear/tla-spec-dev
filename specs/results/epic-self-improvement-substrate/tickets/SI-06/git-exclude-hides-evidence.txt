@@ -1,0 +1,34 @@
+### SI-06-DF-03 evidence: the clone's shared exclude hides every NEW file under specs/
+
+--- cat -n /Users/hayde/IdeaProjects/tla-spec-dev/.git/info/exclude (lines 19-28)
+     1	
+     2	# git-integration-repo bootstrap-home.sh: per-checkout Skill Manager
+     3	# home artefacts, created at /Users/hayde/IdeaProjects/wt-339-skills-propose. Local to this clone; the shared rules
+     4	# belong in .gitignore (references/skill-homes.md).
+     5	/specs/
+     6	
+     7	# git-integration-repo bootstrap-home.sh: per-checkout Skill Manager
+     8	# home artefacts, created at /Users/hayde/IdeaProjects/wt-343-plugin-evals. Local to this clone; the shared rules
+     9	# belong in .gitignore (references/skill-homes.md).
+    10	/evals/
+
+--- git check-ignore -v on this ticket's own evidence:
+/Users/hayde/IdeaProjects/tla-spec-dev/.git/info/exclude:23:/specs/	specs/results/epic-self-improvement-substrate/tickets/SI-06/graph-cliWorkflow.txt
+
+--- untracked files visible after writing 12 evidence files:
+(none -- every new file under specs/ is excluded)
+
+--- but the tree really does hold them:
+      13
+--- and tracked modifications still report normally:
+ M skills/discovery/SKILL.md
+ M skills/git-issue-workflow/SKILL.md
+ M skills/git-issue-workflow/references/complete.md
+ M skills/git-issue-workflow/references/epic-ticket.md
+ M skills/git-issue-workflow/references/validation-loop.md
+ M skills/git-issue/SKILL.md
+ M skills/git-issue/references/epic-assignment.md
+ M skills/git-issue/references/regression-close.md
+ M skills/git-issue/references/spec-workflow.md
+ M skills/test-graph/SKILL.md
+ M specs/results/deferred_findings_final.yaml

@@ -12,6 +12,13 @@ programme's evals; what it did was spend the ticket's remaining tokens. The
 spec ticket is a planning artifact, not the deliverable; the code and the
 regression graphs are.
 
+**What stayed red is sometimes a proposal, not a defect in your change.** When
+the thing that would not go green was the substrate — a command that could not
+run as written, a gate nothing could satisfy, an instruction that did not fit
+this repository — record it as a row in the PR's `## Skill changes proposed`
+section (`references/complete.md` §5a) instead of routing around it silently.
+One line, no extra run, and it is never a gate.
+
 **Parent-only:** for an integration repo, every command here runs at the
 integration **parent** worktree, which holds all constituent files as plain
 files. Do not run per-constituent specs or graphs during the ticket — that happens
