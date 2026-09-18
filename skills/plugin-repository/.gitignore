@@ -1,0 +1,20 @@
+.DS_Store
+*.swp
+
+# This checkout's own Skill Manager home and the three agent homes beside it.
+#
+# Created by git-issue-workflow's bootstrap-home.sh, which is the only
+# implementation of that sequence. Never committed: a home is machine-local
+# state (absolute paths in home.runtime.json, a pinned CLI, installed unit
+# trees), and committing one would hand every other checkout this machine's
+# paths.
+#
+# These are NOT the mechanism. bootstrap-home.sh keeps a checkout clean by
+# writing a MEASURED, per-checkout rule into .git/info/exclude, which needs no
+# commit to the repo being onboarded. These rules exist for everyone ELSE who
+# clones this repo, because that exclude rule is invisible to them.
+.skill-manager/
+.claude/
+.claude.json
+.codex/
+.gemini/

@@ -1,0 +1,33 @@
+
+# --- plugin repository additions -------------------------------------------
+#
+# Appended by plugin-repository's init-plugin-repo.sh on top of
+# git-integration-repo's root .gitignore scaffold. Parent-root rules ONLY: a
+# constituent's `git reset --hard` (refresh.sh) wipes anything placed inside
+# skills/<name>/, so integration-side ignores are always path-scoped from here.
+#
+# A constituent's own .gitignore is MORE specific than this file, so a negation
+# inside it wins. Confirm with `git check-ignore -v <path>` and read which file
+# it names.
+
+# per-checkout Skill Manager and agent homes — machine-local (absolute paths, a
+# pinned CLI, installed unit trees). Created by git-issue-workflow's
+# bootstrap-home.sh, never committed.
+.skill-manager/
+.claude/
+.claude.json
+.codex/
+.gemini/
+
+# skill-dev worktrees opened against contained skills
+skill-dev/
+
+# contained-skill build / dependency artifacts (path-scoped)
+skills/*/.venv/
+skills/*/venv/
+skills/*/node_modules/
+skills/*/target/
+skills/*/build/
+skills/*/dist/
+skills/**/__pycache__/
+skills/**/*.pyc

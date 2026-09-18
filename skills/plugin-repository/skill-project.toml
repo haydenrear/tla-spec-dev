@@ -1,0 +1,75 @@
+# Skill project manifest for plugin-repository.
+#
+# What this declares: the units an agent working IN THIS CHECKOUT needs. Every
+# tracked file here — SKILL.md, references/, scripts/, assets/,
+# skill-manager.toml — is skill-unit content, so the work done here is unit
+# authoring and the declared units are the authorities for it.
+#
+# It deliberately does NOT declare `plugin-repository` itself. A repo is its own
+# source of truth; installing it into its own home would give an agent two
+# copies of the same skill with no rule about which one it is editing.
+
+[project]
+name = "plugin-repository"
+version = "0.1.0"
+description = "Create and operate plugin repositories: skill repos bundled as the contained skills of one skill-manager plugin, changed and versioned as one unit, fanned back out to each skill's own repo."
+
+# --- THE HARD RUNTIME DEPENDENCY. scripts/plugin-repo-lib.sh sources this
+#     unit's integration-lib.sh, init-plugin-repo.sh and verify.sh shell out to
+#     its scaffolder and its verifier, and refresh.sh / propagate.sh — the two
+#     flows references/lifecycle.md sequences — are its scripts. Declared as a
+#     project dependency as well as a `skill_reference` because
+#     `skill_references` governs the INSTALL graph while this file governs what
+#     an agent working in this checkout gets, including inside every ticket
+#     worktree, whose home is a clone of this one. Without it, no script here
+#     runs and scripts/selftest.sh skips its whole LIVE phase ---
+
+[skills.git-integration-repo]
+source = "github:haydenrear/git-integration-skill"
+
+# --- arrives transitively as git-integration-repo's own hard reference, and
+#     named here anyway because an agent in THIS checkout uses it directly:
+#     `wt` / `skt ticket` is how a ticket in this repo gets a worktree, and its
+#     lib.sh is the bottom of the sourcing chain every script here stands on ---
+
+[skills.git-issue-workflow]
+source = "github:haydenrear/git-issue-workflow-skill"
+
+# --- the authoring authority. `skt` is a PLUGIN whose contained skills are
+#     `skt` (orientation, home tiers, publish, ticket lifecycle) and
+#     `unit-authoring` (SKILL.md frontmatter, skill-manager.toml, plugin.json,
+#     contained-skill semantics, the edit -> push -> sync loop). Its
+#     references/plugins.md is the authority this skill's references/layout.md
+#     specializes and never restates.
+#
+#     Note the coordinate: the repo is still `skill-publisher-skill` while the
+#     installed unit is the `skt` plugin. That is this skill's own subject
+#     matter — a skill repo that became a plugin's contained skill, keeping its
+#     repo name and changing its unit identity — and it is why every table in
+#     references/migration.md distinguishes the coord from the unit name ---
+
+[skills.skt]
+source = "github:haydenrear/skt"
+
+# --- required BY skt's unit-authoring (its SKILL.md `skill-imports` names
+#     skill-manager), and substantive here on its own: `home clone/policy/
+#     describe/drift`, `install`, `sync`, `bind` and `project resolve` are the
+#     surface every claim in references/lifecycle.md and references/migration.md
+#     is made about. Unit `skill_references` are followed automatically;
+#     markdown `skill-imports` are not, and `project resolve` refuses the whole
+#     resolve with "references missing unit" until the imported unit is
+#     declared ---
+
+[skills.skill-manager]
+source = "github:haydenrear/skt"
+
+# --- REPO-SPECIFIC DECISION: nothing else is declared. The tracked content is
+#     markdown plus POSIX shell and stdlib Python — no specs/ tree, no
+#     test_graph project, no deployable — and scripts/selftest.sh is
+#     self-contained (it needs git and the git-integration-repo dependency, and
+#     skips its LIVE phase loudly without the latter). Declaring test-graph
+#     would transitively pull deploy-helm and its ~555 MB skill-script venvs
+#     into every home cloned from this one, for no check this repo runs.
+
+# --- no [[vendored]] block: this repo tracks no symlinks and no content owned
+#     by another unit. Verify with `git ls-files -s | grep ^120000` -> 0 entries.
