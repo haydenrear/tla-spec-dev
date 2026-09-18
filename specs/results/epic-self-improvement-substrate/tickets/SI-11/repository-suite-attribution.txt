@@ -1,0 +1,28 @@
+Repository suite — SI-11, compared BY NAME (never by count).
+
+BASELINE (before first edit, 994f650c): 10 failed, 1594 passed, 5 skipped.
+AFTER:                                  10 failed, 1601 passed, 5 skipped.
+
+NEW failures vs baseline:   NONE
+FIXED vs baseline:          NONE
+
+The +7 passed are this ticket's own new tests
+(tests/test_plugin_layout_resolution.py: 6 per-skill params + 1 binding check).
+
+Mid-ticket this suite went to 11 failed: moving the skill-script installers to
+the plugin root broke tests/test_tla_spec_dev_cli.py::
+test_skill_script_installs_tla_spec_dev_wrapper, which drove the installer at
+the old path with SKILL_NAME=spec-double-2. Repaired in 6ebb8948; it is back to
+the baseline 10 above.
+
+The 10 baseline failures, by name:
+  tests/test_architecture_tags.py::test_the_same_tag_control_holds
+  tests/test_corpus_diagnostics.py::test_cli_passes_on_the_committed_example_corpus
+  tests/test_example_drivers_write_inside_spec_tree.py::test_a_validation_run_does_not_generate_over_a_committed_corpus
+  tests/test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces
+  tests/test_negative_corpus_adapter_conformance.py::test_the_negative_corpus_names_its_arguments_as_the_committed_corpus_does
+  tests/test_source_citations.py::test_every_line_citation_resolves_to_the_line_it_cites[specs/current/spec_manifest.yaml]
+  tests/test_source_citations.py::test_every_line_citation_resolves_to_the_line_it_cites[specs/desired_program_model/spec_manifest.yaml]
+  tests/test_source_citations.py::test_every_line_citation_resolves_to_the_line_it_cites[specs/program_model/spec_manifest.yaml]
+  tests/test_ticket_retirement.py::test_repository_canonical_delivered_plan_has_matching_close_receipts
+  tests/test_verdict_schema.py::test_the_corpus_gate_states_its_verdict_as_data
