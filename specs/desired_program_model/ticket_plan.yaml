@@ -4,10 +4,27 @@
 version: 1
 name: self-improvement-substrate
 updated: "2026-09-17"
-schedule_revision: 2
+schedule_revision: 3
 purpose: "Make tla-spec-dev one plugin and one loop: the substrate improves because of what agents ran into while using it, and the epic agent is the one writer of the model, the matrix, the scorecard row and the plugin."
 
 planning_rules:
+  # ADDED AT REVISION 3, 2026-09-18. SI-13 and SI-15 land work in the
+  # skill-manager repository (git@github.com:haydenrear/skill-manager.git),
+  # which is a separate checkout and a separate pull request. Every piece of
+  # this epic's wave-close machinery -- conflict_keys, the review artifact, the
+  # cumulative backlog, the promotion order -- is scoped to THIS repository and
+  # does not see that one. The gap was found while drafting those two tickets,
+  # not at their wave, which is the only reason it is written here rather than
+  # discovered at wave 7.
+  cross_repo_rule: >-
+    A ticket whose scope reaches skill-manager opens a SECOND pull request in
+    that repository and names it in its own PR body: the repo, the branch, the
+    PR number, and what changed there. The epic agent records both PRs in the
+    wave review artifact and merges them in the promotion order the plan
+    declares. conflict_keys govern this repository only; two tickets touching
+    the same file in skill-manager is a collision the plan cannot see, so no two
+    tickets in the same wave may carry skill-manager scope. SI-13 (wave 7) and
+    SI-15 (wave 9) are deliberately in different waves for this reason.
   current_model_rule: Update specs/current after each production slice lands as a whole-program working copy of specs/program_model, not a ticket projection.
   unit_validation_rule: Run current-model TLC and adapter/unit tests before adding graph execution.
   graph_rule: Add graph or integration nodes only after current-model validation passes.
@@ -197,16 +214,69 @@ epic_goals:
 
   - id: GOAL-evals-one-command
     kind: integration
-    statement: "An eval for any skill in the plugin runs against this checkout in one command, without a shim plugin or a units-override file."
-    metric: "eval cases runnable in one command, and how many skills in the plugin have at least one"
+    statement: "Every eval this development loop runs lives in one place -- the plugin's evals/ -- and runs in one command, without a shim plugin, a units-override file, or a second harness in another repository."
+    metric: "eval cases runnable in one command from the plugin, and how many of the loop's surfaces have at least one"
     harness: "claude plugin eval <plugin dir> over the plugin's own evals/, each case reported green, red, or UNDECIDED"
     baseline:
       value: "2 cases, reachable only through examples/agent_integration/eval-plugin (a symlink shim built because plugin eval refuses a directory over 20,000 entries and specs/ alone is 20,493); the wide lane needs units-override.txt"
       measured_at: "b7a7d203"
       evidence: "specs/results/epic-self-improvement-substrate/baseline/kickoff.md"
-    target: "at least one case per nested skill, all runnable in one command against the checkout; every case green or explicitly UNDECIDED with a reason"
+    # OWNER SCOPE WIDENED, 2026-09-18, before wave 5. The goal used to stop at
+    # "any skill in the plugin". It now covers the whole loop, because the
+    # loop's evals are currently split across two repositories and two
+    # harnesses that do not share a runner:
+    #
+    #   this plugin      7 cases under evals/, run by evals/run.sh, which
+    #                    stages a 6,264-entry view because `claude plugin eval`
+    #                    refuses a directory over 20,000 entries.
+    #   skill-manager    63 cases under specs/evals/harness/evals/, run by
+    #                    eval_run_case() in a 43,330-byte lib.sh, against a
+    #                    branched home built per case.
+    #
+    # 70 cases, two runners, two environments, one loop. `claude plugin eval`
+    # runs on a PLUGIN; skill-manager is not one (it has no .claude-plugin/),
+    # and tla-spec-dev is. So the cases move to the plugin rather than the
+    # plugin growing a second harness to meet them. SI-15 performs the move.
+    #
+    # MEASURED WHILE WIDENING, and it is a defect not a detail: skill-manager's
+    # specs/evals/README.md documents `./build-env.sh "$SKILL_MANAGER_HOME"`
+    # and `./run.sh 'epic-*'` as THE way to run that lane. Neither file exists
+    # in specs/evals/harness/. The documented one-command entry is already
+    # fiction on that side, which is part of why this goal is worth widening.
+    baseline_widened:
+      value: "70 cases across two repositories and two runners: 7 in this plugin's evals/ (staged-view runner), 63 in skill-manager's specs/evals/harness/evals/ (branched-home runner). Neither of skill-manager's two documented entry points, build-env.sh and run.sh, exists."
+      measured_at: "45a42b54"
+      evidence: "specs/results/epic-self-improvement-substrate/goals/GOAL-evals-one-command"
+    target: "all of the loop's cases under the plugin's evals/, runnable in one command; at least one case per nested skill; every case green or explicitly UNDECIDED with a reason; no units-override file and no second harness"
     evaluation_ticket: "SI-08"
     evidence_root: "specs/results/epic-self-improvement-substrate/goals/GOAL-evals-one-command"
+
+  - id: GOAL-pinned-eval-toolchain
+    kind: integration
+    statement: "An eval run declares the toolchain it ran against. The skt version is pinned and recorded per run, and a full-suite run asks which version to use rather than silently taking whatever the operator's home happens to hold."
+    metric: "eval runs whose recorded evidence names the exact skt ref they ran against, over eval runs performed"
+    harness: "the suite's own run record, plus a read of the case scaffold: the pinned ref must appear in the repository, not only in a run log"
+    baseline:
+      value: "0 of the loop's runs record a toolchain version. skt resolves from the operator's live home at gitRef 'main' (gitHash 286a3694a815c6f6a9e76bffcb03a1fd8100cce3, installed 2026-09-14), and 'main' is a moving target; nothing in either harness pins it, asks for it, or writes it next to a score."
+      measured_at: "45a42b54"
+      evidence: "specs/results/epic-self-improvement-substrate/goals/GOAL-pinned-eval-toolchain"
+    # THE HARD CONSTRAINT, measured before this goal was written, so that the
+    # ticket is not asked to discover it: `claude plugin eval` HAS NO VERSION
+    # PINNING FOR PLUGIN DEPENDENCIES. Its `plugins:` field takes relative
+    # filesystem paths only -- no git ref, no marketplace constraint, no
+    # lockfile, and no manifest-level "this plugin depends on that one".
+    #
+    # So the pin cannot be DECLARED; it has to be MATERIALISED. The shape that
+    # works is: a scaffold step clones skt at a recorded ref into a fixture
+    # directory, and the case points `plugins:` at that path. The ref lives in
+    # the repository under change control, which is what makes a run
+    # reproducible and a score comparable across weeks.
+    #
+    # The "asks which version" clause is therefore a RUNNER obligation, not a
+    # schema one: there is no field for the CLI to prompt about.
+    target: "every full-suite run records the skt ref it used; the ref is pinned in the repository rather than resolved from the operator's home; the runner asks which version before a full run and refuses to guess silently"
+    evaluation_ticket: "SI-08"
+    evidence_root: "specs/results/epic-self-improvement-substrate/goals/GOAL-pinned-eval-toolchain"
 
 tickets:
   - id: SI-01
@@ -277,7 +347,7 @@ tickets:
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/335"
     schedule_revision: 1
     depends_on: ["SI-01"]
-    blocks: ["SI-04", "SI-05", "SI-06", "SI-08", "SI-10", "SI-11", "SI-12"]
+    blocks: ["SI-04", "SI-05", "SI-06", "SI-08", "SI-10", "SI-11", "SI-12", "SI-13"]
     wave: 2
     promotion_order: 20
     promotion_predecessor: "SI-01"
@@ -721,7 +791,7 @@ tickets:
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/359"
     schedule_revision: 2
     depends_on: ["SI-02"]
-    blocks: ["SI-08", "SI-09"]
+    blocks: ["SI-08", "SI-09", "SI-13"]
     wave: 5
     promotion_order: 85
     promotion_predecessor: "SI-07"
@@ -818,16 +888,168 @@ tickets:
         - "No wide-lane budget case regresses."
       evidence: []
 
+  - id: SI-13
+    title: "Test graphs for both products: tla-spec-dev and skill-manager, as one validation surface"
+    status: planned
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/360"
+    schedule_revision: 3
+    depends_on: ["SI-02", "SI-12"]
+    blocks: ["SI-14", "SI-15", "SI-08"]
+    wave: 7
+    promotion_order: 95
+    promotion_predecessor: "SI-09"
+    role: implementation
+    objective: "Bring both products' behavioural graphs to a state where they run and are believed, before the evals move. So much moves across both repositories in SI-14 and SI-15 that a graph surface which does not run is the difference between a migration that is verified and one that is asserted."
+    desired_actions: []
+    implementation_scope:
+      - "tla-spec-dev: the three graphs (specWorkflow, cliWorkflow, effectProviderExamples) run from the plugin layout after SI-01/SI-02/SI-11 moved every path"
+      - "skill-manager: test_graph/ registers 32 testGraph(...) tasks while its own header comment says 'Two integration test graphs for skill-manager' and names smoke and sponsored -- establish which of the 32 run, which are opt-in, and which are dead, and say so"
+      - "one command per product that runs the graphs meant to be run, with the opt-in ones (browser-auth, password-reset, hyper-experiments and any other third-party-reaching graph) excluded by default and named"
+      - "the stale header comment repaired, because it is the first thing a reader of that file believes"
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests: []
+      graph_after_unit_pass:
+        - "specWorkflow"
+        - "cliWorkflow"
+        - "effectProviderExamples"
+    conflict_keys:
+      production:
+        - "test_graph/**"
+      tla: []
+      adapters: []
+      test_graph:
+        - "test_graph/**"
+      workflow: []
+    goals:
+      - goal: GOAL-evals-one-command
+        contribution: enabling
+        expected_effect: "the validation surface the eval migration will be judged against is known to run before anything moves"
+        local_signal: "each product has one command that runs its graphs; every graph is reported run, opt-in, or dead, with a reason"
+      - goal: GOAL-no-new-gates
+        contribution: guard
+        expected_effect: "a graph that cannot run is reported, not turned into a refusal path"
+        local_signal: "N/A: no check is added by this ticket"
+    acceptance:
+      commands: []
+      assertions:
+        - "Every one of the 32 registered graphs is classified run / opt-in / dead, with the reason recorded."
+        - "No graph is claimed green without its report; a graph that does not run is UNDECIDED, not passed."
+      evidence: []
+
+  - id: SI-14
+    title: "Pin the eval toolchain and curate the plugin home: skt at a recorded ref, skill-manager migration carried"
+    status: planned
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/361"
+    schedule_revision: 3
+    depends_on: ["SI-13"]
+    blocks: ["SI-15", "SI-08"]
+    wave: 8
+    promotion_order: 100
+    promotion_predecessor: "SI-13"
+    role: implementation
+    objective: "Make the toolchain an eval runs against a declared, pinned, recorded thing, and curate the Claude plugin home so the units the loop needs are present by intent rather than by accident."
+    desired_actions: []
+    implementation_scope:
+      - "skt pinned at a recorded git ref for eval use; the ref lives in the repository under change control, NOT resolved from the operator's home at run time"
+      - "the pin is MATERIALISED, not declared: `claude plugin eval` has no version pinning for plugin dependencies -- `plugins:` takes relative filesystem paths only. A scaffold step clones skt at the recorded ref into a fixture directory and the case points at that path."
+      - "the runner asks which skt version a full-suite run is to use, and refuses to guess silently; a single-case run may default, and says what it defaulted to"
+      - "the Claude plugin home curated: skt plugin present, plus whichever other plugins and skills the loop's cases require, each one named and justified"
+      - "the skt / skill-manager code-repository migration this implies, carried rather than deferred -- skill-manager has no .claude-plugin/ and is not a plugin"
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests: []
+      graph_after_unit_pass: []
+    conflict_keys:
+      production:
+        - "evals/lib/**"
+        - "evals/bin/**"
+        - "skill-project.toml"
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    goals:
+      - goal: GOAL-pinned-eval-toolchain
+        contribution: direct
+        expected_effect: "runs recording their skt ref go from 0 to all of them; the ref moves from the operator's home to the repository"
+        local_signal: "the recorded ref is readable in the checkout; a full-suite run asks before it starts"
+      - goal: GOAL-one-unit
+        contribution: enabling
+        expected_effect: "the plugin home stops carrying units nobody named"
+        local_signal: "every unit in the curated home is named and justified"
+    acceptance:
+      commands: []
+      assertions:
+        - "The skt ref an eval runs against is readable in the repository, not only in a run log."
+        - "A full-suite run asks which skt version to use; it does not silently take the operator's home."
+        - "Every unit in the curated plugin home is there because something names it."
+      evidence: []
+
+  - id: SI-15
+    title: "One place for every eval: move skill-manager's 63 cases into the plugin and run all 70 together"
+    status: planned
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/362"
+    schedule_revision: 3
+    depends_on: ["SI-13", "SI-14"]
+    blocks: ["SI-08"]
+    wave: 9
+    promotion_order: 110
+    promotion_predecessor: "SI-14"
+    role: implementation
+    objective: "Move every eval the development loop runs into the plugin's evals/, so that one command runs all of them against one environment. `claude plugin eval` runs on a plugin; this repository is one and skill-manager is not, which is why the cases move here rather than a second harness being built there."
+    desired_actions: []
+    implementation_scope:
+      - "skill-manager specs/evals/harness/evals/** (63 cases) moved into this plugin's evals/, joined with the 7 already here"
+      - "the two runners reconciled into one: this plugin's evals/run.sh staged view, and skill-manager's eval_run_case() branched home (lib.sh, 43,330 bytes) -- decide which environment each case actually needs and say why"
+      - "skill-manager's units-template/ (toolchain, fixture) and wide/ lane carried or retired, each with a reason"
+      - "the skt fixture from SI-14 consumed by the moved cases"
+      - "skill-manager's specs/evals/README.md reconciled with reality -- it documents build-env.sh and run.sh, neither of which exists"
+      - "cases that reference spec-double-compiler by its retired name re-addressed to spec-double-2 / tla-spec-dev"
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests: []
+      graph_after_unit_pass: []
+    conflict_keys:
+      production:
+        - "evals/**"
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    goals:
+      - goal: GOAL-evals-one-command
+        contribution: direct
+        expected_effect: "70 cases across two repositories and two runners become one evals/ tree run by one command"
+        local_signal: "one command runs every case; no units-override file remains; no case is reachable only from the other repository"
+      - goal: GOAL-pinned-eval-toolchain
+        contribution: enabling
+        expected_effect: "the moved cases consume the pinned skt fixture rather than the operator's home"
+        local_signal: "no moved case resolves skt from $SKILL_MANAGER_HOME at run time"
+    acceptance:
+      commands: []
+      assertions:
+        - "Every case that ran before the move runs after it, or is explicitly retired with a reason."
+        - "A case is never reported green because it stopped running; compare case NAMES, not counts."
+        - "No case reaches the operator's live root home."
+      evidence: []
+
   - id: SI-08
     title: "Evaluation: run the improvement card on this epic and a blind adopter, and decide the goals"
     status: planned
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/341"
     schedule_revision: 1
-    depends_on: ["SI-01", "SI-02", "SI-03", "SI-04", "SI-05", "SI-06", "SI-07", "SI-09", "SI-10", "SI-11", "SI-12"]
+    depends_on: ["SI-01", "SI-02", "SI-03", "SI-04", "SI-05", "SI-06", "SI-07", "SI-09", "SI-10", "SI-11", "SI-12", "SI-13", "SI-14", "SI-15"]
     blocks: []
-    wave: 7
-    promotion_order: 100
-    promotion_predecessor: "SI-09"
+    wave: 10
+    promotion_order: 120
+    promotion_predecessor: "SI-15"
     role: evaluation
     owns_goals:
       - GOAL-one-unit
@@ -837,6 +1059,7 @@ tickets:
       - GOAL-no-new-gates
       - GOAL-progressive-disclosure
       - GOAL-evals-one-command
+      - GOAL-pinned-eval-toolchain
     objective: "Measure every goal on the integrated epic tip from a fresh clone, then run a blind adopter through one small ticket under the plugin and score its PR on the improvement card. Report baseline -> measured -> target per clause; never edit a target."
     desired_actions: []
     implementation_scope:
@@ -882,6 +1105,10 @@ tickets:
         expected_effect: "decides the goal; adds no behavioral delta"
         local_signal: "N/A: this ticket is the measurement"
       - goal: GOAL-evals-one-command
+        contribution: guard
+        expected_effect: "decides the goal; adds no behavioral delta"
+        local_signal: "N/A: this ticket is the measurement"
+      - goal: GOAL-pinned-eval-toolchain
         contribution: guard
         expected_effect: "decides the goal; adds no behavioral delta"
         local_signal: "N/A: this ticket is the measurement"
