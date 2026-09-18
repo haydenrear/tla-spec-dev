@@ -1722,6 +1722,106 @@ check "$(yesno test "$WTNEW_RC" = 0)" \
   "wt new exited $WTNEW_RC after a clean bootstrap:
 $(command sed 's/^/        /' "$SCRATCH/clean-wtnew.out")"
 
+# ------------- the exclude rule is never written for a path the repo TRACKS
+#
+# SI-06-DF-03, and it is the most expensive defect this suite has been asked to
+# cover, because its damage is silent and retroactive.
+#
+# `ensure_run_artifacts_ignored` writes a rule for every top-level entry git
+# reports as UNTRACKED. Git reports a DIRECTORY as untracked when no tracked
+# file in it is present in the working tree — which happens to a long-tracked
+# directory during a sparse checkout, an interrupted merge, or a worktree
+# created from a base that predates it. The bootstrap then wrote `/specs/` and
+# `/evals/` into `$GIT_COMMON_DIR/info/exclude`, and because that file is per
+# CLONE rather than per worktree, the rule applied to the main checkout and all
+# nine linked worktrees at once.
+#
+# What it cost: `git add -A` silently skips an excluded path while `git status`
+# keeps reporting tracked files normally, so nothing looked wrong anywhere. One
+# ticket lost 40 files of its own deliverable under `evals/`; two others lost 12
+# between them. Every agent involved believed it had committed its evidence.
+#
+# Why an exit code cannot be the assertion: the bootstrap SUCCEEDS in both the
+# defective and the fixed case — it is supposed to — so the fact is WHICH RULES
+# GOT WRITTEN. Both directions are asserted, and the second is what stops a fix
+# that simply writes nothing: the tracked directory must NOT be excluded, and
+# the home artefacts must still BE excluded, in the same run.
+
+step "bootstrap-home.sh never excludes a directory the repository tracks"
+
+TRK="$SCRATCH/tracked-dir-proj"
+mkdir -p "$TRK"
+git -C "$TRK" init -q -b main
+git -C "$TRK" config user.email selftest@example.invalid
+git -C "$TRK" config user.name "selftest"
+printf 'x\n' > "$TRK/README.md"
+# A tracked top-level directory, exactly like `specs/` — committed, and then
+# EMPTIED from the working tree so git reports it as untracked on the next
+# status. That is the state the defect needs, and reproducing it honestly is the
+# whole fixture: a directory that is merely present would never reach the loop.
+mkdir -p "$TRK/specs"
+printf 'model\n' > "$TRK/specs/keep.txt"
+git -C "$TRK" add -A
+git -C "$TRK" -c commit.gpgsign=false commit -qm "fixture with a tracked specs/ directory"
+command rm -rf "$TRK/specs"
+# Re-create it with only UNTRACKED content, which is what a ticket writing new
+# evidence into a tracked directory actually looks like.
+mkdir -p "$TRK/specs"
+printf 'new evidence nobody wants hidden\n' > "$TRK/specs/evidence.txt"
+
+# Non-vacuity, and the section rests on it: git must really be calling this
+# tracked directory untracked. If it does not, the loop never sees `specs/` and
+# a passing result below would prove nothing at all.
+git -C "$TRK" status --porcelain > "$SCRATCH/trk-before.txt"
+check "$(yesno command grep -q '^?? specs/$' "$SCRATCH/trk-before.txt")" \
+  "git_really_does_report_the_tracked_specs_directory_as_untracked" \
+  "the fixture did not reproduce the precondition — git does not report 'specs/' as untracked,
+        so ensure_run_artifacts_ignored never considers it and this section is vacuous:
+$(command sed 's/^/        /' "$SCRATCH/trk-before.txt")"
+
+TRK_RC=0
+bare bash "$SCRIPT_DIR/bootstrap-home.sh" --root "$TRK" \
+  > "$SCRATCH/trk.log" 2>&1 || TRK_RC=$?
+check "$(yesno test "$TRK_RC" = 0)" \
+  "the_tracked_directory_fixture_bootstrapped" \
+  "bootstrap exited $TRK_RC; the exclude assertions would be about a run that did nothing. See $SCRATCH/trk.log"
+
+TRK_EXCL="$TRK/.git/info/exclude"
+
+# THE ASSERTION. `grep -xF` so a mention inside the header comment — which names
+# $ROOT, and on a real run names paths containing the word — cannot satisfy it.
+# Spelled with `test -z` on the captured match rather than `absent_pattern`,
+# because this suite's `absent_pattern` is a regex `grep -q` and would treat the
+# `/` and `.` in a rule as pattern characters.
+TRK_SPECS_RULE="$(command grep -xF '/specs/' "$TRK_EXCL" 2>/dev/null || true)"
+check "$(yesno test -z "$TRK_SPECS_RULE")" \
+  "a_tracked_directory_is_never_written_into_the_per_clone_exclude_file" \
+  "bootstrap-home.sh wrote \`/specs/\` into $TRK_EXCL. That file is per CLONE, so this rule
+        applies to the main checkout and every linked worktree, and git will silently skip new
+        files under specs/ in \`git add -A\` while git status keeps looking healthy:
+$(command sed 's/^/        /' "$TRK_EXCL")"
+
+# The consequence, end to end, because the exclude file is only interesting for
+# what it does to `git add`. This is the check that would have caught the 40
+# lost files, and it does not depend on knowing which rule was written.
+git -C "$TRK" add -A
+# Captured first: `yesno` runs a COMMAND, so a pipeline cannot be passed to it —
+# the pipe would bind to yesno's own output and the check would measure nothing.
+TRK_STAGED="$(git -C "$TRK" diff --cached --name-only 2>/dev/null || true)"
+check "$(yesno contains 'specs/evidence.txt' "$TRK_STAGED")" \
+  "git_add_still_stages_new_files_under_the_tracked_directory" \
+  "\`git add -A\` did not stage specs/evidence.txt — new work under a tracked directory is
+        invisible to the command every ticket ends with, and nothing printed a warning"
+
+# The other direction, in the SAME run: a fix that stopped writing rules
+# altogether would satisfy every check above. The home artefacts must still be
+# excluded, because that is what keeps `wt new` from refusing on a dirty tree.
+check "$(yesno command grep -qxF '/.skill-manager/' "$TRK_EXCL")" \
+  "the_home_artefacts_are_still_excluded_in_the_same_run" \
+  "the guard suppressed the rules the mechanism exists to write — /.skill-manager/ is not in
+        $TRK_EXCL, so the bootstrap no longer leaves the tree clean:
+$(command sed 's/^/        /' "$TRK_EXCL")"
+
 # ------------------------------- a refusal with nowhere to go names a command
 #
 # The one path a genuinely fresh machine takes: no `~/.skill-manager` at all.
@@ -1959,6 +2059,91 @@ check "$(yesno contains "$LOC_REPO" "$(cat "$SCRATCH/loc-repo.err")")" \
   "the_announcement_names_the_copy_that_actually_ran" \
   "stderr does not name $LOC_REPO, so the announcement cannot be used to tell the copies apart:
 $(command sed 's/^/        /' "$SCRATCH/loc-repo.err")"
+
+# ------------------- the SAME locator, against the layout a plugin install produces
+#
+# SI-02 added rungs 4b and 5b so `agent-home.sh` could find this skill at
+# `<home>/plugins/<plugin>/skills/git-issue-workflow/`, which is where a
+# contained skill's bytes actually land. Nothing here exercised them: the
+# fixture above builds a standalone home only, and the note at the top of this
+# section said rung 5b was "covered by the live homes rather than here".
+#
+# It was not covered. A live home covers 5b only while some home on the machine
+# happens to carry the plugin, which is a property of the operator's laptop and
+# not of this suite — and the failure mode is silent in the way that matters:
+# with no standalone copy present the locator finds NOTHING, and "no candidate
+# could do the job" reads exactly like a stale install. SI-02-DF-02 filed it;
+# SI-11 is the ticket that could not afford it, because every fix in SI-11 is a
+# rung and this is the only suite that would notice a missing one.
+#
+# Same decoys, same markers, same assertions — only the layout changes, so a
+# difference in outcome is attributable to the layout and nothing else.
+
+step "agent-home.sh finds the bootstrap inside a PLUGIN, not only at the standalone rung"
+
+PLOC="$SCRATCH/locator-plugin"
+PLOC_HOME="$SCRATCH/locator-plugin-home"
+# The bundled layout: plugins/<plugin>/skills/git-issue-workflow/, rung 5b.
+# Deliberately NO standalone copy at $PLOC_HOME/.skill-manager/skills/... — if
+# one existed, rung 5 would answer first and this section would prove nothing
+# about 5b at all.
+PLOC_PLUGIN="$PLOC_HOME/.skill-manager/plugins/tla-spec-dev/skills/git-issue-workflow/scripts/bootstrap-home.sh"
+PLOC_STANDALONE="$PLOC_HOME/.skill-manager/skills/git-issue-workflow/scripts/bootstrap-home.sh"
+PLOC_REPO="$PLOC/scripts/bootstrap-home.sh"
+mkdir -p "$PLOC/scripts" "$PLOC_HOME"
+command cp "$SCRIPT_DIR/agent-home.sh" "$PLOC/scripts/agent-home.sh"
+git -C "$PLOC" init -q -b main
+git -C "$PLOC" config user.email selftest@example.invalid
+git -C "$PLOC" config user.name "selftest"
+printf 'fixture\n' > "$PLOC/README.md"
+git -C "$PLOC" add -A
+git -C "$PLOC" -c commit.gpgsign=false commit -qm "fixture"
+
+plocbare() { env -u SKILL_MANAGER_HOME HOME="$PLOC_HOME" SKILL_MANAGER_CLI="$CLI" "$@"; }
+
+# Non-vacuity, and this is the assertion the whole section rests on: with the
+# plugin copy NOT yet planted the locator must fail. If it succeeded here, some
+# other rung is answering and every check below would be measuring that instead.
+PLOC_EMPTY_RC=0
+( cd "$PLOC" && plocbare bash "$PLOC/scripts/agent-home.sh" ) > "$SCRATCH/ploc-empty.out" 2> "$SCRATCH/ploc-empty.err" \
+  || PLOC_EMPTY_RC=$?
+check "$(yesno test "$PLOC_EMPTY_RC" != 0)" \
+  "the_plugin_fixture_really_is_empty_before_the_plugin_copy_is_planted" \
+  "agent-home.sh exited 0 with no bootstrap copy anywhere — some other rung is answering,
+        so the plugin-rung checks below would prove nothing:
+$(command sed 's/^/        /' "$SCRATCH/ploc-empty.err")"
+
+# Now plant ONLY the plugin-contained copy.
+make_decoy "$PLOC_PLUGIN" capable plugin-fresh
+PLOC_P_RC=0
+( cd "$PLOC" && plocbare bash "$PLOC/scripts/agent-home.sh" ) > "$SCRATCH/ploc-plugin.out" 2> "$SCRATCH/ploc-plugin.err" \
+  || PLOC_P_RC=$?
+check "$(yesno command grep -q 'RAN:plugin-fresh' "$SCRATCH/ploc-plugin.out")" \
+  "a_capable_copy_contained_in_a_plugin_is_found_and_run" \
+  "agent-home.sh exited $PLOC_P_RC and never reached the plugin-contained copy at
+        $PLOC_PLUGIN — rung 5b does not resolve, so a home that installed this skill
+        as part of a plugin has no bootstrap at all:
+$(command sed 's/^/        /' "$SCRATCH/ploc-plugin.err")"
+
+check "$(yesno contains "$PLOC_PLUGIN" "$(cat "$SCRATCH/ploc-plugin.err")")" \
+  "the_run_names_the_plugin_contained_copy_it_chose" \
+  "the copy that ran was inside a plugin and stderr never named it, so the
+        announcement cannot be used to tell the layouts apart:
+$(command sed 's/^/        /' "$SCRATCH/ploc-plugin.err")"
+
+# Precedence, with BOTH layouts capable and distinguishable. Standalone is rung
+# 5 and the plugin is 5b, so standalone must win — the same order agent-home.sh
+# declares. A test that only planted one copy cannot see an inverted order, and
+# inverting it is exactly what `ls -d ... | head -1` would have done here.
+make_decoy "$PLOC_STANDALONE" capable plugin-standalone
+PLOC_B_RC=0
+( cd "$PLOC" && plocbare bash "$PLOC/scripts/agent-home.sh" ) > "$SCRATCH/ploc-both.out" 2> "$SCRATCH/ploc-both.err" \
+  || PLOC_B_RC=$?
+check "$(yesno command grep -q 'RAN:plugin-standalone' "$SCRATCH/ploc-both.out")" \
+  "the_standalone_rung_still_wins_over_the_plugin_contained_one" \
+  "with both layouts capable the locator ran the wrong one (exit $PLOC_B_RC); rung 5
+        must precede 5b:
+$(command sed 's/^/        /' "$SCRATCH/ploc-both.out")"
 
 # ------------------- agent-home.sh bootstraps the CALLER'S checkout, not its own
 #

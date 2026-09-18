@@ -5,16 +5,71 @@
 # `specs/` (append-only model and history), `tests/`, `examples/`,
 # `test_graph/`.
 #
-# Dependencies stay on the CONTAINED SKILL (`skills/spec-double-2/
-# skill-manager.toml`) rather than here. Plugin-level deps exist to
-# deduplicate a CLI or MCP server shared by several contained skills; there is
-# one contained skill today, and `tlc2` / `tla-spec-dev` are its own. Both are
-# `skill-script:` installers resolved under `<skill>/skill-scripts/`, which is
-# where they now live.
-#
 # `[plugin] name` and `version` MUST agree with `.claude-plugin/plugin.json`.
+#
+# Where the CLI dependencies live, and why it is not where you would guess
+# ----------------------------------------------------------------------
+# The comment that used to sit here said deps "stay on the CONTAINED SKILL
+# (skills/spec-double-2/skill-manager.toml) ... Both are `skill-script:`
+# installers resolved under `<skill>/skill-scripts/`, which is where they now
+# live." The last clause was an assumption, and it was false. SI-11 measured it
+# (SIS-W2-F-05): installing this plugin from git reports
+#
+#     ✓ cli: 15 installed, 2 failed
+#     ✗ cli: tlc2 install failed for tla-spec-dev — skill-script not found:
+#           <home>/skills/tla-spec-dev/skill-scripts/install-tlc2.sh
+#
+# on EVERY install into a fresh home. A `skill-script:` installer is resolved by
+# the INSTALLED UNIT's name, never by the declaring skill's: skill-manager
+# unions every contained skill's `cli_dependencies` into one flat list on the
+# plugin (`PluginUnit.unionCli`) and the `CliDependency` record carries no
+# field saying which skill declared it, so by the time the installer backend
+# runs, `spec-double-2` is not a name anybody still has. The backend then probes
+# exactly two rungs — `<home>/skills/<unit>/skill-scripts/` and
+# `<home>/plugins/<unit>/skill-scripts/` — and there is no
+# `plugins/<plugin>/skills/<skill>/skill-scripts/` rung anywhere in it.
+#
+# So a `skill-script:` dep on a contained skill has NO working spelling, and the
+# error names the standalone rung it probed first, which is why this read as a
+# migration leftover rather than as the unsupported shape it is.
+#
+# The deps therefore live HERE, at the plugin level, with their installers at
+# the plugin root's `skill-scripts/` — the shape skill-manager's own docs
+# prescribe and the one its `skt` plugin already ships
+# (`plugins/skt/skill-scripts/install-skt.sh`, which installs cleanly in the
+# same run that fails these two). This is a genuine relocation of ownership, not
+# a path tweak to satisfy a lookup: `tlc2` and the `tla-spec-dev` CLI are the
+# whole bundle's toolchain — the workflow skills drive that CLI too — so the
+# plugin is the honest owner even setting the resolver aside.
+#
+# The resolver gap is still a defect and is filed as SI-11-DF-01 against
+# skill-manager: `references/dependencies.md` tells authors to "declare deps as
+# close as possible to the capability that uses them" with no carve-out saying
+# `skill-script:` is the one backend that cannot be. Until a contained-skill
+# rung exists, this comment is the carve-out.
+#
+# `SKILL_DIR` changes meaning with the rung: on the plugin rung it is the PLUGIN
+# root, not the skill's. `install-tla-spec-dev.sh` was updated to spell the
+# entrypoint `$SKILL_DIR/skills/spec-double-2/scripts/tla_spec_dev.py`
+# accordingly; `install-tlc2.sh` never used `SKILL_DIR`.
 
 [plugin]
 name = "tla-spec-dev"
 version = "0.1.0"
 description = "The TLA+ program-model toolchain: the spec-double-2 skill, the tla-spec-dev CLI, and the workflow skills that drive them, versioned and improved as one unit."
+
+[[cli_dependencies]]
+spec = "skill-script:tlc2"
+on_path = "tlc2"
+
+[cli_dependencies.install.any]
+script = "install-tlc2.sh"
+binary = "tlc2"
+
+[[cli_dependencies]]
+spec = "skill-script:tla-spec-dev"
+on_path = "tla-spec-dev"
+
+[cli_dependencies.install.any]
+script = "install-tla-spec-dev.sh"
+binary = "tla-spec-dev"

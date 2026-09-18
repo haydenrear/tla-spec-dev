@@ -2676,3 +2676,240 @@ findings:
       Owner triages. Pairs with SI-02-DF-01: together they mean the declared
       local signal for GOAL-one-unit cannot run green in the layout this epic
       is building, and SI-08 decides that goal.
+  - id: SI-11-DF-01
+    found_by: "SI-11"
+    found_at_commit: "994f650c"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: ["skill-manager: SkillScriptBackend.resolveScript", "skt references/dependencies.md"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      skill-manager resolves a `skill-script:` CLI installer by the INSTALLED
+      UNIT's name and probes exactly two rungs --
+      `<home>/skills/<unit>/skill-scripts/` and
+      `<home>/plugins/<unit>/skill-scripts/`. There is no
+      `plugins/<plugin>/skills/<skill>/skill-scripts/` rung, and the declaring
+      skill's name is not carried at all: PluginUnit.unionCli flattens every
+      contained skill's cli_dependencies onto the plugin and CliDependency has
+      no owner field. So a `skill-script:` dep declared on a CONTAINED SKILL has
+      no working spelling. The thrown error is the FIRST rung's miss, so it
+      names `<home>/skills/<plugin>/skill-scripts/...` -- a path that was never
+      right -- and never mentions the plugin rung it also missed, which is why
+      this reads as a migration leftover rather than an unsupported shape.
+      skt's references/dependencies.md actively advises the broken shape
+      ("declare deps as close as possible to the capability that uses them")
+      with no carve-out for skill-script.
+    reproduction: >-
+      `SKILL_MANAGER_HOME=<scratch> skill-manager install
+      github:haydenrear/tla-spec-dev-plugin -y` into a fresh home reports
+      `cli: 15 installed, 2 failed` with `skill-script not found:
+      <home>/skills/tla-spec-dev/skill-scripts/install-tlc2.sh`. The project
+      home hides it because its shims predate the migration.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-11/SIS-W2-F-05-repro-before.txt"
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-11/SIS-W2-F-05-repro-after.txt"
+    why_out_of_scope: >-
+      The resolver is skill-manager's own Java source in a different repository
+      (haydenrear/skill-manager), which this ticket's conflict keys do not
+      cover. SI-11 removed the SYMPTOM here by relocating ownership of the two
+      deps to the plugin manifest, which is the shape skill-manager documents
+      and its own skt plugin already ships; the missing rung itself survives.
+    suggested_fix: >-
+      Add a third rung to SkillScriptBackend.resolveScript, after the SKILL and
+      PLUGIN rungs miss: scan `plugins/<unit>/skills/*/skill-scripts/<script>`
+      and REFUSE on more than one match rather than taking directory order
+      (SkillStore.containedSkillDirs' javadoc already names that ambiguity).
+      Everything downstream flows through ResolvedScript, so SKILL_DIR would
+      then point at the contained skill and no installer needs editing. Do NOT
+      add declaring-skill provenance to CliDependency -- that is a signature
+      change across nine types for information one backend consumes. Separately,
+      make the error report EVERY probed candidate; this defect would have been
+      self-diagnosing.
+    blast_radius: >-
+      Every plugin that declares a skill-script CLI dep on a contained skill.
+      The install does not fail loudly -- it reports `N installed, M failed` and
+      exits 0 -- so the plugin appears installed while its CLI is absent from
+      PATH.
+    disposition: pending
+    disposition_ticket: null
+    disposition_note: >-
+      Owner triages against skill-manager. SI-11 is unblocked either way.
+  - id: SI-11-DF-02
+    found_by: "SI-11"
+    found_at_commit: "994f650c"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["skill-manager: project resolve vendored validation"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      The same missing-rung defect as SI-11-DF-01, one subsystem over.
+      `[[vendored]] from_unit` is resolved only at `<home>/skills/<unit>/`, with
+      no `plugins/<plugin>` rung, so a plugin cannot be named there and a
+      contained skill has no spelling at all. SI-02 set
+      `from_unit = "tla-spec-dev"` with
+      `from_subpath = "skills/test-graph/project_sdk_sources"` and flagged it as
+      its highest-uncertainty line without running the command; running it
+      produces three MISPOINTED errors whose computed `expected` path
+      (`<home>/skills/tla-spec-dev/skills/test-graph/...`) can never exist.
+    reproduction: >-
+      On 994f650c: `SKILL_MANAGER_HOME=<repo>/.skill-manager skill-manager
+      project resolve --skip-gateway` -> "project vendored paths are invalid: 3
+      declared path(s) do not point at the project's own skill-manager home",
+      with both candidates reported `(absent)`.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-11/project-resolve-after.txt"
+    why_out_of_scope: >-
+      Same repository boundary as SI-11-DF-01. SI-11 DELETED the vendored block
+      rather than repairing it, because the invariant it asserted -- "these
+      paths link into a home, so check which home" -- stopped being true when
+      the bundle absorbed test-graph: the three paths are now materialized from
+      the in-repo provider as in-tree relative links that never enter a home.
+      `project resolve` now exits 0 with "vendored: 0 checked, 0 finding(s)".
+    suggested_fix: >-
+      Give the vendored resolver the same rung list as the skill-script one, so
+      the two agree, and let `from_unit` name a plugin with `from_subpath`
+      reaching into a contained skill. Until then, document that `[[vendored]]`
+      cannot describe content owned by a contained skill.
+    blast_radius: >-
+      Any skill-project.toml whose vendored content moved into a plugin. Fails
+      loudly (on_invalid = "error"), so it costs time rather than evidence.
+    disposition: pending
+    disposition_ticket: null
+    disposition_note: >-
+      Pairs with SI-11-DF-01; one fix could cover both if the rung list is
+      shared.
+  - id: SI-11-DF-03
+    found_by: "SI-11"
+    found_at_commit: "994f650c"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["skills/spec-double-2/scripts/skill_feedback.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      skills/spec-double-2/scripts/skill_feedback.py:354 emits a report line
+      naming `~/.skill-manager/skills/spec-double-compiler` -- both the retired
+      standalone rung AND the pre-migration unit name. It is generated prose
+      rather than a resolved path, so nothing breaks; it tells a reader to look
+      somewhere that no longer exists.
+    reproduction: >-
+      `grep -n 'skill-manager/skills/spec-double-compiler'
+      skills/spec-double-2/scripts/skill_feedback.py`
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-11/local-signal-GOAL-one-unit-after.txt"
+    why_out_of_scope: >-
+      skills/spec-double-2/scripts/** is not in SI-11's conflict keys, and
+      SI-10 is working that skill's surface in the same wave.
+    suggested_fix: >-
+      Emit the resolved home the process is actually running from, rather than a
+      hardcoded example. SI-11's new tests/test_plugin_layout_resolution.py does
+      NOT catch this one, deliberately: `spec-double-compiler` is not a
+      directory under skills/, so it is not a contained-skill name the scanner
+      knows. Renaming it to `spec-double-2` would bring it under the guard.
+    blast_radius: >-
+      Cosmetic; one line of one generated report.
+    disposition: pending
+    disposition_ticket: null
+    disposition_note: >-
+      Cheap; fold into whichever ticket next edits skill_feedback.py.
+  - id: SI-11-DF-04
+    found_by: "SI-11"
+    found_at_commit: "994f650c"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: ["skt: ticket CLI entry point", "git_issue_workflow/wt.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      The unfixed half of SI-06-DF-02. `skt ticket new` printed
+      bootstrap-home.sh's refusal, rolled the worktree back, and the caller saw
+      success. new-change.sh is NOT the culprit -- it ends the failure path with
+      an explicit `exit 3` -- and wt propagates it (`exit "$RC"`). The remaining
+      suspect is the Python surface: wt.py's `main()` ends `proc =
+      subprocess.run([...]); return proc.returncode`, so any entry point that
+      calls main() without wrapping it in sys.exit() converts every non-zero
+      wt exit into 0.
+    reproduction: >-
+      Observed directly on 2026-09-18: `skt ticket new 351-plugin-plumbing
+      --base <sha> --path ../wt-351-plugin-plumbing` printed "error: this home
+      holds 15 skill(s) and an agent launched here can reach 12", left no
+      worktree, and the invocation was treated as successful. Confirm with
+      `skt ticket new <t> ...; echo $?` against a project home with an
+      unprojected unit.
+    evidence: []
+    why_out_of_scope: >-
+      The entry point is in the `skt` PLUGIN, a different unit from this
+      repository, and is not in SI-11's conflict keys. The epic agent offered
+      SI-06-DF-02 and SI-06-DF-03 together and said to take the exclude guard
+      if only one; SI-11 took the exclude guard, which destroys evidence rather
+      than costing time.
+    suggested_fix: >-
+      `sys.exit(main())` at the console-script entry, and a test asserting a
+      non-zero exit for a bootstrap refusal. A wrapper that rolls back and
+      reports success is worse than one that fails loudly.
+    blast_radius: >-
+      Every agent that provisions a worktree through `skt ticket new` in a home
+      whose projection is incomplete -- which this epic made common, since the
+      three unprojected units are exactly the ones it moved into the plugin. The
+      agent proceeds believing it has a worktree.
+    disposition: pending
+    disposition_ticket: null
+    disposition_note: >-
+      Pairs with SI-06-DF-02. The underlying refusal may itself be a false
+      positive of the migration and is worth checking at the same time.
+  - id: SI-11-DF-05
+    found_by: "SI-11"
+    found_at_commit: "994f650c"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: ["specs/desired_program_model/ticket_plan.yaml (SI-11 goals.local_signal)"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      GOAL-one-unit's declared local_signal for SI-11 -- the audit grep, with
+      "expected zero non-comment hits outside sealed record" -- cannot reach
+      zero and never could. The CORRECT two-rung form contains the standalone
+      substring the grep matches: any file that probes
+      `$SKILL_MANAGER_HOME/skills/test-graph` before
+      `$SKILL_MANAGER_HOME/plugins/*/skills/test-graph` is counted as a hit by
+      the fix as surely as by the defect. Measured 10 hits before SI-11 and 20
+      after, where the increase is entirely two-rung pairs and new test
+      fixtures. A target of zero would be met only by deleting every rung.
+    reproduction: >-
+      Run the Discovery-notes grep before and after SI-11. Note also that the
+      literal command is shell-fragile: under zsh `skills/*/skill-scripts` after
+      SI-11 matches nothing, which aborts the whole glob and prints 0 hits for
+      the wrong reason -- a false green that looks exactly like success.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-11/local-signal-GOAL-one-unit-before.txt"
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-11/local-signal-GOAL-one-unit-after.txt"
+    why_out_of_scope: >-
+      A ticket does not edit a goal to match its own result. Reported for the
+      epic owner and for SI-08, which decides GOAL-one-unit.
+    suggested_fix: >-
+      Replace the count with the property the goal actually wants, which SI-11
+      implemented as an executable check: tests/test_plugin_layout_resolution.py
+      asserts that no executable names a home-anchored standalone rung WITHOUT
+      also naming the plugin rung. That is 0 today, fails when a
+      standalone-only rung appears, and is immune to both the substring and the
+      glob problems.
+    blast_radius: >-
+      Measurement only. If read literally at SI-08 it would mark a goal missed
+      that was met.
+    disposition: pending
+    disposition_ticket: "SI-08"
+    disposition_note: >-
+      SI-08 decides GOAL-one-unit and should use the executable check rather
+      than the grep count.
