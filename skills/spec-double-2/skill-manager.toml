@@ -11,21 +11,19 @@ on_path = "jinja2"
 spec = "pip:pytest==8.3.4"
 on_path = "pytest"
 
-[[cli_dependencies]]
-spec = "skill-script:tlc2"
-on_path = "tlc2"
-
-[cli_dependencies.install.any]
-script = "install-tlc2.sh"
-binary = "tlc2"
-
-[[cli_dependencies]]
-spec = "skill-script:tla-spec-dev"
-on_path = "tla-spec-dev"
-
-[cli_dependencies.install.any]
-script = "install-tla-spec-dev.sh"
-binary = "tla-spec-dev"
+# `skill-script:tlc2` and `skill-script:tla-spec-dev` USED to be declared here,
+# beside the `pip:` deps, and their installers lived in this skill's own
+# `skill-scripts/`. SI-11 moved both to the PLUGIN manifest
+# (`skill-manager-plugin.toml`) and both installers to the plugin root's
+# `skill-scripts/`. The reason is in that file; the short version is that a
+# `skill-script:` dep declared on a CONTAINED SKILL has no working spelling,
+# because the resolver looks the script up by the INSTALLED UNIT's name, which
+# for a contained skill is the plugin's. Declaring it here produced
+# `cli: 15 installed, 2 failed` on every install from git (SIS-W2-F-05).
+#
+# The `pip:` deps below stay: they are resolved by the pip backend, which never
+# touches `skill-scripts/`, so they work from either manifest and belong with
+# the capability that uses them.
 
 [skill]
 name = "spec-double-2"

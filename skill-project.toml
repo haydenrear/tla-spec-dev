@@ -70,30 +70,40 @@ description = "Generate and maintain Python spec doubles from constrained, annot
 [plugins.skt]
 source = "github:haydenrear/skt"
 
-# --- vendored: paths under test_graph/ whose content is the test-graph unit's
-#     Gradle SDK. They were scaffolded against whatever SKILL_MANAGER_HOME
-#     happened to be set at the time, so git stored one developer's absolute
-#     home path in the blob. Declaring them lets `project resolve` check, by
-#     RESOLVED PHYSICAL path, that each one still lands in this project's own
-#     home rather than a foreign one.
+# --- vendored: DELETED by SI-11, and the deletion is the finding ---
 #
-#     The check must resolve rather than read link text: a link whose text is
-#     relative (`sdk/../standard-nodes`) matches no string test yet can resolve
-#     through a sibling absolute link into the operator's home.
+# There used to be a `[[vendored]]` block here declaring that
+# `test_graph/{sdk,build-logic,standard-nodes}` must resolve into THIS
+# project's own Skill Manager home. SI-02 rewrote its `from_unit` to
+# `tla-spec-dev` with `from_subpath = "skills/test-graph/project_sdk_sources"`
+# and flagged the line as its highest-uncertainty guess, because it never ran
+# `project resolve` against it. SI-11 ran it. It fails, and it cannot be
+# repaired by editing these two fields:
 #
-#     These paths are now produced by test-graph's managed provider bindings
-#     (test_graph/provider-bindings.json); they are generated and gitignored,
-#     not tracked. This block stays as the validator that says what must hold. ---
-
-#     SI-02 moved `from_unit`. `test-graph` is no longer an installed unit — it
-#     is a contained skill of the `tla-spec-dev` plugin, whose bytes land at
-#     `<home>/plugins/tla-spec-dev/skills/test-graph/`. So the unit that owns
-#     this content is the PLUGIN, and the subpath grows the `skills/test-graph/`
-#     rung that the move added.
-
-[[vendored]]
-name = "test-graph-sdk"
-paths = ["test_graph/sdk", "test_graph/build-logic", "test_graph/standard-nodes"]
-from_unit = "tla-spec-dev"
-from_subpath = "skills/test-graph/project_sdk_sources"
-on_invalid = "error"
+#   ✗ project vendored paths are invalid: 3 declared path(s) do not point at
+#     the project's own skill-manager home
+#     expected:  ../.skill-manager/skills/tla-spec-dev/skills/test-graph/...
+#     candidate: <home>/skills/tla-spec-dev/skills/test-graph/...   (absent)
+#     candidate: ~/.skill-manager/skills/tla-spec-dev/skills/...    (absent)
+#
+# `from_unit` is resolved at the SKILL rung only — `<home>/skills/<unit>` —
+# with no `plugins/<plugin>` rung, so a plugin can never be named there and a
+# contained skill has no spelling at all. That is the same missing-rung defect
+# as SIS-W2-F-05 in the `skill-script:` installer resolver; it is filed as
+# SI-11-DF-01 against skill-manager rather than worked around here.
+#
+# But the block is not merely mis-spelled, it is obsolete, and that is why
+# SI-11 deletes it instead of waiting for the resolver fix. The invariant it
+# asserted — "these paths are links INTO A HOME, so check which home" — stopped
+# being true when the bundle absorbed test-graph. These three paths are now
+# materialized by test-graph's own managed provider bindings
+# (test_graph/provider-bindings.json) from the IN-REPO provider at
+# `skills/test-graph/project_sdk_sources`, as in-tree relative links that never
+# enter a home at all. There is no foreign home left for the check to catch:
+# the provider is a tracked directory in this very working tree, and if it is
+# wrong, `prepare-bindings.py` refuses on the spot with a better message than
+# `project resolve` could produce.
+#
+# What replaces it: `tests/test_plugin_layout_resolution.py`, which asserts the
+# manifest names an in-bundle provider, plus prepare-bindings.py's own refusal.
+# Both run in this repository's ordinary suites; neither needs a home.

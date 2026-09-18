@@ -251,7 +251,8 @@ def _skill_manager_home(
         sys.exit(
             "error: --symlink-mode preserve requires test_graph/sdk, "
             "test_graph/build-logic, or test_graph/standard-nodes to point under "
-            "<home>/skills/test-graph/project_sdk_sources/.\n"
+            "<home>/skills/test-graph/project_sdk_sources/ or "
+            "<home>/plugins/<plugin>/skills/test-graph/project_sdk_sources/.\n"
             "  Pass --skill-manager-home explicitly, or use --symlink-mode repair."
         )
 
@@ -283,6 +284,16 @@ def _infer_skill_manager_home(test_graph_root: Path) -> Path | None:
         for idx in range(0, len(parts) - len(suffix) + 1):
             if parts[idx : idx + len(suffix)] == suffix:
                 home_parts = parts[:idx]
+                # A contained skill's bytes are at
+                # <home>/plugins/<plugin>/skills/test-graph/..., and the suffix
+                # above matches that just as happily as the standalone layout —
+                # but the prefix is then the PLUGIN directory, not the home. Left
+                # alone it would emit SKILL_MANAGER_HOME=<home>/plugins/<plugin>
+                # into the workflow, where every other path built from it (bin/cli,
+                # pm/uv) resolves to nothing. Drop the plugins/<plugin> pair so the
+                # inferred home is the home under either layout.
+                if len(home_parts) >= 2 and home_parts[-2] == "plugins":
+                    home_parts = home_parts[:-2]
                 if not home_parts:
                     return Path("/")
                 return Path(*home_parts)
@@ -317,7 +328,14 @@ def render_workflow(
     env = {
         "HOMEBREW_NO_AUTO_UPDATE": "1",
         "SKILL_MANAGER_HOME": skill_manager_home,
-        "TEST_GRAPH_SKILL_HOME": f"{skill_manager_home}/skills/test-graph",
+        # TEST_GRAPH_SKILL_HOME is deliberately NOT here. It used to be
+        # f"{skill_manager_home}/skills/test-graph" — the standalone rung only,
+        # which stopped being where the skill lands once test-graph shipped as a
+        # contained skill of a plugin (<home>/plugins/<plugin>/skills/test-graph).
+        # A workflow-level `env:` value is a literal string: it cannot probe the
+        # filesystem, so there is no two-rung form that can be written here at
+        # all. The "Install test-graph skill" step resolves it after the install
+        # and publishes the answer through $GITHUB_ENV for every later step.
         "TEST_GRAPH_ROOT": "${{ github.workspace }}/test_graph",
     }
     if token_secret:
@@ -442,6 +460,28 @@ def render_workflow(
             "      - name: Install test-graph skill",
             "        run: |",
             f"          skill-manager install -y {_shell_quote(skill_coordinate)}",
+            "          # Where the skill's bytes landed depends on how it was",
+            "          # installed: <home>/skills/test-graph for a standalone unit,",
+            "          # <home>/plugins/<plugin>/skills/test-graph when it ships",
+            "          # inside a plugin. Probe both, standalone first, and publish",
+            "          # the answer for every later step in this job.",
+            "          #",
+            "          # An explicit loop with `break`, not a one-liner: brace",
+            "          # expansion does NOT happen inside double quotes, so",
+            "          # \"$SKILL_MANAGER_HOME\"/{skills,plugins/*/skills}/test-graph",
+            "          # expands to a literal path that matches nothing; and",
+            "          # `ls -d ... | head -1` sorts its input, which puts the",
+            "          # plugins/ rung first and silently inverts this precedence.",
+            "          for d in \"$SKILL_MANAGER_HOME\"/skills/test-graph \\",
+            "                   \"$SKILL_MANAGER_HOME\"/plugins/*/skills/test-graph; do",
+            "            if [ -d \"$d\" ]; then TEST_GRAPH_SKILL_HOME=\"$d\"; break; fi",
+            "          done",
+            "          # Default rather than refuse: when neither rung exists the",
+            "          # three `test -d` lines below fail with the same message they",
+            "          # always did, so this step adds no new failure path.",
+            "          : \"${TEST_GRAPH_SKILL_HOME:=$SKILL_MANAGER_HOME/skills/test-graph}\"",
+            "          echo \"resolved TEST_GRAPH_SKILL_HOME=$TEST_GRAPH_SKILL_HOME\"",
+            "          echo \"TEST_GRAPH_SKILL_HOME=$TEST_GRAPH_SKILL_HOME\" >> \"$GITHUB_ENV\"",
             "          test -d \"$TEST_GRAPH_SKILL_HOME/project_sdk_sources/sdk\"",
             "          test -d \"$TEST_GRAPH_SKILL_HOME/project_sdk_sources/build-logic\"",
             "          test -d \"$TEST_GRAPH_SKILL_HOME/project_sdk_sources/standard-nodes\"",

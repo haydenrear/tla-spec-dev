@@ -438,6 +438,38 @@ ensure_run_artifacts_ignored() {
       # excluding it would hide their own work.
       home_owns_name "$entry" "$owned" || continue
     fi
+    # SI-06-DF-03 / SI-11: NEVER write an exclude rule for a path the repository
+    # TRACKS. This is the most destructive line in the script, and it destroys
+    # evidence rather than costing time:
+    #
+    #   * `info/exclude` lives in the COMMON dir — per CLONE, not per worktree —
+    #     so one wrong rule written while bootstrapping one ticket's worktree
+    #     applies to the main checkout and every linked worktree at once. On this
+    #     repository it reached all nine.
+    #   * Git silently SKIPS an excluded path in `git add -A` while continuing to
+    #     report already-tracked files normally, so `git status` looks healthy and
+    #     nothing anywhere prints a warning. Measured: `/specs/` and `/evals/`
+    #     were written here, hiding 40 new files of one ticket's own deliverable
+    #     and 12 more across two sibling tickets. Every one of those agents
+    #     believed it had committed its evidence.
+    #
+    # Why an untracked directory can still be tracked, which is the trap: an
+    # entry reaches this loop because `git status` called it untracked, and git
+    # reports a directory as untracked when it contains NO tracked file present
+    # in the working tree. A sparse checkout, an interrupted merge, a worktree
+    # created before a branch that adds the directory — each produces exactly
+    # that, for a directory the repository has tracked for years. So the question
+    # this asks is of the INDEX, not of the working tree.
+    #
+    # The guard is on the PATTERN, deliberately, not on the home-artefact list:
+    # `/.skill-manager/`, `/.claude/`, `/.codex/` and `/.gemini/` are correct and
+    # must keep working, and they pass this check because the repository does not
+    # track them. Anything that fails it was never this script's to hide.
+    if [ -n "$(git -C "$ROOT" ls-files -- "$entry" 2>/dev/null | head -n 1)" ]; then
+      say "not ignored: /$entry is TRACKED by this repository — refusing to write a per-clone exclude rule that would hide new files under it from 'git add -A' in every worktree of this clone"
+      continue
+    fi
+
     rule="/$entry"
     [ -f "$excl" ] && command grep -qxF "$rule" "$excl" && continue
     mkdir -p "$common/info"
