@@ -1,0 +1,65 @@
+SF-201 — the scaffolded ledger offers no field for the TLC report it needs
+==========================================================================
+
+Target:   skills/spec-double-2/scripts/complexity_ledger.py (the TEMPLATE constant)
+Unit:     tla-spec-dev
+Proposed by: SI-05 (issue #338). NOT applied here: the TEMPLATE constant lives in
+          complexity_ledger.py, outside SI-05's conflict keys.
+
+Re-verified on the epic tip (994f650c): `record_complexity_ledger` accepts a
+`tlc_report` path and fills `distinct_states` from it, but the scaffolded
+`complexity_ledger.yaml` TEMPLATE offers no field for that path and never
+mentions the filename convention. So the figure is still filled only by the
+three-filename probe inside the ticket's own `results/` directory, which is why
+the epic's headline reachable-state numbers were recorded as null.
+
+--- a/skills/spec-double-2/scripts/complexity_ledger.py
++++ b/skills/spec-double-2/scripts/complexity_ledger.py
+@@ TEMPLATE
+ # The delta is computed for you from `analyze complexity` and the TLC report.
+ # What you supply is the part a tool cannot know: whether behavior was retained,
+ # what the refinement search found, and why any increase is essential.
+
++# WHERE THE TLC REPORT IS. Fill this in with the path to the TLC output this
++# ticket produced, and the reachable-state figures are read from it. Leave it
++# empty and the close falls back to probing the ticket's own results/ directory
++# for one of three conventional filenames (tlc.txt, tlc-current.txt,
++# tlc-report.txt) -- which is why SF-201 recorded `distinct_states: null` for
++# the three tickets that moved the state space most. The close prints one line
++# when neither this field nor the probe resolves; it never refuses.
++tlc_report: ""
++
+ # Validated-refactor basis -- CD-09 (owner-approved 2026-07-22). This is what
+
+and, at the point where the ledger input is read, prefer the declared path over
+the probe while keeping the probe as the fallback:
+
+@@ record_complexity_ledger
+-    if tlc_report is not None and Path(tlc_report).exists():
++    declared = (ledger_input.get("tlc_report") or "").strip()
++    if declared and (ticket_dir / declared).exists():
++        tlc_report = ticket_dir / declared
++    elif declared:
++        print(
++            f"  ! complexity ledger: tlc_report: {declared!r} does not resolve; "
++            "falling back to the filename probe"
++        )
++    if tlc_report is not None and Path(tlc_report).exists():
+
+plus one warning line when nothing resolves at all:
+
++    if metrics.get("distinct_states") is None:
++        print(
++            "  ! complexity ledger: no TLC report resolved (no `tlc_report:` "
++            "and no conventional filename in the ticket's results/); "
++            "distinct_states recorded as null. The close proceeds."
++        )
+
+NOTE on the warning half: SI-05 did NOT apply it either. The natural home for
+that line is `record_complexity_ledger`, which is in scripts/spec_evolution.py
+and therefore inside SI-05's keys -- but the metric it reports on is computed in
+complexity_ledger.py, and splitting the change across the two files would leave
+half a fix in each. It belongs in one ticket that owns both.
+
+Verification: every branch above prints and proceeds. No refusal path is added,
+so this is consistent with the epic's GOAL-no-new-gates.
