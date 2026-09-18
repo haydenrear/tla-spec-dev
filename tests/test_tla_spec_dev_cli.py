@@ -353,12 +353,19 @@ def test_skill_script_installs_tla_spec_dev_wrapper(tmp_path: Path) -> None:
         **os.environ,
         "SKILL_MANAGER_BIN_DIR": str(bin_dir),
         "SKILL_MANAGER_CACHE_DIR": str(cache_dir),
-        "SKILL_DIR": str(SKILL_ROOT),
-        "SKILL_NAME": "spec-double-2",
+        # SI-11: the skill-script deps moved to the PLUGIN manifest, so the
+        # installer lives at the plugin root and skill-manager hands it the
+        # PLUGIN's dir and name. A `skill-script:` dep is resolved by the
+        # installed unit's name and a contained skill's name never reaches the
+        # resolver, so `spec-double-2` was never a value this script could be
+        # invoked with in production (SIS-W2-F-05). This reproduces the
+        # environment a real install actually creates.
+        "SKILL_DIR": str(ROOT),
+        "SKILL_NAME": "tla-spec-dev",
     }
 
     install = subprocess.run(
-        ["bash", str(SKILL_ROOT / "skill-scripts" / "install-tla-spec-dev.sh")],
+        ["bash", str(ROOT / "skill-scripts" / "install-tla-spec-dev.sh")],
         cwd=ROOT,
         text=True,
         capture_output=True,

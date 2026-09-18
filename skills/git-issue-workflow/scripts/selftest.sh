@@ -1537,6 +1537,49 @@ SWEPT=0
 UNKNOWN=""
 # `home drift --ack` -> subcommand "home drift", option "--ack". Read from the
 # tracked files only, so scratch logs and this file's own examples cannot seed it.
+# The sweep is computed into a FILE first, and the loop reads that file.
+#
+# It used to be `done < <( ... )`. Process substitution is the natural spelling
+# and it is what broke the suite: on bash 3.2 — which is /bin/bash on every
+# macOS, and what `#!/usr/bin/env bash` selects here — this construct failed at
+# RUNTIME with
+#
+#   selftest.sh: line 1567: bad substitution: no closing `)' in <(
+#
+# and killed the script mid-run. `bash -n` parses it clean, so nothing caught it.
+#
+# What that cost is the point, and it is exactly the failure mode this file
+# exists to refuse: the suite died at step 15 of 30 and STILL EXITED 0. Half the
+# checks — every one from here down, including the whole locator section and the
+# two SI-11 added — never ran, reported nothing, and were indistinguishable from
+# passing. SI-11 found it only by counting `step "` in the file against `^== ` in
+# the output: 30 against 15.
+#
+# A temp file also keeps SWEPT and UNKNOWN in THIS shell. The other obvious fix,
+# `... | while ... done`, runs the loop in a subshell, so both variables would
+# come back untouched and the vacuity guard below would report 0 every time.
+OPT_SWEEP="$SCRATCH/option-sweep.txt"
+# Both shapes, because both are printed here: a one-word subcommand
+# (`exec --print-env`, `sync --force-scripts`) and a two-word one
+# (`home close-out --home`, `project resolve --project-dir`). Keying only on
+# the two-word shape is how the first draft of this check matched 4 of the 7
+# strings that exist -- caught by the vacuity guard below, which is the only
+# reason this comment is accurate.
+# `xargs -0 grep`, NOT `xargs -0 command grep`. xargs execs its argument
+# DIRECTLY, with no shell in between, so there is no alias or function for
+# `command` to bypass — but there IS a `/usr/bin/command` binary on macOS and
+# none on Linux, so on a GNU host xargs failed with "command: No such file or
+# directory" and the sweep came back EMPTY. That is the vacuity this file's
+# own guards exist to catch, hiding inside the sweep that feeds them.
+# (`| command sed` below is a real shell pipeline where `command` IS the
+# builtin and is correct; the distinction is xargs, not sed.)
+(
+  cd "$SCRIPT_DIR/.." && git ls-files -z 2>/dev/null \
+    | xargs -0 grep -ohE 'skill-manager [a-z][a-z-]*( [a-z][a-z-]+)? --[a-z][a-z-]+' 2>/dev/null \
+    | command sed -E 's/^skill-manager //; s/ (--[a-z-]+)$/|\1/' \
+    | sort -u
+) > "$OPT_SWEEP" 2>/dev/null || true
+
 while IFS= read -r pair; do
   sub="${pair%%|*}"; opt="${pair##*|}"
   [ -n "$sub" ] && [ -n "$opt" ] || continue
@@ -1545,26 +1588,7 @@ while IFS= read -r pair; do
   if ! "$CLI" $sub --help 2>&1 | command grep -q -- "$opt"; then
     UNKNOWN="${UNKNOWN}    $sub $opt"$'\n'
   fi
-done < <(
-  # Both shapes, because both are printed here: a one-word subcommand
-  # (`exec --print-env`, `sync --force-scripts`) and a two-word one
-  # (`home close-out --home`, `project resolve --project-dir`). Keying only on
-  # the two-word shape is how the first draft of this check matched 4 of the 7
-  # strings that exist -- caught by the vacuity guard below, which is the only
-  # reason this comment is accurate.
-  # `xargs -0 grep`, NOT `xargs -0 command grep`. xargs execs its argument
-  # DIRECTLY, with no shell in between, so there is no alias or function for
-  # `command` to bypass — but there IS a `/usr/bin/command` binary on macOS and
-  # none on Linux, so on a GNU host xargs failed with "command: No such file or
-  # directory" and the sweep came back EMPTY. That is the vacuity this file's
-  # own guards exist to catch, hiding inside the sweep that feeds them.
-  # (`| command sed` below is a real shell pipeline where `command` IS the
-  # builtin and is correct; the distinction is xargs, not sed.)
-  cd "$SCRIPT_DIR/.." && git ls-files -z 2>/dev/null \
-    | xargs -0 grep -ohE 'skill-manager [a-z][a-z-]*( [a-z][a-z-]+)? --[a-z][a-z-]+' 2>/dev/null \
-    | command sed -E 's/^skill-manager //; s/ (--[a-z-]+)$/|\1/' \
-    | sort -u
-)
+done < "$OPT_SWEEP"
 
 # Vacuity guard FIRST. A sweep that matched nothing -- or matched only some of
 # the shapes -- would report a clean result forever, which is exactly the
