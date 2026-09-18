@@ -1,0 +1,73 @@
+SF-103 — `--effect-report PATH` accepts a path and silently writes nothing
+==========================================================================
+
+Target:   skills/spec-double-2/scripts/run_generated_case_adapters.py
+Unit:     tla-spec-dev
+Proposed by: SI-05 (issue #338). NOT applied here: this file is outside SI-05's
+          conflict keys, so applying it would collide with a sibling ticket.
+
+Re-verified on the epic tip (994f650c): the report write sits inside
+`if effects_active:`, and the comment three lines above it still says "The
+report is written unconditionally". A project that declares effect ports
+through `ports:` + `effect_ports:` rather than an `effects:` block leaves
+`effects_active` false, so `--effect-report` is accepted, nothing is written,
+nothing is said, and the exit status is 0.
+
+The finding's rule: "Silence is the one option that is wrong."
+
+--- a/skills/spec-double-2/scripts/run_generated_case_adapters.py
++++ b/skills/spec-double-2/scripts/run_generated_case_adapters.py
+@@
+-    # MF-013: effect conformance. The report is written unconditionally -- it is
+-    # ticket evidence whether the verdict is clean or not -- and every finding
+-    # is appended to `failures`, so a gap or a dead port fails the run exactly
+-    # like a broken assertion. Nothing between here and the raise consults a
+-    # justification, an annotation, or a manifest entry: recording a finding is
+-    # not an alternative to failing on it.
++    # MF-013: effect conformance. The report is written whenever effect
++    # conformance is ACTIVE -- it is ticket evidence whether the verdict is
++    # clean or not -- and every finding is appended to `failures`, so a gap or a
++    # dead port fails the run exactly like a broken assertion. Nothing between
++    # here and the raise consults a justification, an annotation, or a manifest
++    # entry: recording a finding is not an alternative to failing on it.
++    #
++    # SF-103: when effect conformance is NOT active, an `--effect-report` path
++    # used to be accepted and silently ignored, so an operator got exit 0, no
++    # file, and no reason. A requested report that cannot be produced now SAYS
++    # SO and names what it searched. This warns; it does not refuse.
+     if effects_active:
+         report = diff_effects(
+             declarations,
+             recorder.effects,
+             cases=[point.case.name for point in points],
+             case_actions=observed_case_actions,
+             unobservable=recorder.unobservable,
+         )
+         if effect_report_path is not None:
+             written = report.write(effect_report_path)
+             print(f"wrote effect conformance report to {written}")
+         print(report.render())
+         if not report.ok:
+             failures.append(f"effect conformance {report.verdict}:\n{report.render()}")
++    elif effect_report_path is not None:
++        # Requested but unproducible: say which declaration shapes were looked
++        # for, so the reader can tell "my project declares effects another way"
++        # from "the oracle is broken".
++        print(
++            f"no effect conformance report written to {effect_report_path}: "
++            "no effect declarations found. Searched for an `effects:` block in "
++            "the spec manifest. A project declaring effect ports through "
++            "`ports:` + `effect_ports:` does not currently activate this oracle."
++        )
+
+Regression test to add alongside it:
+
+    def test_effect_report_requested_without_declarations_says_so(capsys, tmp_path):
+        """SF-103: a requested report that cannot be produced is never silent."""
+        # run the adapters over a project whose manifest declares `ports:` +
+        # `effect_ports:` and no `effects:` block, passing --effect-report
+        # assert: exit status unchanged, no file created, and stdout names both
+        # the path and the reason.
+
+Verification: exit status is unchanged in both branches; this adds no refusal
+path, so it is consistent with the epic's GOAL-no-new-gates.

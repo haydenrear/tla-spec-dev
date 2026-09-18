@@ -485,6 +485,13 @@ Workflow:
    config back into project specs, snapshots this directory into history, and
    removes the active ticket directory. If it refuses, rerun with `--force`
    and say why in `--summary`; never edit the plan's status to get past it.
+7. Close-out skill feedback: a finding you record whose `target:` is in THIS
+   repository owes this repository a change. Give each one a `skill_change:`
+   of `applied(<commit>)` (the file is in your worktree, so prefer this),
+   `proposed(<unit>, <diff or issue>)`, or `declined(<reason>)`. A proposal is
+   a diff or an issue with a diff; prose alone reads as no proposal. The close
+   prints one warning line per finding without one and PROCEEDS -- it is a
+   report, not a gate, so there is nothing to force past.
 
 Starting source: `{source_current}`
 
@@ -519,6 +526,10 @@ Next ticket workflow steps for {ticket_id}:
   5. Mark {ticket_id} done in the project ticket plan and run:
      {ticket_close_command(ticket_id, spec_root, ticket_root)}
      If the close refuses, rerun it with --force and say why in --summary.
+  6. In the close-out feedback, give every finding that targets THIS repository
+     a skill_change: applied(<commit>) | proposed(<unit>, <diff or issue>) |
+     declined(<reason>). A proposal is a diff or an issue with a diff, never
+     prose. The close warns once per finding without one and still proceeds.
 """
 
 

@@ -2676,6 +2676,226 @@ findings:
       Owner triages. Pairs with SI-02-DF-01: together they mean the declared
       local signal for GOAL-one-unit cannot run green in the layout this epic
       is building, and SI-08 decides that goal.
+  - id: SI-04-DF-01
+    found_by: "SI-04"
+    found_at_commit: "994f650c"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: ["tests/test_every_finding_reaches_the_table.py"]
+      test_graph: []
+    summary: >-
+      SI-04 was told not to ship two readers of the same files, and it does not:
+      the backlog has exactly one parser (`disposition.read_rows`) after this
+      ticket. But the MATRIX now has two. `scripts/improvement_ledger.py` reads
+      its tables with a header-name-keyed reader (`md_tables`), and
+      tests/test_every_finding_reaches_the_table.py reads the same tables with
+      its own regexes (`_TABLE_ROW`, pinned to a leading anchor in backticks and
+      a fixed id shape). The two disagree already: the test's `_TABLE_ROW`
+      matches only rows whose first cell is a `TlaSpecDevCli.`/`UNMODELED/`
+      anchor, so it silently ignores the bins table entirely, while the ledger
+      reads the bins table and ignores nothing. Neither is wrong; they answer
+      different questions over one file with two parsers, which is the condition
+      that produced `CA-05-DF-06`.
+    reproduction: >-
+      `grep -n "_TABLE_ROW\|_WRITEUP" tests/test_every_finding_reaches_the_table.py`
+      against `grep -n "def md_tables" skills/spec-double-2/scripts/improvement_ledger.py`.
+      Adding the `skill change` column in this ticket exercised the difference:
+      the ledger kept reading the disposition column correctly because it keys
+      on the header NAME, and the test was unaffected only because it never
+      looked at that table.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-04/local-signal-GOAL-findings-become-changes.txt"
+    why_out_of_scope: >-
+      tests/test_every_finding_reaches_the_table.py is in no conflict key of
+      SI-04. Rewriting it to consume `md_tables` would change what a standing
+      guard asserts, and that guard exists because eleven findings were written
+      up and never placed -- weakening it as a side effect of a refactor is
+      exactly the move it was written to catch.
+    suggested_fix: >-
+      Point the test's placement check at `improvement_ledger.md_tables` so the
+      repository has one matrix parser, and keep its assertions verbatim. Verify
+      by confirming it still fails on a finding written up and not placed --
+      the check must be shown to still discriminate after the swap, not merely
+      to still pass.
+    blast_radius: >-
+      No shipped behaviour. The cost is that a future column or heading change
+      can move one reader and not the other, and only one of them is run by the
+      suite.
+    skill_change: proposed(spec-double-2, "SI-04-DF-01; the fix is in tests/, not in the skill")
+    disposition: pending
+    disposition_ticket: null
+    disposition_note: >-
+      Owner triages at the wave-3 boundary. This is the one place SI-04's
+      "one reader" instruction is not satisfied repository-wide, and it is
+      named here rather than fixed under a key this ticket does not own.
+
+  - id: SI-04-DF-02
+    found_by: "SI-04"
+    found_at_commit: "994f650c"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      specs/results/skill_feedback.md contains the four shipped worked examples
+      TWICE. `### SF-000a`..`SF-000d` appear 8 times for 4 examples, so the
+      file carries 37 `### SF-` headings describing 33 distinct blocks. The
+      document is append-only by convention and `emit_skill_feedback` writes
+      the template only when the file is absent, so a second full template
+      block is a state the close path is not supposed to be able to produce.
+      Noticed because the ledger reported 29 findings against 37 headings and
+      the discrepancy had to be explained rather than assumed -- 37 - 8 = 29,
+      and `parse_findings` correctly excludes every `SF-000*`.
+    reproduction: >-
+      `grep -c '^### SF-' specs/results/skill_feedback.md` -> 37;
+      `grep -c '^### SF-000' specs/results/skill_feedback.md` -> 8;
+      `python3 -c "import skill_feedback,pathlib;
+      print(len(skill_feedback.parse_findings(pathlib.Path('specs/results/skill_feedback.md').read_text())))"`
+      -> 29.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-04/local-signal-GOAL-findings-become-changes.txt"
+    why_out_of_scope: >-
+      specs/results/skill_feedback.md CONTENT is SI-05's, not SI-04's; SI-04
+      owns the field definition and the readers. Deleting a duplicated block
+      from an append-only record is also not a silent edit a ticket should make
+      on its own -- the duplication is evidence about the close path.
+    suggested_fix: >-
+      Decide whether the duplicate template block is residue of a close that ran
+      against a missing file, or of a hand edit. If the former, that is a defect
+      in the close path worth pinning; if the latter, annotate the second copy
+      rather than deleting it. Do not simply delete: the count is the evidence.
+    blast_radius: >-
+      None on behaviour. Any count taken by grepping `### SF-` overstates the
+      finding population by 8, and at least one number in this project's prose
+      is taken that way.
+    skill_change: proposed(spec-double-2, "SI-04-DF-02; owner decides whether the close path or a hand edit produced it")
+    disposition: pending
+    disposition_ticket: null
+    disposition_note: >-
+      Natural home is SI-05 (#338), which owns this file's content and the
+      close path. Not retrofitted into it.
+
+  - id: SI-04-DF-03
+    found_by: "SI-04"
+    found_at_commit: "994f650c"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      `skt ticket new 337-improvement-record --base <sha> --path ../wt-337-improvement-record`
+      REFUSED and rolled the worktree back, so the declared front door could not
+      create this ticket's worktree. Verbatim: "error: this home holds 15
+      skill(s) and an agent launched here can reach 12. ... These are missing or
+      resolve outside <worktree>: .claude/skills/git-issue-workflow,
+      .codex/skills/git-issue-workflow, .gemini/skills/git-issue-workflow,
+      (same three for spec-double-compiler and test-graph)". The three unitsnthat
+      fail to project are exactly the three this epic moved into the plugin in
+      wave 1/2, and the project home's own `.claude/skills/` confirms it: it
+      lists 12 units and none of those three. `bootstrap-home.sh` accepts
+      `--allow-unprojected`; `skt ticket new` has no flag that forwards it, so
+      there is no way through the front door at all.
+    reproduction: >-
+      From the repository root at 994f650c:
+      `skt ticket new 337-improvement-record --base $(git rev-parse origin/epic/self-improvement-substrate) --path ../wt-337-improvement-record`
+      -> the error above, worktree rolled back, exit 0 from the wrapper.
+      `ls /Users/hayde/IdeaProjects/tla-spec-dev/.claude/skills/` -> 12 entries,
+      none of them git-issue-workflow, spec-double-compiler or test-graph.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-04/worktree-front-door-refusal.txt"
+    why_out_of_scope: >-
+      The failing resolution is in skill-manager / the skt plugin and in the
+      project home's projection state, neither of which is in SI-04's conflict
+      keys. SI-11 (#351) already owns resolution under the plugin layout.
+    suggested_fix: >-
+      Same class as SIS-W2-F-05 one level up: give the projector the
+      contained-skill rung so a plugin's skills project into `.<agent>/skills/`,
+      or have `skt ticket new` forward `--allow-unprojected` so an epic ticket
+      can proceed deliberately instead of being stopped. The second is a
+      workaround; the first is the defect.
+    blast_radius: >-
+      Every ticket worktree created in this repository while the three moved
+      units do not project -- which is every wave-3 ticket. Each one either
+      stops, or reaches the by-hand `git worktree add && bootstrap-home.sh`
+      route that git-issue-workflow SKILL.md warns produces a plausible result
+      and leaves no trace but the cost.
+    skill_change: proposed(skill-manager, "SI-04-DF-03; pairs with SIS-W2-F-05")
+    disposition: pending
+    disposition_ticket: null
+    disposition_note: >-
+      Candidate home is SI-11 (#351), which owns resolution under the plugin
+      layout. Owner triages at the wave-3 review.
+  - id: SI-04-DF-04
+    found_by: "SI-04"
+    found_at_commit: "4b72c869"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      `origin` in this clone points at a SIBLING WORKTREE
+      (/Users/hayde/IdeaProjects/wt-351-plugin-plumbing), not at
+      github.com/haydenrear/tla-spec-dev, and that repository's own `origin`
+      points at itself -- so the chain dead-ends locally and nothing reaches
+      GitHub. No GitHub remote for this repository is configured at all; the
+      seven remotes that ARE configured are the constituent skill repos.
+      The consequence is a SILENT SUCCESS, which is why it is filed rather
+      than worked around: the assignment's `git push -u origin
+      feature/<branch>` exits 0 and prints "Everything up-to-date" plus
+      "branch set up to track origin/...", and `git rev-parse
+      origin/feature/...` then MATCHES local HEAD -- so every check an agent
+      would naturally run to confirm the push says it worked. GitHub returns
+      404 for the branch. An agent that trusted its own push verification
+      would open no PR, or report a PR it never opened.
+    reproduction: >-
+      In any wave-3 worktree: `git remote -v` -> `origin
+      /Users/hayde/IdeaProjects/wt-351-plugin-plumbing`; `git config --get
+      remote.origin.url` in the MAIN checkout returns the same. Then
+      `git push -u origin feature/337-improvement-record` -> "Everything
+      up-to-date", exit 0, while
+      `gh api repos/haydenrear/tla-spec-dev/branches/feature/337-improvement-record`
+      -> HTTP 404 "Branch not found". Confirmed the epic branch IS on GitHub
+      at 994f650c, so GitHub is live and authoritative; only the local remote
+      is mis-pointed.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-04/remote-origin-is-local.txt"
+    why_out_of_scope: >-
+      `.git/config` is SHARED by the common git dir across all nine worktrees
+      and the main checkout, so repointing remote.origin.url would silently
+      change the base and push target of every sibling ticket agent running
+      right now. That is not a change a ticket agent may make unilaterally,
+      and it is in no conflict key of SI-04.
+    suggested_fix: >-
+      Decide deliberately which is intended. If ticket branches are meant to
+      reach GitHub (PR #350 from feature/335-nest-workflow-skills was merged
+      there, so they are), add a github remote and leave `origin` alone, or
+      repoint `origin` once, by the epic owner, between waves -- never while
+      tickets are in flight. Until then a ticket agent must push by explicit
+      URL. Worth pairing with a check that refuses to report a push as
+      confirmed when the resolved remote is a local path.
+    blast_radius: >-
+      Every wave-3 ticket that ends in "push the sealed branch and open the
+      PR". The branch and commit are never lost -- they are in the shared
+      object store -- but the PR the epic agent is waiting on never appears,
+      and the agent's own verification says it did.
+    skill_change: proposed(git-issue-workflow, "SI-04-DF-04; treat a local-path origin as unpublished when confirming a push")
+    disposition: pending
+    disposition_ticket: null
+    disposition_note: >-
+      Owner triages at the wave-3 review. SI-04 worked around it by pushing to
+      the GitHub URL explicitly and did NOT touch the shared .git/config.
 
   - id: SI-06-DF-01
     found_by: "SI-06"

@@ -1,0 +1,52 @@
+SF-202 — a 17-file conformance suite that no scope ever executes
+================================================================
+
+Target:   skills/spec-double-2/scripts/tla_spec_dev.py (`run spec-unit-tests --scope`)
+Unit:     tla-spec-dev
+Proposed by: SI-05 (issue #338). NOT applied here: tla_spec_dev.py is outside
+          SI-05's conflict keys.
+
+Re-measured on the epic tip (994f650c):
+
+  * `--scope` choices are still exactly {auto, project};
+  * `specs/desired_program_model/tests/` still holds 17 files;
+  * no scope value resolves to that directory, so none of them has ever run.
+
+This is the "an oracle that is never pointed at a surface reports nothing about
+it, which is not the same as reporting that it is clean" shape.
+
+--- a/skills/spec-double-2/scripts/tla_spec_dev.py
++++ b/skills/spec-double-2/scripts/tla_spec_dev.py
+@@ run_spec_units
+     run_spec_units.add_argument(
+         "--scope",
+-        choices=["auto", "project"],
++        choices=["auto", "project", "desired"],
+         default="auto",
+-        help="Target active ticket current/ when present, otherwise project current/. Use project to force specs/current.",
++        help=(
++            "Target active ticket current/ when present, otherwise project "
++            "current/. Use project to force specs/current, or desired to run "
++            "the conformance suite carried in specs/desired_program_model "
++            "(SF-202: before this existed, that suite was copied forward at "
++            "every `open ticket` and executed by nothing)."
++        ),
+     )
+
+and, where the scope is resolved to a directory:
+
++    if scope == "desired":
++        return specs_dir / "desired_program_model"
+
+THE ALTERNATIVE THE FINDING ALSO OFFERED, and which is cheaper: stop scaffolding
+tests into the desired tree and say plainly in the scaffold README that the
+desired tree carries no executable conformance. Either resolves the finding;
+what must not survive is the current state, where the suite exists, is copied
+forward, and silently proves nothing. SI-05 takes no position on which — that is
+the owner's call, and it is recorded here rather than decided in a ticket that
+does not own the file.
+
+Expected first result if the scope is added: SF-202 records that the binding
+reconciliation test in that tree had been asserting "fourteen command actions"
+against a fifteen-action module since AC-01 closed, so the first `--scope
+desired` run is expected to FAIL, and that failure is the finding being true.

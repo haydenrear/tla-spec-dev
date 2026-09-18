@@ -1,0 +1,31 @@
+SI-04: origin is a local sibling worktree, not GitHub. Filed as SI-04-DF-04.
+
+$ git remote -v
+discovery	https://github.com/haydenrear/discovery-skill.git (fetch)
+discovery	https://github.com/haydenrear/discovery-skill.git (push)
+git-epic-workflow	https://github.com/haydenrear/git-epic-skill.git (fetch)
+git-epic-workflow	https://github.com/haydenrear/git-epic-skill.git (push)
+git-issue	https://github.com/haydenrear/git-issue-skill.git (fetch)
+git-issue	https://github.com/haydenrear/git-issue-skill.git (push)
+git-issue-workflow	https://github.com/haydenrear/git-issue-workflow-skill.git (fetch)
+git-issue-workflow	https://github.com/haydenrear/git-issue-workflow-skill.git (push)
+origin	/Users/hayde/IdeaProjects/wt-351-plugin-plumbing (fetch)
+origin	/Users/hayde/IdeaProjects/wt-351-plugin-plumbing (push)
+test-graph	https://github.com/haydenrear/test_graph_skill.git (fetch)
+test-graph	https://github.com/haydenrear/test_graph_skill.git (push)
+tla-spec-dev-plugin	https://github.com/haydenrear/tla-spec-dev-plugin.git (fetch)
+tla-spec-dev-plugin	https://github.com/haydenrear/tla-spec-dev-plugin.git (push)
+
+$ git push -u origin feature/337-improvement-record
+Everything up-to-date
+branch 'feature/337-improvement-record' set up to track 'origin/feature/337-improvement-record'.
+  -> exit 0, and git rev-parse origin/feature/337-improvement-record MATCHED local HEAD.
+
+$ gh api repos/haydenrear/tla-spec-dev/branches/feature/337-improvement-record
+{"message":"Branch not found","status":"404"}
+
+$ gh api repos/haydenrear/tla-spec-dev/branches/epic/self-improvement-substrate --jq .commit.sha
+994f650c1b82dcc1851a9c1d51a1955efa4bc9a4   <- GitHub IS live and matches my base
+
+Resolution: pushed to the GitHub URL explicitly. .git/config NOT modified
+(it is shared by the common git dir across all nine worktrees).

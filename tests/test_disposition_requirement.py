@@ -226,3 +226,196 @@ def test_the_real_ledger_has_no_duplicate_keys(rows):
     """
     assert D.duplicate_keys(ledger_path().read_text()) == []
     assert len(rows) > 200
+
+
+# -- SI-04: the skill-change disposition, and the ONE reader of it ---------
+#
+# `improvement_ledger.py` reads the same backlog bytes this file's instrument
+# reads. The tests below pin the two properties that keeps honest: that there
+# is one parser rather than two, and that the new reader cannot refuse.
+
+import subprocess  # noqa: E402
+
+from scripts import improvement_ledger as L  # noqa: E402
+
+LEDGER_SCRIPT = ROOT / "skills" / "spec-double-2" / "scripts" / "improvement_ledger.py"
+
+
+def test_one_backlog_reader_not_two():
+    """`SI-04`'s load-bearing constraint, asserted on identity of the source.
+
+    The ledger could trivially have called `yaml.safe_load` itself. It does not,
+    and this is what stops that regressing: both readers resolve to the same
+    file on disk, so the duplicate-key guard `CA-05-DF-06` paid for cannot be
+    true of one caller and false of the other.
+    """
+    assert L.D.__file__ == D.__file__
+    assert L.D.read_rows is not None
+    source = LEDGER_SCRIPT.read_text(encoding="utf-8")
+    assert "safe_load" not in source, (
+        "the ledger has grown its own YAML read -- that is the second reader "
+        "SI-04 exists to prevent"
+    )
+
+
+def test_read_rows_reports_the_structural_fault_instead_of_raising(tmp_path):
+    """The refactor that made one reader serve both callers.
+
+    `load` refuses on a duplicate key; `read_rows` returns the same finding as
+    text so an advisory caller can print it and carry on. Same detection, two
+    responses, one implementation.
+    """
+    bad = tmp_path / "dup.yaml"
+    bad.write_text(
+        "findings:\n"
+        "  - id: X-01-DF-01\n"
+        "    disposition: carried\n"
+        '    disposition_ticket: "#188"\n'
+        '    disposition_ticket: "#169"\n',
+        encoding="utf-8",
+    )
+    rows, faults = D.read_rows(bad)
+    assert rows == []
+    assert any("STRUCTURAL" in f and "disposition_ticket" in f for f in faults)
+
+    with pytest.raises(SystemExit):
+        D.load(bad)
+
+
+def test_load_still_refuses_an_empty_ledger(tmp_path):
+    empty = tmp_path / "empty.yaml"
+    empty.write_text("findings: []\n", encoding="utf-8")
+    rows, faults = D.read_rows(empty)
+    assert rows == [] and faults
+    with pytest.raises(SystemExit):
+        D.load(empty)
+
+
+# -- the grammar ----------------------------------------------------------
+
+
+def test_every_verb_in_the_vocabulary_parses():
+    assert L.parse_skill_change("none").verb == "none"
+    assert L.parse_skill_change("applied(9f2c1ab)").args == ("9f2c1ab",)
+    assert L.parse_skill_change("declined(not worth pinning)").verb == "declined"
+    proposed = L.parse_skill_change("proposed(spec-double-2, #319)")
+    assert proposed.verb == "proposed"
+    assert proposed.unit == "spec-double-2"
+    assert proposed.args == ("spec-double-2", "#319")
+
+
+def test_absent_is_not_none():
+    """`bug_attribution.md` §3. The distinction the whole field rests on.
+
+    `none` is a claim that no skill change was needed. Absent is nobody having
+    been asked. Collapsing them would report the entire pre-SI-04 record as
+    having considered the question and answered no.
+    """
+    absent = L.parse_skill_change(None)
+    assert absent.verb == "absent"
+    assert not absent.recorded
+    assert L.parse_skill_change("none").recorded
+    assert absent != L.parse_skill_change("none")
+
+
+def test_only_applied_and_declined_are_terminal():
+    """D4 is satisfied by a change or a reasoned refusal -- not by a proposal."""
+    assert L.parse_skill_change("applied(abc1234)").terminal
+    assert L.parse_skill_change("declined(the path is being deleted)").terminal
+    assert not L.parse_skill_change("proposed(spec-double-2, #319)").terminal
+    assert not L.parse_skill_change("none").terminal
+    assert not L.parse_skill_change(None).terminal
+
+
+@pytest.mark.parametrize(
+    "bad",
+    ["applied", "proposed(spec-double-2)", "none(something)", "handled(x)",
+     "applied()", "proposed(, #319)"],
+)
+def test_a_malformed_value_is_named_rather_than_silently_dropped(bad):
+    """A value the reader cannot parse is reported, never treated as absent.
+
+    Silently reading an unparseable field as "nothing recorded" is how a record
+    that says something becomes a record that says nothing.
+    """
+    parsed = L.parse_skill_change(bad)
+    assert parsed.verb == "malformed"
+    assert parsed.raw == bad
+
+
+# -- the reader, on the real record ---------------------------------------
+
+
+def test_the_ledger_has_no_exit_path_at_all():
+    """`GOAL-no-new-gates`, asserted structurally rather than promised.
+
+    Not "it returns 0 on every branch we thought of" -- there is no branch that
+    can return anything else, and this is what keeps it that way.
+    """
+    source = LEDGER_SCRIPT.read_text(encoding="utf-8")
+    offenders = [line.strip() for line in source.splitlines()
+                 if "sys.exit(" in line or "SystemExit" in line]
+    assert offenders == [], f"the advisory reader grew a refusal path: {offenders}"
+
+
+def test_the_ledger_exits_zero_on_this_repositorys_own_record():
+    """R1: demonstrated on the real subject, not a fixture."""
+    done = subprocess.run(
+        [sys.executable, str(LEDGER_SCRIPT)],
+        cwd=str(ROOT), capture_output=True, text=True,
+    )
+    assert done.returncode == 0, done.stderr
+    assert "findings by disposition" in done.stdout
+    assert "advisory" in done.stdout
+
+
+def test_the_ledger_reads_all_four_record_files():
+    """One reader, four files -- the unification SI-04 is for."""
+    root = L.repo_root(str(ROOT))
+    known = L.units_in(root)
+    problems: list[str] = []
+    records = L.read_skill_feedback(root / L.SKILL_FEEDBACK, known, problems)
+    for backlog in L.BACKLOGS:
+        records += L.read_backlog(root / backlog, known, problems)
+    records += L.read_matrix(root / L.MATRIX, problems)
+
+    sources = {r.source for r in records}
+    assert len(sources) == 4, f"expected all four record files, got {sorted(sources)}"
+    assert any(r.kind == "BIN" for r in records), "the matrix bins were not read"
+
+
+def test_the_recorded_local_findings_are_visible_to_the_ledger():
+    """The 13 stuck findings are the thing the goal is measured on.
+
+    Asserted as "at least one", never as a count: the target is that this
+    number reaches zero, and a test pinned to 13 would fail on success.
+    """
+    root = L.repo_root(str(ROOT))
+    problems: list[str] = []
+    records = L.read_skill_feedback(root / L.SKILL_FEEDBACK, L.units_in(root), problems)
+    stuck = [r for r in records if r.stuck]
+    if not stuck:
+        pytest.skip("no recorded-local findings remain -- the goal is met and "
+                    "this demonstration has nothing left to show")
+    assert all(not r.skill_change.terminal for r in stuck), (
+        "a finding can no longer be both `recorded-local` and consumed"
+    )
+
+
+def test_the_matrix_column_is_read_by_name_not_by_index():
+    """Adding a column must not shift an existing reading by one.
+
+    `CA-05-DF-06`'s class: a parser quietly reading a different value than the
+    author wrote. The bins table gained a column in this ticket, and the
+    disposition column must still be the disposition column.
+    """
+    root = L.repo_root(str(ROOT))
+    records = L.read_matrix(root / L.MATRIX, [])
+    dispositions = {r.disposition for r in records}
+    assert dispositions <= {"modelable", "deferred", "record-only", "undecided"}, (
+        f"the bins table's disposition column no longer parses: {dispositions}"
+    )
+    assert all(not r.skill_change.recorded for r in records), (
+        "a bin now records a skill change -- update this test, it pinned the "
+        "SI-04 baseline of seven absent cells"
+    )

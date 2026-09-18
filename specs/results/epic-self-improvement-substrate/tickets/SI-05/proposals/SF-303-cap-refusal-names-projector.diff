@@ -1,0 +1,52 @@
+SF-303 — the cap refusal names two ways forward and hides the real one
+======================================================================
+
+Target:   skills/spec-double-2/scripts/tla_spec_dev.py (`analyze corpus`)
+Unit:     tla-spec-dev
+Proposed by: SI-05 (issue #338). NOT applied here: tla_spec_dev.py is outside
+          SI-05's conflict keys.
+
+Re-verified on the epic tip (994f650c): the `analyze corpus` description still
+ends "...the two ways forward are that redesign or raising the cap with a
+recorded rationale", and `next_step` repeats the same two. Neither names
+`--state-projector`, although `call_state_projector` /`state_projector` are
+implemented in generate_cases_from_tlc_dump.py.
+
+Per the finding, the projector is the lever that actually works here: projecting
+away the two variables the repository already documents as unrecoverable takes
+this model's corpus from 3,678,217 to 628,424 cases with no model change.
+
+--- a/skills/spec-double-2/scripts/tla_spec_dev.py
++++ b/skills/spec-double-2/scripts/tla_spec_dev.py
+@@ analyze_corpus_parser
+             "NOTHING IS EVER DROPPED, FILTERED, SAMPLED, OR TRUNCATED to fit a cap: "
+             "over budget the gate reports and refuses. It prescribes no move; the "
+             "failure output states the finding and ends with a REDESIGN QUESTION -- "
+             "can the architecture be redesigned to make the program simpler, judged "
+             "with the complexity descriptor (analyze complexity) and "
+-            "references/complexity_intuition.md -- and the two ways forward are that "
+-            "redesign or raising the cap with a recorded rationale."
++            "references/complexity_intuition.md -- and the three ways forward are "
++            "that redesign, projecting the state with --state-projector so the "
++            "corpus is generated over the variables that carry meaning, or raising "
++            "the cap with a recorded rationale."
+         ),
+@@
+     analyze_corpus_parser.set_defaults(
+         func=run_analyze_corpus,
+         command_path="tla-spec-dev analyze corpus",
+-        next_step="Consider whether the architecture can be redesigned to make the program simpler (analyze complexity + references/complexity_intuition.md), or raise the cap with a recorded rationale.",
++        next_step=(
++            "Consider whether the architecture can be redesigned to make the "
++            "program simpler (analyze complexity + references/complexity_intuition.md), "
++            "project the state with --state-projector (references/case_modules.md "
++            "pairs every worked example with one), or raise the cap with a "
++            "recorded rationale."
++        ),
+     )
+
+SECOND HALF OF THE FINDING, not addressed by the wording change: gate on the
+PROJECTED count before rendering, so a refused corpus does not cost 7.4 GB and
+five minutes of writing first. That is a change to the generation path in
+generate_cases_from_tlc_dump.py and wants its own ticket; the wording above is
+the cheap half and is worth having regardless.

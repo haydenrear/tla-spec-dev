@@ -1,0 +1,70 @@
+SF-304 — the citation check exists and nothing inherits it
+==========================================================
+
+Target:   skills/spec-double-2/scripts/check_citations.py (shipping it),
+          skills/spec-double-2/scripts/scaffold_spec_workflow.py (the convention)
+Unit:     tla-spec-dev
+Proposed by: SI-05 (issue #338).
+
+STATUS SPLIT — read this before treating the finding as open or closed:
+
+  * The CONVENTION half is APPLIED by SI-05. scaffold_spec_workflow.py now
+    writes the "cite symbols, not line numbers" convention into the scaffolded
+    `desired/README.md` and `current/README.md`. That file is inside SI-05's
+    conflict keys, so the change is in this PR.
+  * The EXECUTABLE half is proposed below and NOT applied. Wiring a check into
+    the scaffold means deciding what a scaffolded project runs it FROM, which is
+    a scaffold-contract decision SI-05 does not own.
+
+Measurement behind this, taken on the epic tip (994f650c): a grep of the entire
+skill surface finds exactly one mention of `check_citations` -- the script
+itself. No reference page, no scaffold, no template, no test outside this
+repository's own suite refers to it. So the RC-02 fix is repository-local, while
+the finding's own diagnosis is that this "is a skill-level pattern, not a
+repository one".
+
+Corroboration that the pattern is still live HERE: SI-05's own pre-change
+baseline (pytest-before.txt) carries three failing cases of
+`tests/test_source_citations.py::test_every_line_citation_resolves_to_the_line_it_cites`
+-- on specs/current, specs/program_model and specs/desired_program_model
+spec_manifest.yaml. The check works; the drift it was built for is ongoing.
+
+PROPOSED, the executable half
+-----------------------------
+
+Give a scaffolded project the check and a way to run it:
+
+--- a/skills/spec-double-2/scripts/scaffold_spec_workflow.py
++++ b/skills/spec-double-2/scripts/scaffold_spec_workflow.py
+@@ scaffold
+     write_if_missing(results / ".gitkeep", "")
++
++    # SF-304: ship the check, not only the convention. A scaffolded project
++    # gets a runnable citation check over its own spec tree, so comment drift
++    # goes red in the project that has the comments rather than only here.
++    write_if_missing(
++        specs_dir / "check_citations.md",
++        "# Citation check\n\n"
++        "Run `tla-spec-dev check citations --spec-root <specs>` to verify that\n"
++        "every line citation in this tree still resolves to the line it cites.\n"
++        "Advisory: it reports and exits 0.\n",
++    )
+     return specs_dir
+
+and register the subcommand that page names, wrapping the existing
+`scripts/check_citations.py` surface:
+
+    tla-spec-dev check citations [--spec-root specs] [--scope <paths>]
+
+DELIBERATELY ADVISORY. `check_citations.py` currently backs a repository test
+that FAILS on drift. A scaffolded project should get the report and exit 0 --
+the epic's GOAL-no-new-gates forbids adding a refusal, and a brand-new project
+inheriting a hard failure on its first scaffold is exactly the "a gate here
+reads to an agent as a stop" shape the epic is removing.
+
+THE CHEAPER ALTERNATIVE, if the scaffold contract should not grow: drop the
+executable half entirely and keep only the convention SI-05 applied. The finding
+explicitly offers that as an either/or ("ship the check (or its convention)"),
+and the convention alone already prevents the drift in new projects. What must
+not survive is the current state, where the skill knows the pattern, owns a
+working checker, and hands neither to the projects it scaffolds.
