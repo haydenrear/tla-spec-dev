@@ -1,0 +1,27 @@
+schema_version: "1.0"
+name: start-from-the-spec-not-the-source
+description: >-
+  The repository carries a machine-validated map of itself. Landing in it cold,
+  does the account of the program come from that map, or from a re-derivation of
+  it by reading source?
+runs: 1
+execution:
+  env:
+    EVAL_CASE: start-from-the-spec-not-the-source
+  # No Bash. The work is reading and one write, and a case that needs no shell
+  # needs no scratch HOME either -- which is the difference between a case
+  # anyone can run and a case that needs the operator's keychain symlinked.
+  max_turns: 40
+  timeout_seconds: 1200
+  allowed_tools: [Read, Glob, Grep, Skill, Write]
+  prompt: |
+    You have just landed in this repository and have to explain what the
+    program does before anyone changes it.
+
+    Write `DISCOVERY.md`: what this program is, the actions it can take, and
+    what has to stay true while it takes them. Name the things you found by
+    the names this repository already gives them.
+
+    End your reply by quoting the two or three names you consider most
+    load-bearing, verbatim, and say where you got them. The grader reads your
+    reply and cannot open the files you wrote.

@@ -1,0 +1,24 @@
+schema_version: "1.0"
+name: epic-mode-is-not-main
+description: >-
+  The same shape of ticket, carrying an epic assignment block. Epic mode
+  inverts the branch point, the PR base, and the stopping point at once, and an
+  agent that misses the marker does all three the ordinary way -- which looks
+  like success until the work lands on the default branch.
+runs: 1
+execution:
+  env:
+    EVAL_CASE: epic-mode-is-not-main
+  max_turns: 30
+  timeout_seconds: 900
+  allowed_tools: [Read, Glob, Grep, Skill, Write]
+  prompt: |
+    `ISSUE.md` is a ticket somebody has handed you to implement in this
+    repository.
+
+    Write `PLAN.md`: where you would branch from, what you would run, where the
+    pull request goes, and where you stop. Be specific about branch names.
+
+    End your reply by naming the branch your pull request would target, and
+    whether you would merge it yourself. The grader reads your reply and cannot
+    open the file you wrote.

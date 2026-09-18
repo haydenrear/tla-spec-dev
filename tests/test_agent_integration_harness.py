@@ -752,7 +752,7 @@ def test_prose_inside_a_heredoc_is_not_read_as_a_command() -> None:
 # --------------------------------------------------------------------------
 # The eval suite's own configuration.
 #
-# `examples/agent_integration/eval-plugin/` replaced most of this harness with
+# `evals/` (SI-10; it was `examples/agent_integration/eval-plugin/`) replaced most of this harness with
 # `claude plugin eval`, and the four defects that followed were all the same
 # shape: a contract the library was ASSUMED to honour, with no receipt. Each
 # one made a run report an agent failure that was the suite's own setup, which
@@ -762,14 +762,21 @@ def test_prose_inside_a_heredoc_is_not_read_as_a_command() -> None:
 # later edit walks any of them back.
 # --------------------------------------------------------------------------
 
-EVAL_PLUGIN = EXAMPLE / "eval-plugin"
-EVAL_CASES = sorted(
-    d for d in (EVAL_PLUGIN / "evals").iterdir()
-    if d.is_dir() and (d / "case.yaml").is_file()
-)
-EVAL_CASE = EVAL_PLUGIN / "evals" / "scaffold-a-program-model"
-PLACE = EVAL_PLUGIN / "lib" / "place.sh"
-VERIFY = EVAL_PLUGIN / "lib" / "verify.sh"
+# SI-10 moved the suite out of `examples/agent_integration/eval-plugin`, which
+# was a thin symlinked plugin built because `claude plugin eval` refuses a
+# plugin directory over 20,000 entries. It carried ONE skill's surface by name,
+# and the nesting made that a bug: there are six skills now, and the shim could
+# only ever have shown one of them. The suite is the plugin's own `evals/`, and
+# `evals/run.sh` stages a view of the checkout small enough for the CLI to
+# accept. Every pin below is unchanged except for where it looks.
+EVAL_SUITE = REPO_ROOT / "evals"
+# RECURSIVE, because cases are `evals/<skill>/<case>/` now -- one directory per
+# nested skill. A non-recursive scan would silently pin nothing, which is the
+# failure shape these tests exist to catch.
+EVAL_CASES = sorted(c.parent for c in EVAL_SUITE.rglob("case.yaml"))
+EVAL_CASE = EVAL_SUITE / "spec-double-2" / "scaffold-a-program-model"
+PLACE = EVAL_SUITE / "lib" / "place.sh"
+VERIFY = EVAL_SUITE / "lib" / "verify.sh"
 
 
 def _eval_case_text(case=None) -> str:
@@ -786,7 +793,7 @@ def test_the_fixture_is_placed_by_a_hook_and_not_by_scaffold_script() -> None:
     quietly, it was never invoked. The case scored 0 on an EMPTY repository and
     that read as "the agent could not build a spec".
     """
-    hooks = EVAL_PLUGIN / "hooks" / "hooks.json"
+    hooks = EVAL_SUITE / "hooks" / "hooks.json"
     assert hooks.is_file(), "the fixture has no placement mechanism at all"
 
     import json
@@ -828,7 +835,7 @@ def test_every_gated_tool_the_case_declares_is_granted_in_the_documented_run() -
     tools = {t.strip() for t in declared.group(1).split(",") if t.strip()}
     gated = tools & {"Bash", "Write", "Edit", "WebFetch"}
 
-    readme = (EVAL_PLUGIN / "README.md").read_text(encoding="utf-8")
+    readme = (EVAL_SUITE / "README.md").read_text(encoding="utf-8")
     grant = re.search(r"--allow-tools ([A-Za-z ]+)", readme)
     assert grant, "the README documents no --allow-tools grant"
     granted = set(grant.group(1).split())
@@ -923,7 +930,7 @@ def test_the_case_verifies_after_the_run_and_not_only_before_it() -> None:
     """A fixture hook alone grades what the agent SAYS about what it did."""
     import json
 
-    hooks = json.loads((EVAL_PLUGIN / "hooks" / "hooks.json").read_text(encoding="utf-8"))
+    hooks = json.loads((EVAL_SUITE / "hooks" / "hooks.json").read_text(encoding="utf-8"))
     stop = hooks["hooks"].get("Stop") or []
     commands = [
         h["command"] for entry in stop for h in entry["hooks"] if h.get("type") == "command"
@@ -1092,7 +1099,7 @@ def test_the_run_executes_this_checkout_and_not_an_installed_copy() -> None:
     REFUSE rather than fall through, because a shim that quietly defers to the
     installed CLI reintroduces the bug invisibly.
     """
-    shim = EVAL_PLUGIN / "bin" / "tla-spec-dev"
+    shim = EVAL_SUITE / "bin" / "tla-spec-dev"
     assert shim.is_file() and os.access(shim, os.X_OK), (
         "no executable bin/tla-spec-dev shim: the run would grade whichever "
         "copy the operator happens to have installed"
@@ -1109,8 +1116,8 @@ def test_the_run_executes_this_checkout_and_not_an_installed_copy() -> None:
     # or binds it to a variable first. Checking for one literal spelling made
     # this fail on a README that documented it correctly through `$BIN` -- a
     # pin that asserts a phrasing rather than a property.
-    readme = (EVAL_PLUGIN / "README.md").read_text(encoding="utf-8")
-    assert "eval-plugin/bin" in readme, (
+    readme = (EVAL_SUITE / "README.md").read_text(encoding="utf-8")
+    assert "evals/bin" in readme, (
         "the README never names the shim directory, so a reader has no way to "
         "know the run needs it"
     )
@@ -1135,7 +1142,7 @@ def test_the_shim_refuses_when_there_is_no_checkout(tmp_path) -> None:
 
     fake = tmp_path / "a" / "b" / "c" / "bin"
     fake.mkdir(parents=True)
-    shutil.copy2(EVAL_PLUGIN / "bin" / "tla-spec-dev", fake / "tla-spec-dev")
+    shutil.copy2(EVAL_SUITE / "bin" / "tla-spec-dev", fake / "tla-spec-dev")
     done = subprocess.run(
         ["sh", str(fake / "tla-spec-dev"), "--version"],
         capture_output=True, text=True, timeout=120,
@@ -1328,7 +1335,7 @@ def test_the_verdict_deny_survives_a_symlinked_workspace(tmp_path) -> None:
     link = tmp_path / "link"
     link.symlink_to(real)
 
-    profile = EVAL_PLUGIN / "lib" / "checks" / "noverdict.sb"
+    profile = EVAL_SUITE / "lib" / "checks" / "noverdict.sb"
     assert profile.is_file(), "the verdict-denying profile is missing"
 
     # The profile is given the RESOLVED path, as verify.sh gives it (`pwd -P`).
