@@ -266,13 +266,28 @@ trap on_exit EXIT
 # not a path that does not exist. An integration repo whose home lacks the unit
 # has a real next move, and printing a dead path would be the `<placeholder>`
 # defect in a different costume.
+# SI-12: rung 2 is new, and without it this function silently stopped working.
+# git-integration-repo is now a CONTAINED SKILL of the tla-spec-dev plugin, so
+# its bytes are at `<home>/plugins/<plugin>/skills/git-integration-repo/`, never
+# at `<home>/skills/git-integration-repo/`. With only rung 1 the loop found
+# nothing and fell through to printing an install command — so an integration
+# repo that HAD the unit was told to install it, and the PROPAGATE key stopped
+# naming the fan-out. Nothing failed loudly; the key just quietly became advice.
+#
+# The glob is deliberately OUTSIDE the quotes: brace expansion does not happen
+# inside double quotes, and `ls -d | head -1` sorts (putting plugins/ ahead of
+# skills/ and inverting the standalone-first precedence). Both were measured in
+# wave 2; an explicit loop with `break`/`return` is the form that works.
 propagate_command() {
   local ticket="$1" c
   for c in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-integration-repo/scripts/propagate.sh" \
+           "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-integration-repo/scripts/propagate.sh \
            ${INTEGRATION:+"$INTEGRATION/constituents/git-integration-repo/scripts/propagate.sh"}; do
     [ -f "$c" ] && [ -x "$c" ] && { printf '%s %s\n' "$c" "$ticket"; return 0; }
   done
-  printf 'skill-manager install github:haydenrear/git-integration-skill\n'
+  # The remedy is the BUNDLE coord: installing the skill's own repo would add a
+  # standalone duplicate of a skill that already ships inside the plugin.
+  printf 'skill-manager install github:haydenrear/tla-spec-dev\n'
 }
 
 emit_contract() {

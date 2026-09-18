@@ -3444,3 +3444,300 @@ findings:
       section 2b reads the artifacts.
     disposition: pending
     disposition_ticket: null
+  - id: SI-12-DF-01
+    found_by: "SI-12"
+    found_at_commit: "1baad7f8"
+    schedule_revision: 3
+    severity: major
+    surface:
+      production:
+        - "skills/git-issue-workflow/references/complete.md"
+        - "skills/git-issue-workflow/references/integration-fanout.md"
+        - "skills/git-issue-workflow/references/provision.md"
+        - "skills/git-issue-workflow/skill-manager.toml"
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      Four sites in git-issue-workflow tell a reader to run git-integration-repo
+      out of its STANDALONE store path, with no plugins/*/skills rung:
+      references/complete.md:116 and references/integration-fanout.md:41 both
+      assign INT="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-integration-repo/scripts",
+      references/provision.md:158 cites a references/ page under the same root,
+      and skill-manager.toml:33 names propagate.sh there. SI-12 nested
+      git-integration-repo, so that directory does not exist in any home that
+      installs the bundle -- these are recipes that cannot be followed. SI-12
+      fixed the one site in that skill which EXECUTES (new-change.sh's
+      propagate_command, which silently stopped resolving the fan-out and fell
+      through to printing an install command) and deliberately left these four,
+      which are prose and one TOML comment.
+    reproduction: >-
+      In a home carrying the tla-spec-dev plugin, follow any of the four
+      literally. `ls "$SKILL_MANAGER_HOME/skills/git-integration-repo/scripts"`
+      is absent; `ls "$SKILL_MANAGER_HOME"/plugins/*/skills/git-integration-repo/scripts`
+      is present. Found by a repository-wide sweep over all 1348 tracked files
+      under skills/, which is wider than tests/test_plugin_layout_resolution.py
+      can see (SI-12-DF-03).
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-12/store-path-sweep-AFTER.txt"
+    why_out_of_scope: >-
+      skills/git-issue-workflow/** is not in SI-12's conflict keys. The ticket
+      widened scope once, for functional breakage that fails silently
+      (new-change.sh), and drew the line at documentation: a prose rewrite in a
+      skill this ticket does not own is a change the owner should schedule, not
+      one a nesting ticket smuggles in.
+    suggested_fix: >-
+      Give each the two-rung spelling used everywhere else in this epic: an
+      explicit `for d in <standalone> <plugin-rung>; do [ -d "$d" ] && { printf
+      %s "$d"; break; }; done` loop, standalone first, glob OUTSIDE the quotes.
+    blast_radius: >-
+      Documentation only; nothing executes these four. An agent following them
+      by hand reaches a path that is not there and has to work out why.
+    disposition: pending
+    disposition_ticket: null
+
+  - id: SI-12-DF-02
+    found_by: "SI-12"
+    found_at_commit: "1baad7f8"
+    schedule_revision: 3
+    severity: trivial
+    surface:
+      production:
+        - "skills/spec-double-2/references/plugin_evals.md"
+        - "skills/test-graph/skill-project.toml"
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      Six further lines match the standalone-only store-path pattern and are
+      recorded here as TRIAGED-NOT-DEFECTS, so the next sweeper does not
+      re-triage them from scratch. plugin_evals.md:629/638/653/654 are quoted
+      CONSOLE OUTPUT from a containment-violation report, and
+      test-graph/skill-project.toml:12/104 are comments WARNING that
+      `.skill-manager/skills/test-graph` would be a second stale SDK. In every
+      case the standalone path is the thing being described or cautioned
+      against, not an instruction to follow. Rewriting them would falsify a
+      transcript or invert a warning.
+      They matter anyway for one reason: a guard widened per SI-12-DF-03 would
+      fail on all six, so whoever widens it must either reword them or carry an
+      exclusion -- and deciding that blind, mid-widening, is how a check gets
+      disabled instead of fixed.
+    reproduction: >-
+      Run this ticket's sweep (store-path-sweep-AFTER.txt, section A). Ten
+      offender lines are reported; four belong to SI-12-DF-01 and these six are
+      the remainder. Read each in context before acting on it.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-12/store-path-sweep-AFTER.txt"
+    why_out_of_scope: >-
+      Neither file is in SI-12's conflict keys, neither was introduced by this
+      ticket, and on inspection neither is actually wrong.
+    suggested_fix: >-
+      Leave the content alone. When SI-12-DF-03 is acted on, give the widened
+      check a way to exempt quoted output and explicit counter-examples -- the
+      same problem plugin-repository's verify.sh already solved for fenced
+      blocks, and the same one SI-02-DF-01 hit when a check flagged its own
+      prescribed remedy.
+    blast_radius: >-
+      None today. The cost lands only on whoever widens the guard.
+    disposition: pending
+    disposition_ticket: null
+
+  - id: SI-12-DF-03
+    found_by: "SI-12"
+    found_at_commit: "1baad7f8"
+    schedule_revision: 3
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: ["tests/test_plugin_layout_resolution.py"]
+      test_graph: []
+    summary: >-
+      The guard SI-11 shipped against standalone-only rungs scans a NARROWER set
+      of files than the defect class it names. Its roots are skills/*/scripts,
+      skills/*/skill-scripts and the root skill-scripts, filtered to
+      .py/.sh/.bash, so every markdown page, every skill-manager.toml and every
+      skill-project.toml is exempt -- and those are exactly where this epic
+      keeps putting copy-pasteable resolver recipes. Measured at SI-12: a sweep
+      over all 1348 tracked files under skills/ reports 10 offending lines in 6
+      files, while `pytest tests/test_plugin_layout_resolution.py` reports 9
+      passed. Four of the ten are live broken instructions (SI-12-DF-01). The
+      test's docstring argues this class is dangerous BECAUSE it is silent; the
+      same argument applies to the files it does not read.
+    reproduction: >-
+      Run the sweep recorded in store-path-sweep-AFTER.txt, then run
+      `uv run --python 3.12 --with pytest ... python -m pytest
+      tests/test_plugin_layout_resolution.py -q`. Sweep: 10 offenders. Test: 9
+      passed, 0 failed.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-12/store-path-sweep-AFTER.txt"
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-12/layout-test-AFTER.txt"
+    why_out_of_scope: >-
+      tests/** is not in SI-12's conflict keys, and widening a guard changes what
+      the repository asserts about itself -- an owner decision, not a side effect
+      of a nesting ticket. Widening it here would also have turned 10
+      pre-existing lines into new red inside the very ticket whose regression
+      claim is "no new failures by name", which would have made the claim
+      unreadable.
+    suggested_fix: >-
+      Extend the scan roots to every tracked file under skills/, markdown and
+      TOML included, keeping the fixture exclusions and adding the
+      quoted-output exemption SI-12-DF-02 describes. Land it together with the
+      SI-12-DF-01 fixes, or it goes red on arrival.
+    blast_radius: >-
+      The guard, and every future bundling. While it stays narrow, a resolver
+      recipe added to any SKILL.md or reference page is unprotected -- which is
+      how all ten current lines got there.
+    disposition: pending
+    disposition_ticket: null
+
+  - id: SI-12-DF-04
+    found_by: "SI-12"
+    found_at_commit: "1baad7f8"
+    schedule_revision: 3
+    severity: minor
+    surface:
+      production: ["skills/discovery/skill-project.toml"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      skills/discovery/skill-project.toml:74 declares
+      `source = "github:haydenrear/test_graph_skill"` -- a coord naming a repo
+      this bundle CONTAINS. It still resolves, so resolving the discovery
+      project installs a second, standalone test-graph beside the contained one.
+      That is the silent-duplicate class (plugin-repository/references/imports.md
+      § 3) and the exact defect GOAL-one-unit clause 1 is measured on; it
+      predates SI-12 and survived SI-02.
+      The sweep reports 11 coord lines in total. The other ten are NOT defects
+      and are listed so nobody re-triages them: three are SI-12's own comments
+      explaining why a coord was removed, one is a test fixture string
+      (test-graph/scripts/tests/test_provider_bindings.py:119), one a default
+      constant with a --skill-coordinate override
+      (test-graph/scripts/github-action.py:46), and the rest are comment lines
+      mapping repo names to unit names.
+    reproduction: >-
+      `git grep -n "github:haydenrear/test_graph_skill" -- skills/` and read each
+      hit in context. Only the discovery declaration is an active `source =`.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-12/store-path-sweep-AFTER.txt"
+    why_out_of_scope: >-
+      skills/discovery/** is not in SI-12's conflict keys
+      (skills/git-integration-repo/**, skills/plugin-repository/**, README.md,
+      integration.toml).
+    suggested_fix: >-
+      Point it at the bundle coord, github:haydenrear/tla-spec-dev. Worth pairing
+      with SI-12-DF-03: a widened store-path guard still would not catch this,
+      because there is no check anywhere for "a reference naming a repo this
+      bundle contains" -- only for paths.
+    blast_radius: >-
+      One resolving declaration, which re-materialises a standalone test-graph in
+      any home that resolves the discovery project -- precisely the measurement
+      GOAL-one-unit clause 1 makes.
+    disposition: pending
+    disposition_ticket: null
+
+  - id: SI-12-DF-05
+    found_by: "SI-12"
+    found_at_commit: "1baad7f8"
+    schedule_revision: 3
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: ["test_graph/settings.gradle.kts", "test_graph/.gitignore"]
+    summary: >-
+      The three test graphs every epic ticket is told to run as its regression
+      gate -- specWorkflow, cliWorkflow, effectProviderExamples -- CANNOT RUN IN
+      A TICKET WORKTREE AT ALL. test_graph/settings.gradle.kts line 2 declares
+      `includeBuild("build-logic")`, and test_graph/.gitignore line 30 ignores
+      `/build-logic`; `git ls-files test_graph/build-logic` returns ZERO files.
+      So the directory exists only in a checkout where something generated it --
+      the main working tree has one -- and never in a fresh worktree. Gradle
+      aborts at CONFIGURATION time with "Included build '.../build-logic' does
+      not exist", in ~400ms, before a single graph step runs, identically for
+      all three graphs.
+      This is NOT caused by SI-12. A control run at the pinned base 9a06cdeb, in
+      a detached throwaway checkout, reproduces the identical failure in 447ms.
+      Recorded because the ticket contract asks for a graph result and the only
+      honest one available to a ticket agent is "unmeasurable here".
+    reproduction: >-
+      `git worktree add --detach <tmp> 9a06cdeb && cd <tmp>/test_graph &&
+      ./gradlew specWorkflow` -> BUILD FAILED in 447ms, "Included build
+      '<tmp>/test_graph/build-logic' does not exist". Same from the SI-12
+      worktree at 1baad7f8 for all three graphs (423ms / 388ms / 392ms).
+      `git check-ignore -v test_graph/build-logic` -> test_graph/.gitignore:30.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-12/graph-specWorkflow.txt"
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-12/graph-cliWorkflow.txt"
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-12/graph-effectProviderExamples.txt"
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-12/graph-specWorkflow-AT-BASE.txt"
+    why_out_of_scope: >-
+      test_graph/** is not in SI-12's conflict keys, and the fix is a decision
+      about how build-logic is produced or distributed -- generate it in a
+      bootstrap step, track it, or have the graphs depend on a task that creates
+      it. That is the test-graph surface's owner's call, not a nesting ticket's.
+    suggested_fix: >-
+      Either track build-logic, or give test_graph a bootstrap step the graphs
+      depend on that materialises it, so a fresh worktree can run them. Until
+      then, state plainly in the epic contract that the graph clause is
+      satisfiable only in the main working tree, so ticket agents stop reporting
+      an environment failure as a regression -- or reporting it as green because
+      they ran it somewhere else.
+    blast_radius: >-
+      Every epic ticket that declares these graphs. Any ticket agent running
+      them in its own worktree gets three BUILD FAILEDs that say nothing about
+      its change; the risk is that a real graph regression is indistinguishable
+      from this, in either direction.
+    disposition: pending
+    disposition_ticket: null
+
+  - id: SI-12-DF-06
+    found_by: "SI-12"
+    found_at_commit: "1baad7f8"
+    schedule_revision: 3
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      Re-installing a plugin over an existing install is a three-step dance with
+      one flag trap in it, and the README migration sequence does not mention
+      either half. (a) `skill-manager install file://<stage>` REFUSES when the
+      unit is already present -- "halted: unit 'tla-spec-dev' is already
+      installed ... remove it first" -- so re-installing a bundle after an edit
+      is remove-then-install, never install-over. (b) `skill-manager remove`
+      does NOT accept `--yes` (only `uninstall` does); passing it makes remove
+      print its usage text and change nothing. Combined with a caller that pipes
+      the command into `tail`, the shell's `$?` is then tail's status, so the
+      whole no-op reports success. That is exactly what happened here and it
+      cost a full measure-and-recheck cycle.
+    reproduction: >-
+      In a home already carrying the plugin: `skill-manager install
+      "file://$STAGE" --yes` -> exits having halted. `skill-manager remove
+      tla-spec-dev --yes` -> prints usage, removes nothing. `skill-manager
+      uninstall tla-spec-dev --yes` -> works (--yes documented as an accepted
+      no-op there, "so a caller that passes --yes to both halves of an
+      install/uninstall pair does not hit a usage error" -- which is precisely
+      the asymmetry `remove` does not honour).
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-12/plugin-install.txt"
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-12/step-uninstall.txt"
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-12/step-install.txt"
+    why_out_of_scope: >-
+      skill-manager is not this repository; the README sequence that omits the
+      re-install case is in scope but the CLI behaviour it documents is not.
+    suggested_fix: >-
+      Accept `--yes` on `remove` as the same documented no-op `uninstall`
+      already accepts -- the asymmetry has no upside and the usage-text failure
+      is silent to any caller that does not check the exit code directly. And
+      add the re-install case to README.md's migration section: remove (or
+      uninstall) before re-installing a bundle you have edited.
+    blast_radius: >-
+      Anyone re-installing an edited bundle into a home that already has it,
+      which is every ticket agent measuring its own change.
+    disposition: pending
+    disposition_ticket: null

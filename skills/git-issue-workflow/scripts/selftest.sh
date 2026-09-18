@@ -2198,8 +2198,11 @@ $(command sed 's/^/        /' "$SCRATCH/ploc-both.out")"
 # answer in exactly one arrangement — a copy sitting in the target repo's own
 # `scripts/` — which is the arrangement every existing check here uses, and the
 # arrangement a real agent never has: the copy an agent reaches is the INSTALLED
-# one, under `<home>/skills/git-integration-repo/scripts/`. Measured from a plain
-# repo, from an integration repo and from a constituent, all three identical:
+# one, under `<home>/skills/git-integration-repo/scripts/` when that unit is
+# installed standalone, or `<home>/plugins/*/skills/git-integration-repo/scripts/`
+# now that it ships as a contained skill of the tla-spec-dev plugin. Measured
+# from a plain repo, from an integration repo and from a constituent, all three
+# identical:
 #
 #   ✗ source and destination homes must not nest: <home> vs <home>/skills/git-integration-repo/.skill-manager
 #   exit 1
@@ -2716,7 +2719,9 @@ step "Every scripts/ path this skill names is one it ships"
 # `(^|[^/…])scripts/…` — a LEADING SLASH disqualifies the match. This skill's
 # pages name git-integration-repo's fan-out the way every cross-unit path in
 # these skills is named:
-# `$SKILL_MANAGER_HOME/skills/git-integration-repo/scripts/propagate.sh`. That
+# `$SKILL_MANAGER_HOME/skills/git-integration-repo/scripts/propagate.sh`, or
+# `$SKILL_MANAGER_HOME/plugins/*/skills/git-integration-repo/scripts/propagate.sh`
+# now that that unit is a contained skill of the tla-spec-dev plugin. That
 # resolves inside a DIFFERENT unit and is not this skill's to ship; sweeping it
 # up would make the rule below assert the opposite of what it means. A bare
 # `scripts/<name>` — at a line start, after a space, a backtick or a quote — is

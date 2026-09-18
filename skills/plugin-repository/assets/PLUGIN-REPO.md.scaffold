@@ -1,0 +1,74 @@
+# Plugin repository
+
+> This file marks this repo as a **plugin repository**. Read it, and then
+> `INTEGRATION.md` beside it, before touching git here.
+
+This repo is **two things at once**:
+
+- a **skill-manager plugin** — `.claude-plugin/plugin.json` at the root,
+  contained skills under `skills/<name>/`. Consumers install ONE unit at ONE
+  version and address its skills as `<plugin>:<skill>`.
+- an **integration repository** — `integration.toml` lists those same
+  `skills/<name>/` directories as constituents. Each is a real repo with its own
+  remote in a development checkout; the parent tracks their files as **ordinary
+  blobs**, never submodules.
+
+Managed by the `plugin-repository` skill, which is a specialization of
+`git-integration-repo`. That unit owns the git model, `refresh.sh` and
+`propagate.sh`, and `INTEGRATION.md` states its rules — all of which apply here
+unchanged.
+
+## Rules (in addition to INTEGRATION.md's)
+
+1. **Constituents live at `skills/<name>/`.** That is where skill-manager and
+   the harness plugin runtime look for contained skills. Add one with
+   `<plugin-repository>/scripts/add-skill.sh`, never with the dependency's
+   `add-constituent.sh`, which hardcodes `constituents/`.
+2. **`plugin.json` and `skill-manager-plugin.toml` must agree** on `name` and
+   `version`. Change them only with `scripts/release.sh`.
+3. **Propagate before you refresh.** `refresh.sh` hard-resets each constituent
+   to upstream but **skips** any whose tree is dirty (`has local changes — …
+   SKIPPING`). An un-propagated skill edit is therefore not destroyed — it
+   silently *blocks that skill's pull*, so the refresh you thought was
+   everything was a subset. Read the SKIPPING lines and fan those out with
+   `propagate.sh`.
+4. **A skill edit published from an agent's home lands HERE, not in the skill's
+   own repo** — the store copy of a plugin is a checkout of this repo, and that
+   is correct: this repo is the unit, so it is what `skt publish` pushes to and
+   what `skt check` notifies about. It is not *finished*, though, until
+   `propagate.sh` has carried it to the skill's own repo (see rule 3).
+
+5. **A contained skill is not an installed unit.** `<plugin>:<skill>` invokes
+   it; `skill-manager show <skill>` answers "unit not found". Anything naming it
+   as a `skill-imports: unit:` must address the plugin instead
+   (`unit: <plugin>`, `path: skills/<skill>/…`), or that importing unit's next
+   publish/sync fails validation.
+
+## The two directions
+
+```bash
+# Two rungs each: these skills may be installed standalone OR as contained
+# skills of a plugin, and a contained skill's bytes are under plugins/*/skills/.
+S="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-integration-repo "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-integration-repo; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts"
+P="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/plugin-repository "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/plugin-repository; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts"
+
+# IN: pull every skill's upstream changes as ONE reviewable change
+$S/refresh.sh && git add -A && git commit -m "pull skills to upstream tips"
+$P/release.sh minor
+
+# CHANGE: edit across skills in one worktree, one commit, one PR
+skt ticket new TICKET-123     # worktree + its own Skill Manager home
+
+# OUT: fan the merged change back to each skill's own repo
+$S/propagate.sh TICKET-123 --push --mr
+
+# CHECK: valid plugin AND valid integration repo
+$P/verify.sh
+```
+
+## Manifest
+
+`integration.toml` (constituents, host, compositions) and
+`skill-manager-plugin.toml` + `.claude-plugin/plugin.json` (plugin identity and
+shared deps). Scripts read all three. Keep them in sync when a skill joins or
+leaves the bundle.

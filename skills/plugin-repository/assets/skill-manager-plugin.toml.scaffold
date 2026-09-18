@@ -1,0 +1,45 @@
+# skill-manager sidecar for this plugin. The harness ignores it; skill-manager
+# reads it. `name` and `version` MUST agree with .claude-plugin/plugin.json —
+# skill-manager warns on drift and the harness silently prefers one, so drift
+# surfaces later as an inexplicable version. Change both with
+# `<plugin-repository>/scripts/release.sh`, which is the only thing that writes
+# them together.
+
+[plugin]
+name = "REPLACE_NAME"
+version = "0.1.0"
+description = "REPLACE_DESCRIPTION"
+
+# --- plugin-level references -------------------------------------------------
+#
+# Units this WHOLE bundle needs installed. Git coords only (github:owner/repo,
+# git+…, file:…) — no registry is configured, so skill:/plugin: name coords
+# cannot resolve — and the coord names the REPO, which is usually spelled
+# differently from the installed unit.
+#
+# Do NOT list a skill that is a constituent of this bundle: it ships inside,
+# and referencing it would install a second, standalone copy at a different
+# version and a different store path.
+#
+# references = [
+#   "github:owner/some-other-skill",
+# ]
+
+# --- plugin-level dependencies -----------------------------------------------
+#
+# Keep CLI/MCP deps on the CONTAINED SKILLS by default: that keeps each skill
+# self-describing and still installable standalone from its own repo, which is
+# the property a plugin repository is trying not to destroy upstream. Promote a
+# dep here only when two contained skills share it — the case that matters is
+# one MCP server, because registering it twice races on init params.
+#
+# [[cli_dependencies]]
+# spec = "pip:my-tool==1.4.0"
+# on_path = "my-tool"
+#
+# [[mcp_dependencies]]
+# name = "shared-mcp"
+# display_name = "Shared MCP"
+# description = "…"
+# default_scope = "global-sticky"
+# load = { type = "docker", image = "ghcr.io/me/shared:latest" }

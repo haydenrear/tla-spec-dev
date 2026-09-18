@@ -17,8 +17,16 @@ single `skt check` notification — see *Install Locally* below.
 | `git-issue` | `tla-spec-dev:git-issue` | `haydenrear/git-issue-skill` |
 | `discovery` | `tla-spec-dev:discovery` | `haydenrear/discovery-skill` |
 | `test-graph` | `tla-spec-dev:test-graph` | `haydenrear/test_graph_skill` |
+| `git-integration-repo` | `tla-spec-dev:git-integration-repo` | `haydenrear/git-integration-skill` |
+| `plugin-repository` | `tla-spec-dev:plugin-repository` | `haydenrear/plugin-repository-skill` |
 
-The five with an upstream repository are **constituents** (`integration.toml`),
+SI-12 added the last two. They were left outside the bundle at kickoff, and that
+turned out to be the one thing keeping `GOAL-one-unit` clause 1 unsatisfiable:
+both of them **import** skills this bundle contains, so every home carrying them
+re-materialised standalone copies of three contained skills. `debugging` stays
+outside — nothing in the bundle depends on it, so it creates no such cycle.
+
+The seven with an upstream repository are **constituents** (`integration.toml`),
 nested with `git subtree` at full history. They are ordinary tracked files — no
 submodules, no gitlinks — and upstream work still reaches this repository with
 `git subtree pull --prefix=skills/<name> <remote> main` until the owner declares
@@ -90,14 +98,19 @@ STAGE=$(mktemp -d) && git archive HEAD | tar -x -C "$STAGE"
 # 2. Remove the now-duplicated standalone units. `uninstall`, not `remove`:
 #    `remove` is lower-level and leaves agent symlinks and MCP registrations
 #    behind, which is how a "removed" skill keeps resolving.
+#    git-integration-repo and plugin-repository were added to this list by
+#    SI-12. Until they go, they re-install three of the others as standalone
+#    copies every time they resolve -- they are the reason the list is eight
+#    long rather than six.
 for u in spec-double-compiler git-epic-workflow git-issue-workflow \
-         git-issue discovery test-graph; do
+         git-issue discovery test-graph \
+         git-integration-repo plugin-repository; do
   "$SM" uninstall "$u" --yes 2>/dev/null || true   # absent is fine
 done
 
-# 3. Confirm: ONE unit, six contained skills, and no standalone leftovers.
+# 3. Confirm: ONE unit, eight contained skills, and no standalone leftovers.
 "$SM" show tla-spec-dev                  # lists the contained skills
-"$SM" list | grep -E 'tla-spec-dev|spec-double|git-issue|git-epic|discovery|test-graph'
+"$SM" list | grep -E 'tla-spec-dev|spec-double|git-issue|git-epic|discovery|test-graph|git-integration|plugin-repository'
 ls "$HOME_DIR/plugins/tla-spec-dev/skills/"
 "$SM" show test-graph                    # expected: "unit not found" -- it is contained now
 ```
