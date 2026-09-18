@@ -200,22 +200,62 @@ def resolve_ledger(path: pathlib.Path, *, explicit: bool) -> pathlib.Path:
     return newest
 
 
-def load(path: pathlib.Path) -> list[dict]:
-    import yaml  # deferred: the ledger is the only reason this script needs it
+def read_rows(path: pathlib.Path) -> tuple[list[dict], list[str]]:
+    """The rows, plus the structural faults found, RAISING NOTHING.
+
+    `SI-04`. There are now two readers of this file's clauses and exactly one
+    reader of its bytes, which is this function. `load` is this plus the
+    refusals; `scripts/improvement_ledger.py` is this without them, because it
+    is advisory and must exit 0 even on a corrupt ledger.
+
+    The alternative was a second YAML read in the ledger, and the reason that
+    is not acceptable here is `CA-05-DF-06`: the last time two things disagreed
+    about how to read this file, one of them silently kept the wrong half of a
+    duplicate key and reported the backlog clean. A fault is returned as text
+    so that a caller can refuse on it, print it, or both -- but never so that a
+    caller can fail to notice it.
+    """
+    try:
+        import yaml  # deferred: the ledger is the only reason this script needs it
+    except ImportError:
+        # `SF-105` / `EV-02-DF-05`, still open: no `python3` on the machines this
+        # runs on carries `yaml`, `pytest` and `tomllib` together, and no
+        # document states an interpreter requirement. A refusing caller turns
+        # that into an error; an advisory one turns it into a printed line. The
+        # one thing neither may do is read it as an empty backlog.
+        return [], [f"{path}: PyYAML is not importable under {sys.executable} -- "
+                    f"backlog NOT read (this is not an empty backlog)"]
 
     text = path.read_text()
+    faults: list[str] = []
     if dups := duplicate_keys(text):
         for rid, key, ns in dups:
-            print(f"STRUCTURAL {rid}: `{key}` appears {len(ns)}x at lines "
-                  f"{', '.join(map(str, ns))} -- YAML keeps the LAST and discards "
-                  f"the rest without a word", file=sys.stderr)
-        raise SystemExit(
-            f"{path}: {len(dups)} duplicate key(s) -- REFUSING to report a clause "
-            f"verdict over input a parser has silently discarded (CA-05-DF-06)"
-        )
+            faults.append(
+                f"STRUCTURAL {rid}: `{key}` appears {len(ns)}x at lines "
+                f"{', '.join(map(str, ns))} -- YAML keeps the LAST and discards "
+                f"the rest without a word"
+            )
+        return [], faults
     doc = yaml.safe_load(text) or {}
     rows = doc.get("findings") or []
     if not rows:
+        faults.append(f"{path}: no `findings` -- 0 of 0 is not a clean result")
+    return rows, faults
+
+
+def load(path: pathlib.Path) -> list[dict]:
+    """`read_rows`, with this script's refusals. Behaviour is unchanged."""
+    rows, faults = read_rows(path)
+    if not rows:
+        for fault in faults:
+            print(fault, file=sys.stderr)
+        if any("PyYAML" in f for f in faults):
+            raise SystemExit(f"{path}: PyYAML is required to read the ledger")
+        if any(f.startswith("STRUCTURAL") for f in faults):
+            raise SystemExit(
+                f"{path}: {len(faults)} duplicate key(s) -- REFUSING to report a clause "
+                f"verdict over input a parser has silently discarded (CA-05-DF-06)"
+            )
         raise SystemExit(f"{path}: no `findings` -- refusing to report 0 of 0")
     return rows
 

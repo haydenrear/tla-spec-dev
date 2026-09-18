@@ -799,15 +799,45 @@ beneath*. Grouping by that string costs nothing new and is the difference
 between *"seven findings, one gap"* and *"seven findings, five gaps"* — which
 want different answers.
 
-| bin | findings | disposition | blocker / note |
-|---|---|---|---|
-| `UNMODELED/yaml-parser` | **7** | **`MODELABLE`** | Nothing is stopping it. It is a deterministic parser with a total function from text to data — **the easiest thing in this repository to model.** Accumulating here is now a *choice*, and this row exists to make that choice visible |
-| `UNMODELED/skill-composition` | **1** | **`DEFERRED`** | **Blocker: no runner exists that can drive several skills composed inside one plugin end to end.** Opened empty and deliberately; `G-08` is the first thing to land in it, and it landed because a real agent hit it. **The blocker is now half false and that is itself the finding §7c rule 2 asks for** — `examples/agent_integration` IS a runner that drives skills end to end. It does not yet drive a multi-skill *plugin*, so the bin stays `DEFERRED`, but the sentence has to be re-read next round rather than repeated |
-| `UNMODELED/skill-manager-home` | **3** | **`UNDECIDED`** | New. The home/launch substrate: `exec` starts an unauthenticated session, a cloned home's agent config dir has no skills, `--home-root` is ignored. It is another unit's code with its own repository, which is a reason to classify it deliberately rather than a classification. **`UNDECIDED` is the honest entry**, per §3 — an absent input is never a PASS, and inventing a disposition here would be the same error as inventing a budget rationale |
-| `UNMODELED/example-runners` | **2** | **`UNDECIDED`** | New. `run_distributed_history_validation.py`, `run_validations.py` and the Test Graph node sources are executable surface no action in `TlaSpecDevCli.tla` describes. Round 3 found four defects in that tier and two of them anchor nowhere else |
-| `UNMODELED/instrument-registry` | **1** | **`UNDECIDED`** | New. `instruments.toml` plus `demonstrate.py`. The registry measures the instruments; nothing measures the registry, and this round found it red |
-| `UNMODELED/agent-harness` | **11** | **`UNDECIDED`** | New, and it opens as the second-largest row anywhere in this file. `examples/agent_integration/` -- the thing that produced every round-3 and round-002 claim. Eight of the eleven are pinned, which is the only reason the disposition is not worse than undecided |
-| `UNMODELED/record-keeping` | **2** | **`RECORD-ONLY`** | New. The matrix disagreeing with itself (`H-08`) and the fourth `git add -A` (`H-10`). Neither will ever be a TLA+ action; per §7c that is a statement about REPRESENTATION, never about relevance, and `H-10` is the one that finally got a mechanism instead of a rule |
+| bin | findings | disposition | skill change | blocker / note |
+|---|---|---|---|---|
+| `UNMODELED/yaml-parser` | **7** | **`MODELABLE`** | `(absent)` | Nothing is stopping it. It is a deterministic parser with a total function from text to data — **the easiest thing in this repository to model.** Accumulating here is now a *choice*, and this row exists to make that choice visible |
+| `UNMODELED/skill-composition` | **1** | **`DEFERRED`** | `(absent)` | **Blocker: no runner exists that can drive several skills composed inside one plugin end to end.** Opened empty and deliberately; `G-08` is the first thing to land in it, and it landed because a real agent hit it. **The blocker is now half false and that is itself the finding §7c rule 2 asks for** — `examples/agent_integration` IS a runner that drives skills end to end. It does not yet drive a multi-skill *plugin*, so the bin stays `DEFERRED`, but the sentence has to be re-read next round rather than repeated |
+| `UNMODELED/skill-manager-home` | **3** | **`UNDECIDED`** | `(absent)` | New. The home/launch substrate: `exec` starts an unauthenticated session, a cloned home's agent config dir has no skills, `--home-root` is ignored. It is another unit's code with its own repository, which is a reason to classify it deliberately rather than a classification. **`UNDECIDED` is the honest entry**, per §3 — an absent input is never a PASS, and inventing a disposition here would be the same error as inventing a budget rationale |
+| `UNMODELED/example-runners` | **2** | **`UNDECIDED`** | `(absent)` | New. `run_distributed_history_validation.py`, `run_validations.py` and the Test Graph node sources are executable surface no action in `TlaSpecDevCli.tla` describes. Round 3 found four defects in that tier and two of them anchor nowhere else |
+| `UNMODELED/instrument-registry` | **1** | **`UNDECIDED`** | `(absent)` | New. `instruments.toml` plus `demonstrate.py`. The registry measures the instruments; nothing measures the registry, and this round found it red |
+| `UNMODELED/agent-harness` | **11** | **`UNDECIDED`** | `(absent)` | New, and it opens as the second-largest row anywhere in this file. `examples/agent_integration/` -- the thing that produced every round-3 and round-002 claim. Eight of the eleven are pinned, which is the only reason the disposition is not worse than undecided |
+| `UNMODELED/record-keeping` | **2** | **`RECORD-ONLY`** | `(absent)` | New. The matrix disagreeing with itself (`H-08`) and the fourth `git add -A` (`H-10`). Neither will ever be a TLA+ action; per §7c that is a statement about REPRESENTATION, never about relevance, and `H-10` is the one that finally got a mechanism instead of a rule |
+
+### The `skill change` column, and why every cell in it says `(absent)`
+
+**`SI-04` added the column; it did not fill it, and the emptiness is the
+measurement.** A bin's `disposition` says whether it could ever be modeled. It
+has never said whether anything in the substrate **changed** because findings
+piled up there — and for the three rows that grew fastest, the substrate is a
+skill, so that is the only question that matters.
+
+The vocabulary is one line, shared with every other record in this project
+(`bug_attribution.md` §2a, `consumption.md` D4):
+
+```
+skill_change: none | proposed(<unit>, <diff or issue>) | applied(<commit>) | declined(<reason>)
+```
+
+**`(absent)` is the honest entry today and is NOT `none`.** §3's rule about
+absent inputs is the whole reason this column is not pre-filled: `none` would
+be a claim that no skill change was needed in any of these seven bins, which
+nobody has assessed. Seven `(absent)` cells say instead that the question has
+now been asked seven times and answered zero times, which is a fact about this
+record and is exactly what `GOAL-findings-become-changes` is measured on.
+
+**It is read by `scripts/improvement_ledger.py` and by nothing else.** Nothing
+refuses on this column. The ledger keys on the header *name*, not the column
+index, so adding it here did not shift any existing reading by one.
+
+**One writer still.** The epic agent owns this file's contents; `SI-04` changed
+its *schema* under an explicit conflict key and placed no finding, moved no row
+and altered no count.
 
 ### The disposition is not in-scope / out-of-scope
 
