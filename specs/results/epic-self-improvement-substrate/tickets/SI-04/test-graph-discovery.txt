@@ -1,0 +1,46 @@
+########## test-graph discovery, SI-04 ##########
+Assignment declares graphs: [cliWorkflow], spec_graph: specWorkflow
+
+=== discover.py cliWorkflow ===
+plan for test graph 'cliWorkflow' (2 steps):
+  #   id                kind        rt      entry
+  1.  spec.cli.install  testbed     uv      sources/tla_spec_dev_cli_install.py
+  2.  spec.cli.help     assertion   uv      sources/tla_spec_dev_cli_help.py
+
+dependencies:
+  spec.cli.install  (root)
+  spec.cli.help     <- spec.cli.install
+
+dependency graph:
+  see it here: docs/cliWorkflow.png
+  (DOT source: docs/cliWorkflow.dot)
+discover exit=0
+
+=== discover.py specWorkflow ===
+  #   id                                   kind        rt      entry
+  1.  spec.cli.install                     testbed     uv      sources/tla_spec_dev_cli_install.py
+  2.  spec.workflow.repo                   testbed     uv      sources/spec_workflow_create_repo.py
+  3.  spec.workflow.start                  action      uv      sources/spec_workflow_start_ticket.py
+  4.  spec.workflow.complete               action      uv      sources/spec_workflow_complete_ticket.py
+  5.  spec.workflow.spec_units             assertion   uv      sources/spec_workflow_spec_units.py
+  6.  spec.workflow.close                  assertion   uv      sources/spec_workflow_close_ticket.py
+  7.  spec.workflow.failure_cleanup_probe  assertion   uv      sources/spec_workflow_failure_cleanup_probe.py
+  8.  spec.workflow.cleanup                fixture     uv      sources/spec_workflow_cleanup.py
+  9.  spec.reference.adapters_resolve      assertion   uv      sources/reference_adapters_resolve.py
+
+dependencies:
+  spec.cli.install                     (root)
+  spec.workflow.repo                   <- spec.cli.install
+  spec.workflow.start                  <- spec.workflow.repo
+  spec.workflow.complete               <- spec.workflow.start
+  spec.workflow.spec_units             <- spec.workflow.complete
+  spec.workflow.close                  <- spec.workflow.spec_units
+  spec.workflow.failure_cleanup_probe  <- spec.workflow.close
+  spec.workflow.cleanup                <- spec.workflow.repo
+  spec.reference.adapters_resolve      (root)
+
+dependency graph:
+  see it here: docs/specWorkflow.png
+  (DOT source: docs/specWorkflow.dot)
+discover exit=0
+

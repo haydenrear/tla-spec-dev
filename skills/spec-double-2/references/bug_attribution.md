@@ -59,6 +59,46 @@ somebody read the transcript afterwards. **A defect found by reading is a CATCH
 whose channel is `reading` and whose `pinned_by` is usually empty** — and the
 empty pin is the interesting half, not a reason to leave it unrecorded.
 
+### 2a. `skill_change` — the one field every kind carries
+
+**`SI-04`.** All four kinds above answer *what was found*. None of them answered
+*what changed in the substrate because of it*, and the fastest-growing rows in
+the matrix — `UNMODELED/skill-manager-home`, `UNMODELED/agent-harness`,
+`UNMODELED/record-keeping` — are precisely the rows where the defect is in the
+substrate and the record stops at having noticed.
+
+**So every record kind carries one more field, with one grammar:**
+
+```
+skill_change: none | proposed(<unit>, <diff or issue>) | applied(<commit>) | declined(<reason>)
+```
+
+| value | means |
+|---|---|
+| `none` | a claim: no change to any skill was needed for this one |
+| `proposed(<unit>, <ref>)` | the change is written down somewhere that is not this record |
+| `applied(<commit>)` | the substrate is different now, and here is the commit |
+| `declined(<reason>)` | somebody decided not to, and said why |
+
+**An absent `skill_change` is not `none`.** §3 governs this and it is the whole
+reason the field is worth having: `none` is a claim somebody made, absent is
+nobody having been asked. A reader that collapses the two reports the entire
+pre-`SI-04` record as having considered the question and answered no.
+
+**`recorded-local` is the state this field exists to end.** Thirteen findings in
+`specs/results/skill_feedback.md` carry it: written up in full, in this
+repository, and filed nowhere. Each one is a defect somebody found, understood
+well enough to describe, and left exactly where it was.
+
+**The rule it serves, which is `consumption.md`'s D4:** *a finding anchored to a
+skill is consumed only by a change to that skill.* Routing such a finding to a
+ticket and closing the ticket changes nothing about the skill.
+
+**Nothing refuses on it.** `scripts/improvement_ledger.py` reads this field
+across all four record files and warns; it has no exit-code path at all. §8's
+first bullet still holds for this page, and `GOAL-no-new-gates` holds for the
+ticket that added the field.
+
 ---
 
 ## 3. THE RULE THAT MAKES REACH AND BLIND WORTH ANYTHING
@@ -115,6 +155,8 @@ three things beyond the existing schema.
   channel_note: "specWorkflow node ..."  # existing free text, optional
   area: "the workflow-close path"        # PROSE, written by whoever found it
   pinned_by: "tests/test_x.py::test_y"   # or omitted, with pin_note saying why
+  skill_change: applied(9f2c1ab)         # §2a — absent is NOT `none`
+  goal: GOAL-findings-become-changes     # the measurement this bears on, if any
 ```
 
 ### 4.1 The channel vocabulary, and its class
@@ -228,6 +270,8 @@ reach:
     enumerated_by: "read every directory containing an executable; 5 found, 2 covered"
     note: "DEF-124. The unenforced list is why three live homes were lost eight
            days after the fix was called done."
+    skill_change: applied(4c1d0e2)   # §2a. A REACH whose unenforced list was
+                                     # never acted on is a list, not a reach.
 ```
 
 **`unenforced_on` is the field this kind exists for.** `enforced_on` is what
@@ -263,6 +307,8 @@ blind:
       the symlink path is never executed"
     why: "fixture construction, not assertion strength"
     note: "DEF-115. Green for weeks. Green meant COULD NOT LOOK."
+    skill_change: declined("the symlinked-home path is being removed outright;
+                   pinning it would pin a shape we are deleting")
 ```
 
 **An empty `could_not_have_caught` is a claim** — §3 — and needs the same
@@ -358,6 +404,7 @@ price:
       value: "612 lines removed, 3 days, two behaviour changes"
       measured_at_commit: null      # null until it is actually measured
     verdict: null                   # null until both halves exist
+    skill_change: proposed(spec-double-2, "#319")   # §2a
 ```
 
 **Two fields, written at two different times, and the record makes backfilling
