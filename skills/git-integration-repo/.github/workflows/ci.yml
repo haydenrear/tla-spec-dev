@@ -1,0 +1,111 @@
+# CI for git-integration-repo.
+#
+# This repository had NO workflows. It ships propagate.sh — the fan-out that
+# branches, commits and pushes every constituent of an integration repository —
+# and a 37-check selftest that had never been executed by anything but a human
+# choosing to run it.
+#
+# Two jobs:
+#
+#   selftest  scripts/selftest.sh, whole. Unlike the sibling suite in
+#             git-issue-workflow, this one needs NO skill-manager CLI: the
+#             worktree/home machinery moved out of this skill, and its coverage
+#             moved with it. What is left is measurable from a bare shell in
+#             about two seconds — no entry point acts on `--help`, every script
+#             this skill names it ships, nothing resolves a skill-manager by a
+#             path relative to itself, and the shared library is SOURCED across
+#             the dependency rather than copied.
+#
+#             That last group is why this job checks out git-issue-workflow.
+#             `scripts/integration-lib.sh` sources `lib.sh` from that unit and
+#             refuses at source time when the two disagree about the
+#             WORKTREE_LIB_ABI or the function roll-call. Pinning
+#             GIT_ISSUE_WORKFLOW_SCRIPTS at that repo's `main` means this job
+#             does not merely check the guard's code — it measures this skill
+#             against the dependency's CURRENT tip, so a cross-repo skew shows
+#             up here instead of in the middle of a fan-out, which is the one
+#             place it cannot be re-run out of.
+#
+#   units     SKILL.md frontmatter and the unit manifest still parse, plus
+#             shellcheck over every shipped script. A skill whose frontmatter is
+#             invalid YAML does not fail loudly, it DISAPPEARS from a sync: an
+#             unquoted `: ` in one description did exactly that and cost an epic
+#             of worktrees deadlocking on exit 6 while blaming links
+#             (skill-dev-skill#4, git-issue-workflow#16).
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  selftest:
+    name: selftest (bare shell)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: git-integration-repo
+
+      # An anonymous clone rather than a cross-repo actions/checkout: the
+      # dependency is public, and this way the job carries no assumption about
+      # what the default token may read.
+      - name: Check out the git-issue-workflow dependency
+        run: git clone --depth 1 https://github.com/haydenrear/git-issue-workflow-skill.git git-issue-workflow
+
+      - name: Report the pinned library
+        run: |
+          echo "git-issue-workflow at $(git -C git-issue-workflow rev-parse --short HEAD)"
+          grep -m1 '^WORKTREE_LIB_ABI=' git-issue-workflow/scripts/lib.sh
+
+      # HOME is redirected and SKILL_MANAGER_HOME is left unset so the default
+      # rung (`${SKILL_MANAGER_HOME:-$HOME/.skill-manager}`) resolves to nothing
+      # and the explicit pin is demonstrably the copy in use — which is one of
+      # the properties the suite itself asserts.
+      - name: Run the selftest
+        working-directory: git-integration-repo
+        env:
+          GIT_ISSUE_WORKFLOW_SCRIPTS: ${{ github.workspace }}/git-issue-workflow/scripts
+        run: |
+          git config --global user.email "ci@git-integration-repo.invalid"
+          git config --global user.name "git-integration-repo CI"
+          git config --global init.defaultBranch main
+          bash scripts/selftest.sh
+
+  units:
+    name: unit manifest and frontmatter
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Validate the unit manifest and SKILL.md frontmatter
+        run: uv run --python 3.13 --script .github/scripts/check_units.py --root .
+
+      - name: Install shellcheck
+        run: command -v shellcheck >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y shellcheck; }
+
+      # Warning level, not error level — `--severity=error` passes on anything
+      # that parses at all. The three exclusions are the known-noise set
+      # measured across these scripts, named here rather than tolerated
+      # silently so that lowering the bar has to be a reviewable diff.
+      - name: Lint the shipped shell scripts
+        run: shellcheck --severity=warning --exclude=SC2034,SC2164,SC2046 scripts/*.sh
