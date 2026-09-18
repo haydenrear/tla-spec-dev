@@ -173,6 +173,35 @@ All four are front-door defects, not facts about the repository. Put the line
 where this ticket's work is reported — the PR body, or to the user when there is
 no PR — and file it against this skill.
 
+## A blocker you met is a change you propose
+
+The front-door line above is one instance of a general move. Whenever something
+in the substrate blocked you — this skill, a script, the CLI, a validator, an
+instruction that turned out to be unrunnable — the PR body carries a
+`## Skill changes proposed` section: three columns, one row per blocker you
+actually met.
+
+| Unit | What I hit | Proposed change |
+| --- | --- | --- |
+| git-issue-workflow | `wt new` rolled the worktree back: `error: this home holds 15 skill(s) and an agent launched here can reach 12` | applied in `<sha>`, or the diff |
+
+`none met` is a legitimate and common answer, and it is written rather than left
+out. Four rules make the section cheap:
+
+- **Run nothing new for it.** Every row is something that already happened while
+  you did the ticket. It is a report, not an audit.
+- **Apply it where you can.** When the unit is a file in this repository and
+  inside your conflict keys, make the change and link the commit; otherwise put
+  the diff in the row.
+- **You may be blocked from fixing it, and that is still a row.** Reporting a
+  defect you were forbidden to fix, or handing one over instead of filing it
+  where filing would contradict an explicit instruction, is the behaviour this
+  section exists to make routine.
+- **Nothing blocks on it.** Required in shape, never a gate on merge.
+
+Where it goes, and the worked examples: `references/complete.md` §5a for an
+ordinary ticket, `references/epic-ticket.md` §7 for an epic ticket.
+
 Everything else is on demand and costs nothing until asked:
 `"$WT" info <ticket>` prints WORKTREE / BRANCH / LAUNCH / IF-EXIT-8 / CLOSE (and
 PROPAGATE, only in an integration repo). `BASE` — the commit branched from — is
@@ -225,7 +254,12 @@ or spec command. Search for the exact marker:
   This selection happens even when the checkout also has integration-repo markers.
   An assignment whose `ticket.role` is `evaluation` decides goals instead of
   producing a behavioral delta — read `references/goal-signal.md` alongside
-  `references/epic-ticket.md` before provisioning it.
+  `references/epic-ticket.md` before provisioning it. **An epic may also own the
+  model**: where the plan carries `planning_rules.model_ownership_rule`, the epic
+  agent scaffolds and closes the spec ticket and you run neither `open ticket`
+  nor `close ticket` nor `--accept-new` — you move `current` toward `desired`,
+  correct `desired` only in small ways, and return structural changes in the PR
+  (`references/epic-ticket.md` §3).
 - **Marker absent:** continue with the existing PLAIN/INTEGRATION detection and
   ordinary procedures below.
 

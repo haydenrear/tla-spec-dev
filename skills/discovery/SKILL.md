@@ -145,6 +145,20 @@ Shape the output to the scenario that triggered it:
   explicit gaps where the spec and the code appear to disagree. A spec/code
   disagreement is a finding to report, not to silently resolve.
 
+## When this skill's own instruction did not work
+
+Discovery has two stop-and-reconcile points above — a missing
+`specs/program_model` or `test_graph/`, and a baseline that is only partly
+there — and both assume a route forward exists. When one does not, or when any
+instruction here turned out not to fit the repository in front of you, say so
+where the work is reported instead of quietly working around it: one row in the
+PR body's `## Skill changes proposed` section — the unit, what you hit, and the
+change you propose as a diff or the commit that applied it — or one line to the
+user when there is no PR. A spec/code disagreement is a finding about the
+repository; an instruction that could not be followed is a finding about this
+skill, and the agent that hit it is the only one who can see it. It asks for no
+extra run, and it is never a gate on anything.
+
 ## Anti-Patterns
 
 - Grepping the source tree before reading `spec_manifest.yaml`.

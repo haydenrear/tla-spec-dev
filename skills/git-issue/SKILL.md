@@ -109,13 +109,15 @@ tracker, keep every step below and swap only the create/comment/close commands.
    updates, and tells the implementer to open the spec workflow with
    **spec-double-compiler + tla-spec-dev** at branch-creation time. For an epic,
    the owner scaffolds one shared workflow and each issue opens exactly its one
-   planned ticket; the ticket agent never scaffolds again. See
-   `references/spec-workflow.md`.
+   planned ticket; the ticket agent never scaffolds again — and where the plan
+   reserves the model to the epic agent, the issue says the ticket agent opens
+   and closes no spec ticket at all. See `references/spec-workflow.md`.
 6. **Spell out close-out.** The issue lists which test graphs run for regression
    (including tla-spec-dev spec-graph integrations), tells the implementer to
    attach those reports to the spec ticket that closes in the repo, close that
    ticket via spec-double-compiler + tla-spec-dev, run spec unit tests and unit
-   tests, **report the goal contribution in the PR body**, then commit and push
+   tests, **report the goal contribution in the PR body**, **report any blocker
+   met in the substrate as a proposed skill change**, then commit and push
    to the feature branch. An epic work order supplies exact validation commands
    and evidence paths, targets its PR at the epic branch, and stops for external
    review. See `references/regression-close.md`.
@@ -234,6 +236,10 @@ Run these to close the issue:
 - Commit and push to `feature/<issue-number>-<slug>`
 - Report the goal contribution in the PR body (`## Goal contribution`): expected
   effect, measured local signal or `N/A: reason`, and what decides the goal
+- Report the substrate blockers in the PR body (`## Skill changes proposed`):
+  three columns, one row per blocker met — the unit, what was hit, and the
+  proposed change as a diff or a link to the commit that applied it — or
+  `none met`. It asks for no new run and is never a gate on merge
 - Tear the worktree down with `"$WT" close <issue-number>-<slug>` — one command,
   same in both repo shapes. It runs the home close-out gate first and **refuses**
   while the worktree still holds skill work that removing it would destroy, then

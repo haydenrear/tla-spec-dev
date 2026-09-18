@@ -18,6 +18,19 @@ and embeds that ID in `ticket.spec_id`; the ticket agent runs:
 tla-spec-dev --spec-root specs open ticket <stable-ticket-id>
 ```
 
+**Unless the epic owns the model.** An epic may reserve the TLA+ work to the
+epic agent, recorded as `planning_rules.model_ownership_rule` in its canonical
+plan. The issue then says the opposite of the paragraph above: the epic agent
+scaffolds this ticket's `desired`/`current` before dispatch and closes and
+promotes the spec ticket at wave merge, so the ticket agent runs no
+`open ticket`, no `close ticket`, no `close_tickets.py`, and no `--accept-new`.
+What it does run is the spec tests the assignment names; it moves `current`
+toward `desired`, may make only **small** corrections to `desired`, and returns
+a structural change to `desired` in the PR body instead of making it. Write that
+into the issue whenever the plan carries the rule — an issue that keeps the
+ordinary wording sends the ticket agent to run a command the epic has taken away
+from it, and the agent finds out by being refused.
+
 It must not scaffold another workflow, create an ad hoc ticket, edit sibling
 plan statuses, or run workflow-wide close/promotion. It updates the assigned
 ticket's TLA+ model, spec-unit adapters, generated cases, Test Graph adapters

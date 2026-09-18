@@ -128,6 +128,18 @@ Do not hide setup inside assertion nodes. If multiple graphs need the same app/d
 - When touching `sources/` or `build.gradle.kts`, verify with `<skill>/scripts/discover.py` and `<skill>/scripts/discover.py <graph>` before running.
 - Before finalizing a validation change, run `<skill>/scripts/run.py <graph>` for the affected graph or `<skill>/scripts/run.py --all` when graph coverage is broad.
 
+## When this skill's own instruction did not work
+
+A graph that will not compose, a wrapper script that refuses, a resume or
+run-only path this file describes that the scaffold in front of you does not
+have, a failure loop that cannot reach the failing node — when the blocker is
+this skill or its scripts rather than the system under test, report it instead
+of hand-rolling past it. One row in the PR body's `## Skill changes proposed`
+section: the unit, what you hit, and the change you propose as a diff or the
+commit that applied it. It asks for no extra run, `none met` is the usual
+answer, and nothing blocks on it — but a route around a broken instruction that
+nobody records is a cost the next agent pays again.
+
 ## Avoid
 
 - One giant script that does setup, action, and assertion.

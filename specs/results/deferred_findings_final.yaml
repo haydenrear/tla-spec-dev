@@ -2955,3 +2955,187 @@ findings:
     disposition_note: >-
       Owner triages at the wave-3 review. Pairs with the note in
       evals/README.md; nothing blocks on it.
+
+  - id: SI-06-DF-01
+    found_by: "SI-06"
+    found_at_commit: "994f650c"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      GOAL-blockers-propose's declared local_signal -- "rerun one wide-lane
+      refusal case against this checkout with --keep" -- is not an in-worktree
+      command and was not run. The wide lane lives in a DIFFERENT repository
+      (haydenrear/skill-manager, specs/evals/harness), its runner bills a real
+      `claude plugin eval` round (EVAL_MAX_COST_USD defaults to 25,
+      EVAL_CONCURRENCY 3), and pointing it at this checkout requires creating
+      `evals/w-*/units-override.txt` in that sibling repository -- a path
+      `git check-ignore` reports is NOT ignored, so it would leave an
+      uncommitted file in a repo outside this ticket's conflict keys.
+    reproduction: >-
+      `ls /Users/hayde/IdeaProjects/skill-manager/specs/evals/harness/evals`
+      lists w-giw-wt-refusal-quotes-subject and the rest;
+      `harness/wide/setup.sh` implements the `unit=checkout` override and no
+      case ships one; `harness/wide/run.sh` sets EVAL_MAX_COST_USD=25 and
+      EVAL_CONCURRENCY=3; `git -C .../skill-manager check-ignore -v
+      <case>/units-override.txt` exits non-zero.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-06/local-signal-GOAL-blockers-propose.md"
+    why_out_of_scope: >-
+      Running it is an operator spend and a mutation of a sibling repository,
+      neither of which is in SI-06's slice; the signal is advisory and decides
+      nothing. SI-08 owns the measurement of this goal on the integrated tip,
+      which is the tree the number is supposed to be about anyway.
+    suggested_fix: >-
+      Either commit a `units-override.txt` convention into the wide lane (the
+      kickoff note already says the lane "needs" one) so a ticket agent can
+      point it at a checkout without dirtying that repo, or re-write the
+      local_signal for goals whose instrument lives outside the repository as
+      `N/A: decided by <ticket> on the integrated tip`. A local_signal that
+      cannot be run from the worktree reads, in every PR, as a signal the agent
+      skipped.
+    blast_radius: >-
+      Every ticket in this epic carrying GOAL-blockers-propose, and any future
+      epic whose goal is decided by a judged lane in another repository. It
+      does not affect validation; the REQUIRED matrix is unaffected.
+    disposition: pending
+    disposition_ticket: null
+    disposition_note: >-
+      Owner triages. The exact command that WOULD run it is recorded in the
+      evidence file, so SI-08 does not have to re-derive it.
+
+  - id: SI-06-DF-02
+    found_by: "SI-06"
+    found_at_commit: "994f650c"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production:
+        - "skills/git-issue-workflow/scripts/bootstrap-home.sh"
+        - "skills/git-issue-workflow/scripts/wt"
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      The worktree front door failed on this ticket, and the failure was
+      reported as success. `skt ticket new 339-skills-propose --base <oid>
+      --path ../wt-339-skills-propose` ran bootstrap-home.sh, which REFUSED the
+      home -- `error: this home holds 15 skill(s) and an agent launched here
+      can reach 12` -- and rolled the worktree back, leaving no directory at
+      the declared path. The three unreachable units are exactly the three this
+      epic moved into the plugin: git-issue-workflow, spec-double-compiler,
+      test-graph. Two defects sit on top of each other: (a) a project home
+      holding both a retired standalone unit and the plugin's copy cannot be
+      projected, so worktree creation in this repository refuses; (b) the
+      wrapper exited 0 while the worktree did not exist, so an agent checking
+      only the exit status would proceed into a missing directory.
+    reproduction: >-
+      On epic/self-improvement-substrate at 994f650c, from
+      /Users/hayde/IdeaProjects/tla-spec-dev:
+      `skt ticket new 339-skills-propose --base 994f650c --path ../wt-339-skills-propose`.
+      Observed: projection warnings for git-issue-workflow,
+      spec-double-compiler and test-graph on each of .claude/.codex/.gemini,
+      then the `error: this home holds 15 skill(s)` refusal, then
+      `ls ../wt-339-skills-propose` -> No such file or directory, with exit
+      status 0. This ticket's worktree was created by the by-hand route of
+      epic-ticket.md section 2 plus `bootstrap-home.sh --root <wt>
+      --allow-unprojected`, which succeeded with "3 of 15 skill(s) are not
+      reachable ... This home is NOT verified".
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-06/front-door-refusal.txt"
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-06/front-door-byhand-bootstrap.txt"
+    why_out_of_scope: >-
+      `skills/*/scripts/**` belongs to SI-11 by conflict key, and the home
+      projection question is SI-11's slice (every script and binding resolves
+      under the plugin layout). SI-06 owns only .md surfaces.
+    suggested_fix: >-
+      SI-11 makes the projection resolve a unit provided by a plugin instead of
+      reporting it missing, so `--allow-unprojected` is not needed to create a
+      worktree here. Independently: the wrapper must not report success for a
+      run that rolled its worktree back -- a non-zero exit, or at minimum the
+      refusal printed where the one contract line is expected. The refusal text
+      itself was good; it named the command that would fix it.
+    blast_radius: >-
+      Every ticket worktree created in this repository while the project home
+      holds both shapes of the three migrated units -- every wave-3 and wave-4
+      ticket. It is also exactly the case git-issue-workflow's own "Reaching a
+      by-hand route is itself a finding" section asks to be reported: the front
+      door was found, was run, and failed.
+    disposition: pending
+    disposition_ticket: null
+    disposition_note: >-
+      Natural home is SI-11 (#351), which owns scripts and the plugin layout.
+      Reported rather than fixed because the fix is in another ticket's
+      conflict keys.
+
+  - id: SI-06-DF-03
+    found_by: "SI-06"
+    found_at_commit: "994f650c"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production:
+        - "skills/git-issue-workflow/scripts/bootstrap-home.sh"
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      bootstrap-home.sh wrote `/specs/` into the clone's SHARED
+      `$GIT_COMMON_DIR/info/exclude` while bootstrapping this ticket's
+      worktree, and `/evals/` while bootstrapping wt-343's. Both name real
+      tracked directories of this repository, not home artefacts. Because the
+      common exclude file is shared by every worktree of the clone, every NEW
+      file under `specs/` is now invisible to `git status` and to `git add -A`
+      in ALL of them -- and ticket evidence is written to
+      `specs/results/epic-<slug>/tickets/<id>/`, which is exactly the path that
+      disappears. It is silent: tracked files still report modifications, so
+      `git status` looks normal, and a ticket that runs `git add -A` commits
+      its skill changes and none of its evidence.
+    reproduction: >-
+      `cat -n /Users/hayde/IdeaProjects/tla-spec-dev/.git/info/exclude` lines
+      20-23: the comment reads "home artefacts, created at
+      /Users/hayde/IdeaProjects/wt-339-skills-propose" and the rule beneath it
+      is `/specs/`; lines 25-28 are the same shape naming wt-343-plugin-evals
+      with `/evals/`. Then
+      `git -C /Users/hayde/IdeaProjects/wt-339-skills-propose check-ignore -v
+      specs/results/epic-self-improvement-substrate/tickets/SI-06/graph-cliWorkflow.txt`
+      prints `.git/info/exclude:23:/specs/`, and with twelve evidence files
+      written, `git status --porcelain --untracked-files=all` lists none of
+      them. SI-06 committed its evidence with `git add -f`.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-06/git-exclude-hides-evidence.txt"
+    why_out_of_scope: >-
+      `skills/*/scripts/**` is SI-11's conflict key; SI-06 owns only .md
+      surfaces. The rule itself lives in `.git/info/exclude`, which is not a
+      tracked file and cannot be repaired by any PR.
+    suggested_fix: >-
+      In `ensure_run_artifacts_ignored()`: never write a rule for a path git
+      already tracks. One guard before appending -- `git -C "$ROOT" ls-files
+      --error-unmatch "$entry"` succeeding means the entry is the repository's,
+      not this run's, whatever the untracked snapshot said. The shared-file
+      part has no alternative destination (a linked worktree's `$GIT_DIR`
+      resolves info/exclude to the common one), so the guard IS the fix. Worth
+      a selftest case: bootstrap a worktree of a repo carrying a top-level
+      TRACKED directory and assert the exclude gained no rule naming it. NOTE
+      what is measured and what is not: the effect above is measured; WHY the
+      before/after untracked snapshot selected `specs/` and `evals/` is not
+      established here, and whoever fixes it should reproduce that first.
+      Operator remedy in the meantime: delete the two stanzas from
+      `.git/info/exclude`, or `git add -f` the evidence.
+    blast_radius: >-
+      Every worktree of this clone, and every ticket in waves 3 and 4 that
+      writes evidence under `specs/`. SI-10 (#343) is running right now with
+      `/evals/` excluded, which is its own conflict-key directory, so its eval
+      files are affected the same way. The most damaging of SI-06's three
+      findings, because it loses evidence rather than costing time, and it
+      loses it without printing anything.
+    disposition: pending
+    disposition_ticket: null
+    disposition_note: >-
+      Natural home is SI-11 (#351). Escalated in SI-06's PR body rather than
+      held to wave close: sibling tickets can still lose evidence between now
+      and then, and the remedy each needs is one flag.
