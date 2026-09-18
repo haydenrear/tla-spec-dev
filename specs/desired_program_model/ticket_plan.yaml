@@ -82,12 +82,31 @@ epic_goals:
     kind: integration
     statement: "The substrate installs, syncs and improves as one plugin rather than seven separately versioned units."
     metric: "installed units belonging to this substrate, in the root home and the project home; the three test graphs and both eval cases green on the plugin layout"
-    harness: "skt status in both home tiers; test_graph graphs specWorkflow, cliWorkflow, effectProviderExamples; examples/agent_integration/eval-plugin both cases"
+    # AMENDED at the wave-2 review, 2026-09-17. The original harness named
+    # `plugin-repository/scripts/verify.sh` as the local signal. SI-02 measured
+    # that it CANNOT go green and the cause is structural, not a bug in this
+    # work: it greps from `.` so it reads the gitignored home and sealed eval
+    # transcripts (SI-02-DF-01), and after migration it will not start at all
+    # because git-integration-repo's integration-lib.sh resolves
+    # git-issue-workflow/lib.sh at the standalone path with no plugin rung
+    # (SI-02-DF-05). Both of those skills are OUTSIDE the bundle by owner
+    # decision, so this epic cannot fix them. An instrument that cannot run is
+    # not an instrument; it is replaced here rather than left to fail at SI-08.
+    harness: "skt status in the root and project homes; skill-manager list showing the plugin with no outstanding errors and a git source; test_graph graphs specWorkflow, cliWorkflow, effectProviderExamples; the plugin's own eval cases (SI-10)"
     baseline:
       value: "6 units across 6 repositories (spec-double-compiler + the five workflow skills), each installed in root, project and every worktree home"
       measured_at: "b7a7d203"
       evidence: "specs/results/epic-self-improvement-substrate/baseline/kickoff.md"
-    target: "one installed unit for this substrate; zero standalone copies of the five migrated skills in root or project home; every listed graph and eval case green on the new layout"
+    # Clause 3 is NEW, added at the wave-2 review because the migration itself
+    # falsified an assumption in clause 1. After SI-02 the project home holds
+    # plugin:tla-spec-dev, but installed from a local path: `skill-manager list`
+    # reports SOURCE unknown/local_file and NEEDS_GIT_MIGRATION, "file/local
+    # installs do not sync". The change-managed count fell 19 -> 16 because the
+    # plugin stopped being counted. The goal says the substrate "installs, syncs
+    # and improves as one plugin"; one unit that cannot sync satisfies the count
+    # and not the sentence, so the clause is now explicit and reported
+    # separately.
+    target: "three clauses, reported one verdict each: (1) one installed unit for this substrate and zero standalone copies of the five migrated skills in root or project home; (2) every listed graph and eval case green on the new layout; (3) that unit is change-managed -- a git source, no NEEDS_GIT_MIGRATION, and `skt sync` able to update it"
     evaluation_ticket: "SI-08"
     evidence_root: "specs/results/epic-self-improvement-substrate/goals/GOAL-one-unit"
 
@@ -238,7 +257,7 @@ tickets:
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/335"
     schedule_revision: 1
     depends_on: ["SI-01"]
-    blocks: ["SI-04", "SI-05", "SI-06", "SI-08", "SI-10"]
+    blocks: ["SI-04", "SI-05", "SI-06", "SI-08", "SI-10", "SI-11"]
     wave: 2
     promotion_order: 20
     promotion_predecessor: "SI-01"
@@ -503,6 +522,71 @@ tickets:
         - "A case that cannot decide reports UNDECIDED rather than red."
       evidence: []
 
+  # ADDED at the wave-2 review, 2026-09-17. SI-02 nested the five skills and
+  # rewrote 14 skill-imports, 12 coords and 47 store paths; an audit of all 413
+  # executables in the six nested skills found the rewrite substantially
+  # complete and found what it missed. Filed as work rather than fixed in the
+  # review, per git-epic-workflow Boundaries: a review recommends, and what it
+  # surfaces re-enters as a ticket.
+  - id: SI-11
+    title: "Every script and binding resolves under the plugin layout"
+    status: planned
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/351"
+    schedule_revision: 1
+    depends_on: ["SI-02"]
+    blocks: ["SI-08"]
+    wave: 3
+    promotion_order: 65
+    promotion_predecessor: "SI-10"
+    role: implementation
+    objective: "Close the resolution gap the nesting left: every executable and every generated binding finds the toolchain under the plugin layout, and a test fails when a new standalone-only path appears."
+    desired_actions: []
+    implementation_scope:
+      - "skills/test-graph/scripts/github-action.py:320 — TEST_GRAPH_SKILL_HOME carries the standalone rung only; line 18's docstring already shows the two-rung form"
+      - "test_graph/provider-bindings.json — provider_candidates still names ../.skill-manager/skills/test-graph; it generates test_graph/{sdk,build-logic,standard-nodes}, all three currently ABSENT on disk"
+      - "skill-project.toml [[vendored]] — simplify or delete; SI-02 flagged `from_unit = tla-spec-dev` as its highest-uncertainty line and never ran `project resolve` against it"
+      - "skills/git-issue-workflow/scripts/selftest.sh — enumerates only the standalone layout (SI-02-DF-02)"
+      - "a regression test that fails when an executable gains a standalone-only rung"
+      - "references/plugin_evals.md is SI-10's file: report its stale mapping examples, do not edit them"
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests:
+        - "uv run --python 3.12 --with pytest --with pyyaml --with jinja2 --with hypothesis python -m pytest tests -q --ignore=tests/test_score_tools.py"
+      graph_after_unit_pass:
+        - "specWorkflow"
+        - "cliWorkflow"
+        - "effectProviderExamples"
+    conflict_keys:
+      production:
+        - "skills/test-graph/scripts/**"
+        - "skills/git-issue-workflow/scripts/**"
+        - "skill-project.toml"
+      tla: []
+      adapters: []
+      test_graph:
+        - "test_graph/provider-bindings.json"
+        - "test_graph/sdk"
+        - "test_graph/build-logic"
+        - "test_graph/standard-nodes"
+      workflow: []
+    goals:
+      - goal: GOAL-one-unit
+        contribution: direct
+        expected_effect: "live stale paths in executables and generated bindings go from 2 (github-action.py, provider-bindings.json) to 0, and the three graphs run from bindings that name an in-bundle path"
+        local_signal: "the audit grep from the issue's Discovery notes: zero non-comment hits outside specs/.history and specs/results"
+      - goal: GOAL-no-new-gates
+        contribution: guard
+        expected_effect: "the new regression test reports; it does not refuse"
+        local_signal: "grep -nE 'SystemExit|sys.exit\\([^0]' over whatever check is added"
+    acceptance:
+      commands: []
+      assertions:
+        - "No executable resolves a contained skill at a standalone-only path."
+        - "Sealed record under specs/.history and specs/results is untouched."
+      evidence: []
+
   - id: SI-03
     title: "The improvement card: score the loop, not the artifact"
     status: planned
@@ -512,7 +596,7 @@ tickets:
     blocks: ["SI-09", "SI-08"]
     wave: 4
     promotion_order: 70
-    promotion_predecessor: "SI-10"
+    promotion_predecessor: "SI-11"
     role: implementation
     objective: "A second judged card whose subject is the loop: blockers reported, a change proposed with each, applied or declined on the record, the anchor placed and the model updated, and honesty. It reads the record SI-04 defines."
     desired_actions: []
@@ -657,7 +741,7 @@ tickets:
     status: planned
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/341"
     schedule_revision: 1
-    depends_on: ["SI-01", "SI-02", "SI-03", "SI-04", "SI-05", "SI-06", "SI-07", "SI-09", "SI-10"]
+    depends_on: ["SI-01", "SI-02", "SI-03", "SI-04", "SI-05", "SI-06", "SI-07", "SI-09", "SI-10", "SI-11"]
     blocks: []
     wave: 6
     promotion_order: 100
