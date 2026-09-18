@@ -192,7 +192,11 @@ class BuildSkillCliAdapter:
     def apply(self) -> dict[str, object]:
         root = repo_root()
         entrypoint = root / "skills" / "spec-double-2" / "scripts" / "tla_spec_dev.py"
-        installer = root / "skills" / "spec-double-2" / "skill-scripts" / "install-tla-spec-dev.sh"
+        # SI-11 moved the skill-script installers to the PLUGIN root: a `skill-script:`
+        # CLI dep is resolved by the INSTALLED UNIT's name, and a contained skill's
+        # name never reaches the resolver (SIS-W2-F-05). Applied here by the epic
+        # agent, which owns the model, so BuildSkillCli reports accepted: true.
+        installer = root / "skill-scripts" / "install-tla-spec-dev.sh"
         return {
             "accepted": entrypoint.is_file() and installer.is_file(),
             "entrypoint": str(entrypoint),
@@ -253,11 +257,14 @@ class InstallLocalCliAdapter:
             **os.environ,
             "SKILL_MANAGER_BIN_DIR": str(bin_dir),
             "SKILL_MANAGER_CACHE_DIR": str(cache_dir),
-            "SKILL_DIR": str(root / "skills" / "spec-double-2"),
-            "SKILL_NAME": "spec-double-2",
+            # The dep is declared on the PLUGIN now, so skill-manager sets SKILL_DIR to
+            # the plugin root and SKILL_NAME to the plugin name. This adapter
+            # reproduces the real install environment, so it moves with it.
+            "SKILL_DIR": str(root),
+            "SKILL_NAME": "tla-spec-dev",
         }
         install = subprocess.run(
-            ["bash", str(root / "skills" / "spec-double-2" / "skill-scripts" / "install-tla-spec-dev.sh")],
+            ["bash", str(root / "skill-scripts" / "install-tla-spec-dev.sh")],
             cwd=root,
             env=env,
             text=True,

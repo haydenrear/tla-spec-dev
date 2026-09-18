@@ -572,7 +572,10 @@ CloseTicket(root, ticket) ==
   /\ ticket_state[ticket] = TicketSpecUnitTestsPassed
   /\ ticket_state' = [ticket_state EXCEPT ![ticket] = TicketClosed]
   /\ lastCommand' = "tla-spec-dev close ticket"
-  /\ result' = CommandResult(TRUE, NoReason, "Open next ticket or close workflow")
+  \* SI-05: a finding whose target is in this repository owes this repository a
+  \* proposed change. The close NAMES each finding that owes one and proposes
+  \* none, and still succeeds -- the result stays TRUE with NoReason.
+  /\ result' = CommandResult(TRUE, NoReason, "Dispose of each finding that names this repository, then open next ticket or close workflow")
   /\ UNCHANGED << setup_phase,
                   spec_root,
                   complexity_gate,

@@ -162,8 +162,8 @@ effects:
         # fails if it is not. The wrapper-write citation was already off by one
         # when this comment was written (line 22 assigns WRAPPER; the write is
         # line 23), which is the N-3 class again, in the same block.
-        #   install-tla-spec-dev.sh:20 (mkdir -p) -> $SKILL_MANAGER_BIN_DIR, $SKILL_MANAGER_CACHE_DIR
-        #   install-tla-spec-dev.sh:23 (cat > "$WRAPPER") -> $SKILL_MANAGER_BIN_DIR/tla-spec-dev
+        #   install-tla-spec-dev.sh:26 (mkdir -p) -> $SKILL_MANAGER_BIN_DIR, $SKILL_MANAGER_CACHE_DIR
+        #   install-tla-spec-dev.sh:29 (cat > "$WRAPPER") -> $SKILL_MANAGER_BIN_DIR/tla-spec-dev
         #   install-tlc2.sh:18 (mkdir -p "$JAR_DIR") -> $SKILL_MANAGER_BIN_DIR/.spec-double-compiler
         #   install-tlc2.sh:37 (curl -fL) -> $SKILL_MANAGER_CACHE_DIR/tla2tools-<version>.jar.tmp
         #   install-tlc2.sh:38 (mv "$JAR_TMP" "$JAR_PATH")
@@ -203,7 +203,7 @@ effects:
         cli_artifact_delete:
           type: filesystem.delete
           target: "*"
-        # RC-01 (MF-026 G-9): install-tla-spec-dev.sh:31 (--help) runs the wrapper it
+        # RC-01 (MF-026 G-9): install-tla-spec-dev.sh:37 (--help) runs the wrapper it
         # just wrote (`"$WRAPPER" --help`) as its own self-test. A spawn, and
         # the one effect on this path the program DOES constrain: the wrapper
         # name is a literal, so the glob is a real one.
@@ -259,7 +259,7 @@ effects:
         # (skills/spec-double-2/scripts/spec_evolution.py:1088 (shutil.rmtree) via
         # skills/spec-double-2/scripts/spec_evolution.py:1283 (replace_tree), the GitHub #22
         # data-loss mechanism), and unlink of seeded paths the ticket dropped
-        # (skills/spec-double-2/scripts/spec_evolution.py:1244 (target.unlink)). filesystem.write
+        # (skills/spec-double-2/scripts/spec_evolution.py:1254 (target.unlink)). filesystem.write
         # on spec_tree never covered these -- the schema distinguishes
         # filesystem.delete precisely so a delete cannot hide under a write.
         spec_tree_delete:
@@ -303,7 +303,7 @@ effects:
           target: "**/programs/case-*"
         # CD-10 (audit run 3, gap R3-3b): CloseTicket spawns `git rev-parse
         # ...` for history-entry provenance
-        # (skills/spec-double-2/scripts/spec_evolution.py:206 (subprocess.run), via
+        # (skills/spec-double-2/scripts/spec_evolution.py:216 (subprocess.run), via
         # skills/spec-double-2/scripts/spec_evolution.py:2191 (git_metadata) at ticket close,
         # skills/spec-double-2/scripts/spec_evolution.py:2306 (git_metadata) at workflow close, and
         # skills/spec-double-2/scripts/spec_evolution.py:1930 (git_metadata) on ticket
