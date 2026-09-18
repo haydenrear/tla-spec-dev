@@ -18,8 +18,9 @@ The skills' own repos moved (someone published from a home, or a fan-out was
 merged). Bring them into the bundle as **one** change:
 
 ```bash
-S="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-integration-repo/scripts"  # dependency
-P="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/plugin-repository/scripts"     # here
+# Both rungs: these two skills are contained skills of the tla-spec-dev plugin.
+S="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-integration-repo "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-integration-repo; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts"  # dependency
+P="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/plugin-repository "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/plugin-repository; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts"     # here
 git checkout -b feature/pull-upstream
 
 # PRE-FLIGHT. refresh.sh will skip a dirty constituent and hard-reset a clean

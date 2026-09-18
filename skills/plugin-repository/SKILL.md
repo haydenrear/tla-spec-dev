@@ -16,17 +16,17 @@ description: >-
   `.git` before the first commit, fan-out with `propagate.sh`) and this one owns
   what makes the parent a valid plugin at the same time.
 skill-imports:
-  - unit: git-integration-repo
-    path: SKILL.md
+  - unit: tla-spec-dev
+    path: skills/git-integration-repo/SKILL.md
     reason: >-
       A plugin repository IS an integration repository. The git model, the
       onboarding order, propagation and refresh are that skill's and are never
       restated here.
-  - unit: git-integration-repo
-    path: references/git-model.md
+  - unit: tla-spec-dev
+    path: skills/git-integration-repo/references/git-model.md
     reason: Why committing constituent files before restoring .git is load-bearing.
-  - unit: git-integration-repo
-    path: references/propagation.md
+  - unit: tla-spec-dev
+    path: skills/git-integration-repo/references/propagation.md
     reason: Fan-out of a merged parent change back to each skill repo.
   - unit: skt
     path: references/plugins.md
@@ -36,8 +36,8 @@ skill-imports:
   - unit: skt
     path: skills/unit-authoring/SKILL.md
     reason: Authoring and shipping edits to any installable unit.
-  - unit: git-issue-workflow
-    path: SKILL.md
+  - unit: tla-spec-dev
+    path: skills/git-issue-workflow/SKILL.md
     reason: Worktrees, per-checkout Skill Manager homes and the ticket lifecycle.
 ---
 
@@ -171,9 +171,11 @@ repo's README under "Companion edits".
 ## Quick reference
 
 ```bash
-# this skill; add a `plugins/*/skills/` rung if it is itself bundled (rule 2)
-P="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/plugin-repository/scripts"
-S="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-integration-repo/scripts"   # the dependency
+# Both rungs, because both of these skills ARE bundled now (rule 2, applied to
+# this page rather than only described by it): they are contained skills of the
+# tla-spec-dev plugin, so their bytes are under plugins/<plugin>/skills/.
+P="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/plugin-repository "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/plugin-repository; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts"
+S="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-integration-repo "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-integration-repo; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts"   # the dependency
 
 # --- create ---
 $P/init-plugin-repo.sh my-plugin ~/IdeaProjects/my-plugin-repo   # plugin + integration markers, git init

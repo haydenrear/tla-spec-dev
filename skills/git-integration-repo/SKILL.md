@@ -12,11 +12,11 @@ description: >-
   homes: `git-issue-workflow` ships `wt` and does that for every repo, with or
   without constituents. This skill is the specialization on top.
 skill-imports:
-  - unit: spec-double-compiler
-    path: SKILL.md
+  - unit: tla-spec-dev
+    path: skills/spec-double-2/SKILL.md
     reason: Integration features use tla-spec-dev spec doubles and spec unit tests across all constituents.
-  - unit: test-graph
-    path: SKILL.md
+  - unit: tla-spec-dev
+    path: skills/test-graph/SKILL.md
     reason: Integration features are validated with test_graph spec/validation graphs spanning constituents.
   - unit: deploy-helm
     path: SKILL.md
@@ -115,8 +115,10 @@ this page to make one:
 skt ticket new   TICKET-123   # preferred: on PATH in skt-carrying homes
 skt ticket close TICKET-123
 
-# fallback for a checkout without skt — same lifecycle underneath:
-WT="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts/wt"
+# fallback for a checkout without skt — same lifecycle underneath.
+# Two rungs: git-issue-workflow is a CONTAINED SKILL of the tla-spec-dev plugin,
+# so its bytes are under plugins/<plugin>/skills/, not skills/.
+WT="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/wt"
 "$WT" new   TICKET-123     # worktree + its own Skill Manager home, launchable
 "$WT" close TICKET-123     # teardown, through the close-out gate
 ```
@@ -169,13 +171,18 @@ already matches on, so that is where the capability is now announced.
 
 Every script left here still uses `die`/`info`/`step`/`help_guard` and the
 checkout predicates. They **source** them from the installed dependency —
-`$SKILL_MANAGER_HOME/skills/git-issue-workflow/scripts/lib.sh` — through the
+`$SKILL_MANAGER_HOME/skills/git-issue-workflow/scripts/lib.sh` when it is
+installed standalone, or
+`$SKILL_MANAGER_HOME/plugins/*/skills/git-issue-workflow/scripts/lib.sh` when it
+is a contained skill of a plugin, which is how it ships today — through the
 single resolver in `scripts/integration-lib.sh`. One definition, one home, one
 resolved path to it; there is no second copy of `lib.sh` here and there must
-never be one. `skill-manager.toml` declares the hard `skill_reference` that
-guarantees the file, and `integration-lib.sh` refuses at source time — before
-anything runs, with the `skill-manager sync` that fixes it — when the installed
-copy is older than this skill needs.
+never be one. Both skills now ship in the `tla-spec-dev` plugin, so installing
+that bundle guarantees the file — `skill-manager.toml` no longer names a git
+coord for it, because a coord would install a duplicate standalone copy
+alongside the contained one. `integration-lib.sh` refuses at source time —
+before anything runs, with the `skill-manager sync` that fixes it — when the
+installed copy is older than this skill needs.
 
 ### What this skill still contributes to a ticket
 
@@ -191,8 +198,9 @@ machinery than the question deserves.
 ## Quick reference
 
 ```bash
-# scripts read integration.toml from the repo root; run them from anywhere in the repo
-S="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-integration-repo/scripts"
+# scripts read integration.toml from the repo root; run them from anywhere in the repo.
+# Two rungs: this skill is itself a CONTAINED SKILL of the tla-spec-dev plugin.
+S="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-integration-repo "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-integration-repo; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts"
 
 # --- create ---
 $S/init-integration.sh my-integration            # scaffold markers, .gitignore, git init
@@ -215,7 +223,7 @@ bash <checkout-of-git-integration-skill>/scripts/selftest.sh   # needs no skill-
 
 # --- the worktree the change is MADE in: NOT here ---
 skt ticket new TICKET-123                         # preferred where the skt plugin is installed
-WT="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts/wt"
+WT="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/wt"
 $WT new TICKET-123                                # the same door where skt is absent
 #   which one: test -x "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/bin/cli/skt"
 #   (skt is a PLUGIN — never under skills/; using $WT because skt was not FOUND

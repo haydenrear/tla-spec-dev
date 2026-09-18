@@ -23,10 +23,13 @@
 # before this checkout has its own home and it mutates the operator's global
 # ~/.skill-manager. Create the local home first, point `SKILL_MANAGER_HOME` at
 # it, and only then resolve. The script that does it belongs to
-# git-issue-workflow (a home is a fact about a checkout, not about constituents),
-# and an installed unit's files live at $SKILL_MANAGER_HOME/skills/<unit>/:
+# git-issue-workflow (a home is a fact about a checkout, not about constituents).
+# An installed unit's files live at $SKILL_MANAGER_HOME/skills/<unit>/ when it is
+# installed standalone, and at $SKILL_MANAGER_HOME/plugins/<plugin>/skills/<unit>/
+# when it is a CONTAINED SKILL of a plugin — which is how git-issue-workflow
+# ships now, inside tla-spec-dev. Hence two rungs, standalone first:
 #
-#   W="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts"
+#   W="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts"
 #   SKILL_MANAGER_CLI=<epic skill-manager> bash "$W/bootstrap-home.sh" --root "$PWD"
 #   export SKILL_MANAGER_HOME="$PWD/.skill-manager"
 #   skill-manager project resolve --project-dir "$PWD" --skip-gateway
@@ -100,8 +103,17 @@ source = "github:haydenrear/skt"
 #     worktree, whose home is a clone of this one. If it is not here, the
 #     resolver refuses at source time and no script in this repo runs ---
 
-[skills.git-issue-workflow]
-source = "github:haydenrear/git-issue-workflow-skill"
+# --- SI-12: the git-issue-workflow ENTRY IS GONE, not repointed. This skill is
+#     now a contained skill of the `tla-spec-dev` plugin and so is
+#     git-issue-workflow, so the two arrive together from one coord. A
+#     `source = "github:haydenrear/git-issue-workflow-skill"` here would still
+#     resolve — and would install a SECOND, standalone copy of a sibling in this
+#     bundle, which is the silent-duplicate class in
+#     skills/plugin-repository/references/imports.md § 3.
+#
+#     A checkout of THIS skill is now a checkout of the bundle, so an agent
+#     editing it already has every sibling on disk at skills/<unit>/. Nothing
+#     needs to be installed to reach lib.sh.
 
 # --- REPO-SPECIFIC DECISION: spec-double-compiler, test-graph and deploy-helm
 #     are deliberately NOT declared, though this unit's SKILL.md `skill-imports`

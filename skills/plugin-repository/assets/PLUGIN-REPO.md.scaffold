@@ -47,8 +47,10 @@ unchanged.
 ## The two directions
 
 ```bash
-S="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-integration-repo/scripts"
-P="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/plugin-repository/scripts"
+# Two rungs each: these skills may be installed standalone OR as contained
+# skills of a plugin, and a contained skill's bytes are under plugins/*/skills/.
+S="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-integration-repo "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-integration-repo; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts"
+P="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/plugin-repository "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/plugin-repository; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts"
 
 # IN: pull every skill's upstream changes as ONE reviewable change
 $S/refresh.sh && git add -A && git commit -m "pull skills to upstream tips"

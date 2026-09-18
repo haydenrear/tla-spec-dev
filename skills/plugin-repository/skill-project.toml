@@ -24,16 +24,18 @@ description = "Create and operate plugin repositories: skill repos bundled as th
 #     worktree, whose home is a clone of this one. Without it, no script here
 #     runs and scripts/selftest.sh skips its whole LIVE phase ---
 
-[skills.git-integration-repo]
-source = "github:haydenrear/git-integration-skill"
-
-# --- arrives transitively as git-integration-repo's own hard reference, and
-#     named here anyway because an agent in THIS checkout uses it directly:
-#     `wt` / `skt ticket` is how a ticket in this repo gets a worktree, and its
-#     lib.sh is the bottom of the sourcing chain every script here stands on ---
-
-[skills.git-issue-workflow]
-source = "github:haydenrear/git-issue-workflow-skill"
+# --- SI-12: the git-integration-repo AND git-issue-workflow ENTRIES ARE GONE,
+#     not repointed. All three skills — this one, git-integration-repo and
+#     git-issue-workflow — are now contained skills of the `tla-spec-dev`
+#     plugin, so they arrive together from one coord and a checkout of this
+#     skill is a checkout of the bundle: every sibling is already on disk at
+#     skills/<unit>/.
+#
+#     Leaving either coord here would still RESOLVE, and would install a second,
+#     standalone copy of a skill that is already a sibling in this bundle. That
+#     is the silent-duplicate class this unit's own references/imports.md § 3
+#     documents — the one that reports no error — and removing it is what this
+#     ticket exists to do. ---
 
 # --- the authoring authority. `skt` is a PLUGIN whose contained skills are
 #     `skt` (orientation, home tiers, publish, ticket lifecycle) and

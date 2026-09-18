@@ -75,11 +75,13 @@ printf 'lib:       %s\n' "$_GIW_LIB" >&2
 
 # THIS SUITE READS THIS UNIT'S GIT INDEX. Two checks below sweep every tracked
 # file for the `scripts/<name>` paths the documentation promises, which is only
-# answerable in a CHECKOUT. Run from an installed copy under
-# `<home>/skills/git-integration-repo` there is no work tree, `git ls-files`
-# answers nothing, and the vacuity guard fires with "it is not looking at the
-# right files" — which is true and reads like a bug in the check. Say what is
-# actually wrong instead, before anything runs.
+# answerable in a CHECKOUT. Run from an installed copy — under
+# `<home>/skills/git-integration-repo` when this unit is installed standalone,
+# or `<home>/plugins/*/skills/git-integration-repo` now that it ships as a
+# contained skill of the tla-spec-dev plugin — there is no work tree, `git
+# ls-files` answers nothing, and the vacuity guard fires with "it is not looking
+# at the right files" — which is true and reads like a bug in the check. Say
+# what is actually wrong instead, before anything runs.
 git -C "$SCRIPT_DIR/.." rev-parse --is-inside-work-tree >/dev/null 2>&1 \
   || die "selftest.sh must be run from a CHECKOUT of git-integration-repo, not from
   an installed copy: $SCRIPT_DIR
@@ -372,7 +374,9 @@ step "Every scripts/ path this skill names is one it ships"
 # `(^|[^/…])scripts/…` — a LEADING SLASH disqualifies the match. Since the
 # worktree machinery moved to git-issue-workflow, this skill's pages name that
 # skill's files the way every cross-unit path in these skills is named:
-# `\$SKILL_MANAGER_HOME/skills/git-issue-workflow/scripts/wt`. Those resolve
+# `\$SKILL_MANAGER_HOME/skills/git-issue-workflow/scripts/wt`, or
+# `\$SKILL_MANAGER_HOME/plugins/*/skills/git-issue-workflow/scripts/wt` now that
+# that unit is a contained skill of the tla-spec-dev plugin. Those resolve
 # inside a DIFFERENT unit and are not this skill's to ship, and sweeping them up
 # would make the rule below assert the opposite of what it means. A bare
 # `scripts/<name>` — at a line start, after a space, a backtick or a quote — is
@@ -579,7 +583,13 @@ for f in "$SCRIPT_DIR"/*.sh; do
   ( cd "$SCRATCH" && env -u SKILL_MANAGER_HOME -u GIT_ISSUE_WORKFLOW_SCRIPTS \
       HOME="$NOLIB_HOME" bash "$f" --help ) > "$SCRATCH/nolib-$n.log" 2>&1 || nrc=$?
   [ "$nrc" = 0 ] && NOLIB_MISSING="$NOLIB_MISSING $n(exit 0)"
-  command grep -q 'skill-manager install github:haydenrear/git-issue-workflow-skill' \
+  # SI-12: the remedy integration-lib.sh prints is now the BUNDLE coord.
+  # git-issue-workflow ships as a contained skill of the tla-spec-dev plugin, so
+  # installing that skill's own repo would add a standalone DUPLICATE rather
+  # than satisfy the dependency. Both spellings are accepted: a home that still
+  # carries the standalone unit is not wrong, it is pre-migration, and this
+  # check is about whether a refusal names A remedy at all.
+  command grep -qE 'skill-manager install github:haydenrear/(tla-spec-dev|git-issue-workflow-skill)' \
     "$SCRATCH/nolib-$n.log" || NOLIB_NOREMEDY="$NOLIB_NOREMEDY $n"
 done
 check "$(yesno test "$NOLIB_SWEPT" -ge 5)" \

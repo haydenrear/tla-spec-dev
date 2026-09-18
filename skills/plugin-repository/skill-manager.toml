@@ -21,22 +21,32 @@
 # reference, `install plugin-repository` SUCCEEDS and then every entry point
 # here refuses at source time with a missing integration-lib.sh.
 #
-# The coordinate is a git repo ROOT, NOT the installed unit name — the resolver
-# clones the repo and detects the unit from its root markers, and the two names
-# differ here as they usually do:
+# SI-12: THE COORDINATE IS GONE, AND IT WAS NOT REPOINTED.
 #
-#   github:haydenrear/git-integration-skill -> skill "git-integration-repo"
+# This skill is now a CONTAINED SKILL of the `tla-spec-dev` plugin, and so is
+# git-integration-repo. The reference used to read
+# `github:haydenrear/git-integration-skill`. A git coord still RESOLVES after
+# its target is bundled, so leaving it here would install a SECOND, standalone
+# copy of a skill that is already a sibling in this bundle — the
+# silent-duplicate class this unit's own `references/imports.md` § 3 documents,
+# and the one an error message never announces. `deps <unit> --who-imports`
+# measured it in the project home on 2026-09-18.
 #
-# git-issue-workflow is deliberately NOT listed. It is git-integration-repo's
-# own hard reference and arrives transitively; naming it again here would put a
-# second owner on an edge this unit does not manage.
+# Nothing is lost. `integration-lib.sh` still arrives, because
+# git-integration-repo ships in the SAME plugin at
+# `skills/git-integration-repo/`. `scripts/plugin-repo-lib.sh` already resolved
+# it correctly: its `unit_dir` has carried the `plugins/*/skills/` rung from the
+# start, which is this skill taking its own advice.
+#
+# git-issue-workflow is deliberately NOT listed, and now for a second reason: it
+# was already git-integration-repo's edge to own, and it is now a sibling in
+# this same bundle.
 #
 # skt (unit-authoring, plugin schemas) is not listed either: it is the authority
 # an AGENT reads while authoring, declared in skill-project.toml where an
 # agent's working set belongs, not an install-time file dependency of these
 # scripts.
 skill_references = [
-  "github:haydenrear/git-integration-skill",
 ]
 
 # git is assumed on PATH. The git host CLI (gh / glab) matters only for

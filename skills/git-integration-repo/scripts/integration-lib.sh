@@ -40,13 +40,41 @@
 #                                           say "the copy I am developing, not
 #                                           whatever a home happens to carry".
 #   1. ${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts/lib.sh
-#                                           the installed dependency. An
-#                                           installed unit's files live at
+#                                           the installed dependency as a
+#                                           STANDALONE skill. An installed
+#                                           unit's files live at
 #                                           $SKILL_MANAGER_HOME/skills/<unit>/,
 #                                           and the `:-` fallback is what makes
 #                                           the same path work from a bare
 #                                           shell, which is how these scripts
 #                                           are run by hand.
+#   2. ${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/plugins/*/skills/git-issue-workflow/scripts/lib.sh
+#                                           the same dependency as a CONTAINED
+#                                           SKILL of a plugin. Added by SI-12,
+#                                           closing SI-02-DF-05.
+#
+# WHY RUNG 2 EXISTS, AND WHY ITS ABSENCE WAS SILENT
+# -------------------------------------------------
+# A contained skill's bytes are at `plugins/<plugin>/skills/<unit>/`, NOT
+# `skills/<unit>/`. Once git-issue-workflow became a contained skill of the
+# `tla-spec-dev` plugin, rung 1 stopped resolving and this file refused at
+# SOURCE time — taking verify.sh, refresh.sh and propagate.sh with it, and
+# plugin-repository's every script one rung further up, because
+# plugin-repo-lib.sh sources this file. The failure mode is the one
+# `skills/plugin-repository/references/imports.md` § 2 predicts, and this file
+# was the example that page cited: the dependent already had the three-rung
+# search (`unit_dir`) and its dependency did not.
+#
+# It stayed invisible because a home that predates the migration still carries
+# the retired STANDALONE copy, so rung 1 kept resolving locally long after it
+# had stopped being correct. That is why the repository now asserts the shape
+# rather than the outcome — `tests/test_plugin_layout_resolution.py` fails any
+# executable naming rung 1 for a contained skill without also naming rung 2.
+#
+# The glob is deliberately OUTSIDE the quotes. Brace expansion does not happen
+# inside double quotes and `ls -d | head -1` sorts (putting plugins/ first and
+# inverting the intended standalone-first precedence) — both were measured in
+# wave 2. An explicit loop with `break` is the form that works.
 #
 # There is deliberately NO rung that resolves lib.sh by a path relative to this
 # file — no `../../git-issue-workflow/scripts/lib.sh`. A path relative to where
@@ -64,7 +92,8 @@ INTEGRATION_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 _GIW_LIB=""
 for _c in ${GIT_ISSUE_WORKFLOW_SCRIPTS:+"$GIT_ISSUE_WORKFLOW_SCRIPTS/lib.sh"} \
-          "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts/lib.sh"; do
+          "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts/lib.sh" \
+          "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow/scripts/lib.sh; do
   [ -f "$_c" ] && { _GIW_LIB="$_c"; break; }
 done
 if [ -z "$_GIW_LIB" ]; then
@@ -74,8 +103,11 @@ if [ -z "$_GIW_LIB" ]; then
   printf '    $GIT_ISSUE_WORKFLOW_SCRIPTS/lib.sh  (%s)\n' \
     "${GIT_ISSUE_WORKFLOW_SCRIPTS:-unset}" >&2
   printf '    %s\n' "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts/lib.sh" >&2
-  printf '  Install the dependency:\n' >&2
-  printf '    skill-manager install github:haydenrear/git-issue-workflow-skill\n' >&2
+  printf '    %s/plugins/*/skills/git-issue-workflow/scripts/lib.sh\n' \
+    "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}" >&2
+  printf '  Install the dependency. It now ships as a contained skill of the\n' >&2
+  printf '  tla-spec-dev plugin, so the coordinate is the BUNDLE, not the skill:\n' >&2
+  printf '    skill-manager install github:haydenrear/tla-spec-dev\n' >&2
   printf '  or point at the copy you are working on:\n' >&2
   printf '    GIT_ISSUE_WORKFLOW_SCRIPTS=/path/to/git-issue-workflow/scripts %s\n' "$0" >&2
   exit 1

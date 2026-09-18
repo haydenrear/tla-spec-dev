@@ -56,6 +56,20 @@ project root:
 | `discovery` | `https://github.com/haydenrear/discovery-skill.git` |
 | `test-graph` | `https://github.com/haydenrear/test_graph_skill.git` |
 
+Added 2026-09-18 by SI-12, when the last two dependent skills were nested:
+
+| remote | repository |
+|---|---|
+| `git-integration-repo` | `https://github.com/haydenrear/git-integration-skill.git` |
+| `plugin-repository` | `https://github.com/haydenrear/plugin-repository-skill.git` |
+
+Both were nested the same way as the first five — `git subtree add`, FULL
+history, no `--squash` — so `git subtree pull` stays available for them too
+until the freeze. Note that each coord names the REPO, not the installed unit,
+and for both of these the two names differ:
+`git-integration-skill` installs `git-integration-repo`, and
+`plugin-repository-skill` installs `plugin-repository`.
+
 They are fetch-only in practice: this repository never pushes to them.
 Publishing an edit back to a skill's own repository stays `skt publish <unit>`
 from the home that holds the edit, until the freeze retires that path.

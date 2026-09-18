@@ -102,7 +102,8 @@ fi
 if [ -z "$DEP" ]; then
   phase "LIVE: SKIPPED"
   printf '  git-integration-repo is not installed, so the end-to-end phase cannot run.\n' >&2
-  printf '    skill-manager install github:haydenrear/git-integration-skill\n' >&2
+  printf '  It is a contained skill of the tla-spec-dev plugin, so install the BUNDLE:\n' >&2
+  printf '    skill-manager install github:haydenrear/tla-spec-dev\n' >&2
   printf '    (or GIT_INTEGRATION_REPO_SCRIPTS=/path/to/scripts %s)\n' "$0" >&2
 else
   phase "LIVE: scaffold -> add-skill -> commit -> finalize -> verify"

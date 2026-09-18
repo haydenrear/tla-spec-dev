@@ -22,18 +22,32 @@
 # an empty list "keeps this unit's install self-contained"; that stopped being
 # true the moment the library moved, and a stale rationale is worse than none.
 #
-# The coordinate is a git repo ROOT (github:owner/repo), NOT the installed skill
-# name — the resolver clones the repo and detects the unit from its root marker
-# files, and the two names differ here as they do elsewhere:
+# SI-12: THE COORDINATE IS GONE, AND IT WAS NOT REPOINTED.
 #
-#   github:haydenrear/git-issue-workflow-skill -> skill "git-issue-workflow"
+# This skill is now a CONTAINED SKILL of the `tla-spec-dev` plugin, and so is
+# git-issue-workflow. The reference used to read
+# `github:haydenrear/git-issue-workflow-skill`. A git coord still RESOLVES after
+# its target is bundled — that is the whole problem — so leaving it here would
+# install a SECOND, standalone copy of a skill that is already a sibling in this
+# bundle. That is the silent-duplicate class in
+# `skills/plugin-repository/references/imports.md` § 3, and it is precisely what
+# `deps <unit> --who-imports` measured in the project home on 2026-09-18: three
+# contained skills re-materialised as standalone installs by this unit and
+# plugin-repository. Removing it is what makes GOAL-one-unit clause 1
+# satisfiable rather than merely close.
 #
-# The composed skills (spec-double-compiler, test-graph, deploy-helm) stay OUT
-# of this list on purpose: they are semantic imports declared in SKILL.md
-# frontmatter, invoked when present, and forcing them transitively is a
-# different kind of edge. See references/composition.md.
+# Nothing is lost. `lib.sh` still arrives, because git-issue-workflow ships in
+# the SAME plugin at `skills/git-issue-workflow/` and installing the plugin
+# installs every contained skill at one version. What had to change is the
+# RESOLVER, not the reference: scripts/integration-lib.sh gained a
+# `plugins/*/skills/` rung so it finds lib.sh where a contained skill's bytes
+# actually live (SI-02-DF-05).
+#
+# The composed skills (spec-double-compiler/spec-double-2, test-graph,
+# deploy-helm) stay OUT of this list on purpose: they are semantic imports
+# declared in SKILL.md frontmatter, invoked when present, and forcing them
+# transitively is a different kind of edge. See references/composition.md.
 skill_references = [
-  "github:haydenrear/git-issue-workflow-skill",
 ]
 
 # git, and optionally the git host CLI (glab for GitLab MRs/issues, gh for

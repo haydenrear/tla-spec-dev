@@ -14,10 +14,18 @@
 # recipe and the reasoning are in
 # specs/results/epic-self-improvement-substrate/migration/pulling-upstream.md).
 #
+# SI-12 nested `git-integration-repo` and `plugin-repository` the same way, at
+# the wave-4 gate. They were deliberately left OUT at kickoff, and wave 4
+# measured the consequence: both IMPORT skills this bundle now contains, so any
+# home carrying them re-materialised standalone copies of three contained
+# skills. `GOAL-one-unit` clause 1 was not satisfiable while they stayed
+# outside. `debugging` remains outside, because nothing in the bundle depends on
+# it and it therefore creates no such cycle.
+#
 # That reaches the same end state `add-skill.sh` does — ordinary tracked files,
 # no submodule, no gitlink — by a route that additionally leaves a PULL path
 # open: `git subtree pull --prefix=skills/<name> <remote> main` integrates
-# upstream work until the owner declares the freeze. The five remotes below are
+# upstream work until the owner declares the freeze. The seven remotes below are
 # configured on this repository, so every command runs from the repo root.
 #
 # Consequence for `finalize.sh`: there is nothing to finalize. That script
@@ -83,4 +91,23 @@ default_branch = "main"
 name = "test-graph"
 path = "skills/test-graph"
 remote = "https://github.com/haydenrear/test_graph_skill.git"
+default_branch = "main"
+
+# --- added by SI-12 (wave 5) ------------------------------------------------
+# Note the coords: as everywhere here, the remote is the REPO root and the name
+# is the installed unit, and the two differ for both of these.
+#
+#   github:haydenrear/git-integration-skill   -> skill "git-integration-repo"
+#   github:haydenrear/plugin-repository-skill -> skill "plugin-repository"
+
+[[constituent]]
+name = "git-integration-repo"
+path = "skills/git-integration-repo"
+remote = "https://github.com/haydenrear/git-integration-skill.git"
+default_branch = "main"
+
+[[constituent]]
+name = "plugin-repository"
+path = "skills/plugin-repository"
+remote = "https://github.com/haydenrear/plugin-repository-skill.git"
 default_branch = "main"

@@ -13,17 +13,23 @@ branches and MRs.
 
 ## Install
 
-```bash
-skill-manager install github:haydenrear/plugin-repository-skill --yes
+This skill now ships as a **contained skill of the `tla-spec-dev` plugin**, so
+the thing you install is the bundle, not this unit. `skill-manager install
+plugin-repository` refuses — a contained skill is not a separately addressable
+unit — and installing from this repo's own coord would give you a second,
+standalone copy alongside the bundled one.
 
-# or, to validate a working copy before it is pushed (dry-run/local only):
-skill-manager install "file://$PWD" --dry-run
-skill-manager sync plugin-repository --git-latest
+```bash
+skill-manager install github:haydenrear/tla-spec-dev --yes
+skill-manager sync tla-spec-dev --git-latest
 ```
 
-Requires `git-integration-repo`
-(`skill-manager install github:haydenrear/git-integration-skill`), which is
-declared as a hard `skill_reference` and installs with it.
+`git-integration-repo` is no longer a separate install: it is a **sibling
+contained skill in the same bundle**, so it arrives with the plugin at the same
+version. The `skill_reference` that used to name its coord was removed for
+exactly that reason — see `skill-manager.toml`.
+
+Invoke the skill as `tla-spec-dev:plugin-repository`.
 
 ## Why
 

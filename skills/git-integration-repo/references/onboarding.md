@@ -7,7 +7,9 @@ ordering below is not cosmetic.
 ## Procedure
 
 ```bash
-S="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-integration-repo/scripts"
+# Two rungs: this skill is a CONTAINED SKILL of the tla-spec-dev plugin, so its
+# bytes are at plugins/<plugin>/skills/, not skills/.
+S="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-integration-repo "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-integration-repo; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts"
 
 # 1. Scaffold the parent (markers, root .gitignore, git init).
 $S/init-integration.sh my-integration /path/to/parent
@@ -59,7 +61,7 @@ git add -A && git commit -m "scaffold compositions + markers"
 #        Declare git-issue-workflow: it is what every ticket worktree in this
 #        repo is created and torn down with, and this skill's own scripts source
 #        their shared library from it.
-W="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts"
+W="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts"
 $W/bootstrap-home.sh --root .
 ```
 

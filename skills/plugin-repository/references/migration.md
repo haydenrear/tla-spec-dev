@@ -18,8 +18,9 @@ already installing the bundle, and its invocation name changes again.
 ## 1. Build the bundle
 
 ```bash
-P="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/plugin-repository/scripts"
-S="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-integration-repo/scripts"
+# Both rungs: these two skills are contained skills of the tla-spec-dev plugin.
+P="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/plugin-repository "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/plugin-repository; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts"
+S="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-integration-repo "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-integration-repo; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts"
 
 $P/init-plugin-repo.sh my-plugin ~/IdeaProjects/my-plugin-repo
 cd ~/IdeaProjects/my-plugin-repo
