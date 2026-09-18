@@ -18,9 +18,19 @@ from pathlib import Path
 from typing import Any
 
 try:
-    from .skill_feedback import emit_skill_feedback, print_skill_feedback_report
+    from .skill_feedback import (
+        emit_skill_feedback,
+        latest_close_out_scope,
+        parse_findings,
+        print_skill_feedback_report,
+    )
 except ImportError:  # pragma: no cover - direct script execution
-    from skill_feedback import emit_skill_feedback, print_skill_feedback_report
+    from skill_feedback import (
+        emit_skill_feedback,
+        latest_close_out_scope,
+        parse_findings,
+        print_skill_feedback_report,
+    )
 
 try:
     from . import complexity_ledger
@@ -2351,10 +2361,91 @@ def print_complexity_ledger_report(record: dict[str, Any] | None) -> None:
     )
 
 
+#: SI-05: path prefixes that mean a finding's ``target:``/``surface:`` names a
+#: surface inside THIS repository. A finding that names one owes this repository
+#: a proposed change, so the close names it. The list is deliberately coarse --
+#: a false positive costs one warning line, a false negative costs a finding
+#: that nobody ever turns into a change, which is the failure this exists for.
+REPO_TARGET_PREFIXES = (
+    "skills/spec-double-2/",
+    "spec_double_compiler/",
+    "scripts/",
+    "references/",
+    "prompts/",
+    "templates/",
+    "examples/",
+    "tests/",
+    "specs/",
+)
+
+#: Values of ``skill_change:`` that mean "no proposal yet". Anything else is
+#: read as a disposition, because SI-04 owns that field's vocabulary
+#: (``none | proposed(<unit>, <diff or issue>) | applied(<commit>) |
+#: declined(<reason>)``) and this reader only CONSUMES it.
+_NO_PROPOSAL = {"", "none", "tbd", "todo", "n/a", "-"}
+
+
+def _finding_targets_this_repository(fields: dict[str, str]) -> bool:
+    """True when the finding names a surface this repository actually carries."""
+    subject = f"{fields.get('target', '')} {fields.get('surface', '')}".lower()
+    if not subject.strip():
+        return False
+    return any(prefix in subject for prefix in REPO_TARGET_PREFIXES)
+
+
+def _finding_has_proposal(fields: dict[str, str]) -> bool:
+    """A proposal is a diff, a commit, or an issue -- never prose alone.
+
+    Prose-only is treated as MISSING on purpose: "someone should fix this" is
+    the state this ticket exists to stop counting as a proposal.
+    """
+    change = fields.get("skill_change", "").strip().lower()
+    if change and change not in _NO_PROPOSAL:
+        return True
+    recommendation = fields.get("recommendation", "")
+    lowered = recommendation.lower()
+    return "http" in lowered or ".diff" in lowered or ".patch" in lowered
+
+
+def print_skill_change_proposals(record: dict[str, Any] | None) -> None:
+    """SI-05: name every finding that owes this repository a change but proposes none.
+
+    ONE WARNING LINE PER FINDING, AND THE CLOSE STILL PROCEEDS. This function
+    prints and returns: it raises nothing, exits nothing, and changes no exit
+    status. That is the epic's no-new-gates rule, and it is also the finding
+    SF-203 recorded against this very surface -- a close that refuses reads to
+    an agent as a stop, so the obligation is reported instead of enforced.
+    """
+    if not record:
+        return
+    path = Path(record.get("path") or "")
+    if not path.is_file():
+        return
+    findings = parse_findings(latest_close_out_scope(path.read_text(encoding="utf-8")))
+    owed = [
+        item
+        for item in findings
+        if _finding_targets_this_repository(item.fields)
+        and not _finding_has_proposal(item.fields)
+    ]
+    if not owed:
+        return
+    print(f"  {len(owed)} finding(s) target this repository and propose no change:")
+    for item in owed:
+        target = (item.fields.get("target") or item.fields.get("surface") or "").strip()
+        print(f"    ! {item.id} targets {target} and proposes no change")
+    print(
+        "    add skill_change: proposed(<unit>, <diff or issue>) | applied(<commit>)"
+        " | declined(<reason>) to each"
+    )
+    print("  the close PROCEEDED -- a missing proposal is reported, never refused (SI-05).")
+
+
 def print_commit_recommendation(result: HistoryEntryResult) -> None:
     print_promotion_report(result)
     print_complexity_ledger_report(result.complexity_ledger)
     print_skill_feedback_report(result.skill_feedback)
+    print_skill_change_proposals(result.skill_feedback)
     print(f"recorded spec history entry: {result.entry_dir}")
     print(result.recommendation)
     print("recommended next step:")
