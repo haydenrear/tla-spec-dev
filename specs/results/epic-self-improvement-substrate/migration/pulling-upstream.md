@@ -1,3 +1,38 @@
+# Where the plugin is installed from, and pulling the five skills in
+
+## The install coordinate (owner decision, 2026-09-18)
+
+The plugin is installed from **`github:haydenrear/tla-spec-dev-plugin`**, a
+private repository created at the wave-2 gate. Its `main` is a push of this
+epic branch's tip.
+
+Two options were measured before choosing. `skill-manager install` **does**
+accept a branch through `--ref`, so
+`install github:haydenrear/tla-spec-dev --ref epic/self-improvement-substrate`
+resolves and installs cleanly — the plugin layout exists only on the epic
+branch, since `main` here is still pre-migration. The owner chose the separate
+repository instead. No skill-manager migration machinery was needed for either:
+`spec-double-compiler` was already uninstalled from the project home as part of
+the wave-2 home migration, so nothing had to be renamed in place.
+
+**The obligation this creates:** the plugin repo does not update itself. Push
+the epic tip to it at every wave close, or an installing home gets the state of
+the last push:
+
+```bash
+git push tla-spec-dev-plugin origin/epic/self-improvement-substrate:refs/heads/main
+```
+
+The remote `tla-spec-dev-plugin` is configured on this repository. When the epic
+merges to `main` here, that push becomes `origin/main:refs/heads/main` and the
+two stop diverging.
+
+**Known defect at the coordinate:** installing from either git source fails the
+toolchain's own two CLI installers (`SIS-W2-F-05`) — `tlc2` and `tla-spec-dev`
+are declared on the contained skill but resolved under the plugin's name. The
+project home is unaffected because its shims predate the migration; a **fresh**
+home gets no toolchain. SI-11 owns the fix.
+
 # Pulling the five skills in from the project root
 
 Written at kickoff, 2026-09-17, for SI-02 (#335) and for anyone integrating

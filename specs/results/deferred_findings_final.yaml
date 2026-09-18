@@ -2264,6 +2264,62 @@ findings:
       Natural home is SI-07 (#340) with SIS-KICKOFF-F-03. Owner triages at the
       wave-2 review.
 
+  - id: SIS-W2-F-05
+    found_by: "epic agent, installing the plugin from git at the wave-2 gate"
+    found_at_commit: "7c32a5ee"
+    schedule_revision: 1
+    severity: major
+    surface:
+      production:
+        - "skills/spec-double-2/skill-manager.toml"
+        - "skills/spec-double-2/skill-scripts/install-tlc2.sh"
+        - "skills/spec-double-2/skill-scripts/install-tla-spec-dev.sh"
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      Installing the plugin from a git source fails BOTH of the toolchain's own
+      CLI installers. `tlc2` and `tla-spec-dev` are declared as `skill-script:`
+      dependencies on the CONTAINED skill, and the installer resolves them under
+      `<home>/skills/<UNIT>/skill-scripts/` where UNIT is the PLUGIN name --
+      `skills/tla-spec-dev/skill-scripts/` -- while the scripts live at
+      `skills/spec-double-2/skill-scripts/` inside the plugin. Every install
+      reports `cli: 15 installed, 2 failed`.
+    reproduction: >-
+      skill-manager install github:haydenrear/tla-spec-dev-plugin -y
+      -> "x RunCliInstall: skill-script not found:
+      <home>/.skill-manager/skills/tla-spec-dev/skill-scripts/install-tlc2.sh
+      (declared as 'install-tlc2.sh', expected under
+      <home>/.skill-manager/skills/tla-spec-dev/skill-scripts)". Identical from
+      github:haydenrear/tla-spec-dev --ref epic/self-improvement-substrate, so
+      it is a property of the plugin layout, not of the coordinate.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/review/wave-2/review.md"
+    why_out_of_scope: >-
+      Found by the epic agent while executing an owner decision at the wave-2
+      gate, after SI-02 had closed. Same class SI-11 already owns: resolution
+      keyed to the pre-migration layout.
+    suggested_fix: >-
+      Either declare the two CLI deps at the PLUGIN level
+      (skill-manager-plugin.toml, where a shared installer is meant to live) or
+      give the resolver the contained-skill rung. Decide which is correct rather
+      than moving the scripts to satisfy the lookup: SI-02 deliberately put
+      dependencies on the contained skill because there is one contained skill
+      and the tools are its own.
+    blast_radius: >-
+      THE PROJECT HOME IS NOT AFFECTED, which is why this was nearly missed: the
+      shims installed before the migration survive, so `tla-spec-dev --version`
+      still answers 0.1.0 and every ticket worktree cloned from this home
+      inherits working tools. A FRESH home installing this plugin gets no
+      `tlc2` and no `tla-spec-dev` at all -- exactly what SI-08's blind adopter,
+      and any eval that installs into a scratch HOME, will do.
+    disposition: pending
+    disposition_ticket: null
+    disposition_note: >-
+      Add to SI-11 (#351) scope: it already owns resolution under the plugin
+      layout, and this is the same defect one level up. Owner triages at the
+      wave-3 review.
+
   - id: SI-01-DF-01
     found_by: "SI-01"
     found_at_commit: "4d563e2d"
