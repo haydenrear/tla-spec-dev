@@ -1,0 +1,51 @@
+SI-04 worktree creation: the front door refused, the by-hand route was used.
+git-issue-workflow SKILL.md, "Reaching a by-hand route is itself a finding":
+this is the case "you found it and it FAILED", quoted verbatim.
+
+$ SMH="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"; test -x "$SMH/bin/cli/skt"   # -> present
+$ command -v skt
+/Users/hayde/.skill-manager/bin/cli/skt
+
+$ commit_oid=$(git rev-parse origin/epic/self-improvement-substrate)
+$ skt ticket new 337-improvement-record --base "$commit_oid" --path ../wt-337-improvement-record
+base=994f650c1b82dcc1851a9c1d51a1955efa4bc9a4
+  ! reconcile: no skill-manager projection for test-graph on claude at <wt>/.claude/skills/test-graph. In order to create all symlinks missing, please run: skill-manager sync
+  ! reconcile: no skill-manager projection for test-graph on codex at <wt>/.codex/skills/test-graph. ...
+  ! reconcile: no skill-manager projection for test-graph on gemini at <wt>/.gemini/skills/test-graph. ...
+  error: this home holds 15 skill(s) and an agent launched here can reach 12.
+    A skill is served through <root>/.<agent>/skills/<unit>, not out of the
+    store. These are missing or resolve outside <wt>:
+      <wt>/.claude/skills/git-issue-workflow
+      <wt>/.codex/skills/git-issue-workflow
+      <wt>/.gemini/skills/git-issue-workflow
+      <wt>/.claude/skills/spec-double-compiler
+      <wt>/.codex/skills/spec-double-compiler
+      <wt>/.gemini/skills/spec-double-compiler
+      <wt>/.claude/skills/test-graph
+      <wt>/.codex/skills/test-graph
+      <wt>/.gemini/skills/test-graph
+    ... Or accept an unservable home deliberately with --allow-unprojected.
+
+The worktree was ROLLED BACK; the declared path did not exist afterwards.
+`skt ticket new` exposes only [--base] [--path] and forwards no
+--allow-unprojected, so there was no way through the front door.
+
+The project home confirms the cause -- the three units that fail to project are
+the three this epic moved into the plugin:
+
+$ ls /Users/hayde/IdeaProjects/tla-spec-dev/.claude/skills/
+acp-cdc-ai-python  debugging  deploy-helm  git-integration-repo
+hyper-experiments  hyper-experiments-finance  llm-wiki  plugin-repository
+slm-agent  tracer-agent  tracing-observability  vision-toolbelt-skill
+(12 entries; no git-issue-workflow, no spec-double-compiler, no test-graph)
+
+ROUTE ACTUALLY TAKEN (epic-ticket.md §2 by-hand, declared path + pinned base):
+$ git update-ref "refs/index-bases/tla-spec-dev/${tree_oid}" "$commit_oid" ""
+$ git worktree add /Users/hayde/IdeaProjects/wt-337-improvement-record \
+      -b feature/337-improvement-record "$commit_oid" \
+   && "$SMH/skills/git-issue-workflow/scripts/bootstrap-home.sh" \
+      --root /Users/hayde/IdeaProjects/wt-337-improvement-record
+-> worktree created, home bootstrapped, .skill-manager/bin/cli present.
+
+Filed as SI-04-DF-03. Reported here because a by-hand route that works leaves
+no trace but the cost.

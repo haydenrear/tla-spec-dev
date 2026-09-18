@@ -1,0 +1,152 @@
+LOCAL SIGNAL -- GOAL-findings-become-changes
+harness: python3 skills/spec-double-2/scripts/improvement_ledger.py (advisory, exit 0 always)
+measured on: feature/337-improvement-record, worktree tree at SI-04 completion
+
+### A. the declared spelling, bare python3 (no PyYAML on this interpreter -- SF-105)
+$ python3 skills/spec-double-2/scripts/improvement_ledger.py
+improvement ledger -- 36 record(s) across 2 file(s)
+  ! /Users/hayde/IdeaProjects/wt-337-improvement-record/specs/results/deferred_findings_final.yaml: PyYAML is not importable under /opt/homebrew/opt/python@3.14/bin/python3.14 -- backlog NOT read (this is not an empty backlog)
+  ! /Users/hayde/IdeaProjects/wt-337-improvement-record/specs/results/epic-close/deferred_findings_next.yaml: PyYAML is not importable under /opt/homebrew/opt/python@3.14/bin/python3.14 -- backlog NOT read (this is not an empty backlog)
+
+findings by disposition
+  disposition     total  skill-anchored  skill_change  applied/declined
+  --------------  -----  --------------  ------------  ----------------
+  deferred        1      1               0             0
+  filed           16     11              0             0
+  modelable       1      0               0             0
+  record-only     1      0               0             0
+  recorded-local  13     8               0             0
+  undecided       4      1               0             0
+
+skill_change verbs
+  verb    records
+  ------  -------
+  absent  36
+
+by source
+  source                      records  skill-anchored  skill_change recorded
+  --------------------------  -------  --------------  ---------------------
+  SELF-IMPROVEMENT-MATRIX.md  7        2               0
+  skill_feedback.md           29       19              0
+
+WARNINGS (advisory -- nothing here refuses)
+  recorded-local, filed nowhere .......... 13
+  no skill_change field at all ........... 36
+  skill_change present but unparseable ... 0
+  D4: skill-anchored, not applied/declined 21
+
+  recorded-local:
+    SF-101 [skill_feedback.md] unit=spec-double-2 skill_change=(absent)
+    SF-102 [skill_feedback.md] unit=spec-double-2 skill_change=(absent)
+    SF-103 [skill_feedback.md] unit=spec-double-2 skill_change=(absent)
+    SF-104 [skill_feedback.md] unit=spec-double-2 skill_change=(absent)
+    SF-105 [skill_feedback.md] unit=spec-double-2 skill_change=(absent)
+    SF-201 [skill_feedback.md] unit=spec-double-2 skill_change=(absent)
+    SF-202 [skill_feedback.md] unit=- skill_change=(absent)
+    SF-203 [skill_feedback.md] unit=spec-double-2 skill_change=(absent)
+    ... and 5 more (use --verbose)
+
+  no skill_change:
+    SF-001 [skill_feedback.md] disposition=filed
+    SF-002 [skill_feedback.md] disposition=filed
+    SF-003 [skill_feedback.md] disposition=filed
+    SF-004 [skill_feedback.md] disposition=filed
+    SF-005 [skill_feedback.md] disposition=filed
+    SF-006 [skill_feedback.md] disposition=filed
+    SF-007 [skill_feedback.md] disposition=filed
+    SF-001 [skill_feedback.md] disposition=filed
+    ... and 28 more (use --verbose)
+
+  D4 -- anchored to a skill, no change to that skill:
+    SF-001 [skill_feedback.md] unit=spec-double-2 skill_change=(absent)
+    SF-003 [skill_feedback.md] unit=spec-double-2 skill_change=(absent)
+    SF-004 [skill_feedback.md] unit=spec-double-2 skill_change=(absent)
+    SF-005 [skill_feedback.md] unit=spec-double-2 skill_change=(absent)
+    SF-007 [skill_feedback.md] unit=spec-double-2 skill_change=(absent)
+    SF-001 [skill_feedback.md] unit=spec-double-2 skill_change=(absent)
+    SF-003 [skill_feedback.md] unit=spec-double-2 skill_change=(absent)
+    SF-004 [skill_feedback.md] unit=spec-double-2 skill_change=(absent)
+    ... and 13 more (use --verbose)
+
+The rule: a finding anchored to a skill is consumed only by a change
+to that skill. `references/consumption.md` D4. This reader reports it;
+nothing in this repository refuses on it.
+EXIT=0
+
+### B. the same command under an interpreter that has PyYAML (all four files read)
+$ uv run --python 3.12 --with pyyaml python skills/spec-double-2/scripts/improvement_ledger.py
+improvement ledger -- 90 record(s) across 4 file(s)
+
+findings by disposition
+  disposition     total  skill-anchored  skill_change  applied/declined
+  --------------  -----  --------------  ------------  ----------------
+  (none)          6      0               0             0
+  carried         19     11              0             0
+  deferred        1      1               0             0
+  filed           16     11              0             0
+  fixed           2      2               0             0
+  fixed-inline    1      1               0             0
+  modelable       1      0               0             0
+  pending         15     3               3             0
+  record-only     1      0               0             0
+  recorded-local  13     8               0             0
+  ticketed        11     9               0             0
+  undecided       4      1               0             0
+
+skill_change verbs
+  verb      records
+  --------  -------
+  absent    87
+  proposed  3
+
+by source
+  source                        records  skill-anchored  skill_change recorded
+  ----------------------------  -------  --------------  ---------------------
+  SELF-IMPROVEMENT-MATRIX.md    7        2               0
+  deferred_findings_final.yaml  48       26              3
+  deferred_findings_next.yaml   6        0               0
+  skill_feedback.md             29       19              0
+
+WARNINGS (advisory -- nothing here refuses)
+  recorded-local, filed nowhere .......... 13
+  no skill_change field at all ........... 87
+  skill_change present but unparseable ... 0
+  D4: skill-anchored, not applied/declined 47
+
+  recorded-local:
+    SF-101 [skill_feedback.md] unit=spec-double-2 skill_change=(absent)
+    SF-102 [skill_feedback.md] unit=spec-double-2 skill_change=(absent)
+    SF-103 [skill_feedback.md] unit=spec-double-2 skill_change=(absent)
+    SF-104 [skill_feedback.md] unit=spec-double-2 skill_change=(absent)
+    SF-105 [skill_feedback.md] unit=spec-double-2 skill_change=(absent)
+    SF-201 [skill_feedback.md] unit=spec-double-2 skill_change=(absent)
+    SF-202 [skill_feedback.md] unit=- skill_change=(absent)
+    SF-203 [skill_feedback.md] unit=spec-double-2 skill_change=(absent)
+    ... and 5 more (use --verbose)
+
+  no skill_change:
+    SF-001 [skill_feedback.md] disposition=filed
+    SF-002 [skill_feedback.md] disposition=filed
+    SF-003 [skill_feedback.md] disposition=filed
+    SF-004 [skill_feedback.md] disposition=filed
+    SF-005 [skill_feedback.md] disposition=filed
+    SF-006 [skill_feedback.md] disposition=filed
+    SF-007 [skill_feedback.md] disposition=filed
+    SF-001 [skill_feedback.md] disposition=filed
+    ... and 79 more (use --verbose)
+
+  D4 -- anchored to a skill, no change to that skill:
+    SF-001 [skill_feedback.md] unit=spec-double-2 skill_change=(absent)
+    SF-003 [skill_feedback.md] unit=spec-double-2 skill_change=(absent)
+    SF-004 [skill_feedback.md] unit=spec-double-2 skill_change=(absent)
+    SF-005 [skill_feedback.md] unit=spec-double-2 skill_change=(absent)
+    SF-007 [skill_feedback.md] unit=spec-double-2 skill_change=(absent)
+    SF-001 [skill_feedback.md] unit=spec-double-2 skill_change=(absent)
+    SF-003 [skill_feedback.md] unit=spec-double-2 skill_change=(absent)
+    SF-004 [skill_feedback.md] unit=spec-double-2 skill_change=(absent)
+    ... and 39 more (use --verbose)
+
+The rule: a finding anchored to a skill is consumed only by a change
+to that skill. `references/consumption.md` D4. This reader reports it;
+nothing in this repository refuses on it.
+EXIT=0

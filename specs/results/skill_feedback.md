@@ -1497,7 +1497,11 @@ finding id rather than a URL and `status` is `recorded-local` rather than
 - recommendation: EV-03-DF-03 -- resolve first-party-ness against the project root
   and the sys.path the project installs; the fix is entirely in the detection and
   changes no verdict rule.
-- status: recorded-local
+- skill_change: declined(target removed -- scripts/architecture_reflexion.py no
+  longer exists in this repository; the architecture-reflexion surface was cut by
+  the architectural-coherence / cut-the-apparatus work, so there is nothing left
+  to repair. Verified absent on the epic tip by SI-05.)
+- status: declined
 
 ### SF-102
 
@@ -1513,7 +1517,12 @@ finding id rather than a URL and `status` is `recorded-local` rather than
 - evidence: examples/validation/runs/ex4-run4/artifacts/case_modules_worked_example.txt
 - recommendation: EV-03-DF-02 -- a lever that treats an unused provider on a
   declared case module as a fact rather than a misconfiguration.
-- status: recorded-local
+- skill_change: applied(28cf7b39) -- run_generated_case_adapters.py now carries
+  `orphan_ports` and REPORTS an unused provider instead of refusing the corpus;
+  the comment at the site states the no-new-gates rule in those words. This is
+  exactly the "fact rather than a misconfiguration" lever the finding asked for.
+  Verified by SI-05 at scripts/run_generated_case_adapters.py.
+- status: applied
 
 ### SF-103
 
@@ -1528,7 +1537,12 @@ finding id rather than a URL and `status` is `recorded-local` rather than
 - recommendation: EV-03-DF-04 -- write the report with an explicit "no effect
   declarations found" body, or refuse naming the files searched. Silence is the
   one option that is wrong.
-- status: recorded-local
+- skill_change: proposed(tla-spec-dev, specs/results/epic-self-improvement-substrate/tickets/SI-05/proposals/SF-103-effect-report-silence.diff)
+  -- STILL REPRODUCIBLE, re-verified by SI-05. The write sits inside
+  `if effects_active:` and the comment three lines above it still claims "The
+  report is written unconditionally". scripts/run_generated_case_adapters.py is
+  outside SI-05's conflict keys, so this is proposed as a diff, not applied.
+- status: proposed
 
 ### SF-104
 
@@ -1543,7 +1557,11 @@ finding id rather than a URL and `status` is `recorded-local` rather than
 - evidence: examples/validation/runs/ex4-run6/scoring.md
 - recommendation: EV-03-DF-05 -- name a declaration the run did not use (a fact,
   not a suggestion, so CD-01 is not engaged), and fix the prompt.
-- status: recorded-local
+- skill_change: declined(both surfaces retired -- scripts/analyze_architecture.py
+  no longer exists, and prompts/aspect_decomposition.md:126 already records that
+  the step "used to read `analyze architecture`, removed 2026-08-04". The prompt
+  half the finding asked for is done; the command half has no target left.)
+- status: declined
 
 ### SF-105
 
@@ -1558,7 +1576,11 @@ finding id rather than a URL and `status` is `recorded-local` rather than
 - evidence: examples/validation/runs/ex4-run4/scoring.md
 - recommendation: EV-02-DF-05 -- state an absolute interpreter path, or declare
   the dependency set the published commands need.
-- status: recorded-local
+- skill_change: applied(SI-05 -- skills/spec-double-2/references/migration.md
+  Phase 6) -- the toolchain docs now declare the dependency set the published
+  commands need, in the pinned `uv run --python 3.12 --with ...` form. That is
+  the half EV-03 had solved only for itself in the validation README.
+- status: applied
 
 ## Close-out ticket RC-01
 
@@ -1588,7 +1610,13 @@ finding id rather than a URL and `status` is `recorded-local` rather than
   convention documented beside it, keep the filename probe as a fallback, and
   print one line at close when neither resolves. Filed locally as RC-01-DF-04 in
   `specs/desired_program_model/deferred_findings.yaml`.
-- status: recorded-local
+- skill_change: proposed(tla-spec-dev, specs/results/epic-self-improvement-substrate/tickets/SI-05/proposals/SF-201-ledger-tlc-report.diff)
+  -- STILL OPEN, re-verified by SI-05. `record_complexity_ledger` accepts a
+  `tlc_report` path, but the scaffolded complexity_ledger.yaml TEMPLATE offers no
+  field for it, so the figure is still filled only by the filename probe. The
+  TEMPLATE constant lives in scripts/complexity_ledger.py, outside SI-05's
+  conflict keys.
+- status: proposed
 
 ### SF-202
 
@@ -1604,7 +1632,11 @@ finding id rather than a URL and `status` is `recorded-local` rather than
 - recommendation: either add a scope that includes the desired tree, or stop
   scaffolding tests into it and say plainly that the desired tree carries no
   executable conformance. Filed locally as RC-01-DF-02.
-- status: recorded-local
+- skill_change: proposed(tla-spec-dev, specs/results/epic-self-improvement-substrate/tickets/SI-05/proposals/SF-202-spec-unit-desired-scope.diff)
+  -- STILL OPEN AND RE-MEASURED BY SI-05: `--scope` still offers only
+  {auto, project}, and specs/desired_program_model/tests still carries 17 files
+  that no scope reaches. scripts/tla_spec_dev.py is outside SI-05's conflict keys.
+- status: proposed
 
 ### SF-203
 
@@ -1619,7 +1651,15 @@ finding id rather than a URL and `status` is `recorded-local` rather than
 - recommendation: owner's call whether the step is real. If it is, make the
   close refuse `unreviewed` at WORKFLOW close (it already refuses plenty else
   there); if it is not, stop printing the warning.
-- status: recorded-local
+- skill_change: applied(SI-05 -- scripts/spec_evolution.py::print_skill_change_proposals)
+  -- THE OWNER'S CALL WENT A THIRD WAY, and this finding is why SI-05 exists.
+  "Make the close REFUSE `unreviewed`" is DECLINED: the epic's GOAL-no-new-gates
+  records that a refusal here reads to an agent as a stop. "Stop printing the
+  warning" is declined too. Instead the warning became SPECIFIC and ACTIONABLE --
+  the close now names each finding that targets this repository and proposes no
+  change, tells the reader the exact field to add, and PROCEEDS. The obligation
+  is reported, never enforced.
+- status: applied
 
 ## Close-out ticket RC-02
 
@@ -1651,7 +1691,12 @@ finding id rather than a URL and `status` is `recorded-local` rather than
   `sys.path` in `_execute_corpus` before the first `load_object`, and add a
   regression test that points the oracle at `specs/current` with no PYTHONPATH
   set. Filed locally as RC-02-DF-02.
-- status: recorded-local
+- skill_change: applied(28cf7b39) -- "HP-04: run the oracle, then fix the three
+  things running it found". effect_conformance.py's module docstring now records
+  that the run had failed to "put the target spec directory on ``sys.path``, so
+  the very first run died", and the path is resolved before the first
+  load_object. Verified by SI-05.
+- status: applied
 
 ### SF-302
 
@@ -1670,7 +1715,12 @@ finding id rather than a URL and `status` is `recorded-local` rather than
   and REPORT the skipped set -- a case the oracle silently did not run is the
   "unobservable read as clean" shape MF-027 removed. Filed locally as
   RC-02-DF-03.
-- status: recorded-local
+- skill_change: applied(28cf7b39) -- the oracle now carries SkippedCase with
+  SKIP_NOT_RUNNABLE / SKIP_DECLINED / SKIP_UNBOUND / SKIP_ERROR kinds, its summary
+  line reports executed/skipped/unbound counts, and a port whose every declaring
+  action was skipped is annotated UNEXERCISED rather than read as clean -- which
+  is precisely the MF-027 distinction the finding asked for. Verified by SI-05.
+- status: applied
 
 ### SF-303
 
@@ -1691,7 +1741,13 @@ finding id rather than a URL and `status` is `recorded-local` rather than
   way forward, and gate on the projected count before rendering, so a refused
   corpus does not cost 7.4 GB and five minutes first. Filed locally as
   RC-02-DF-04.
-- status: recorded-local
+- skill_change: proposed(tla-spec-dev, specs/results/epic-self-improvement-substrate/tickets/SI-05/proposals/SF-303-cap-refusal-names-projector.diff)
+  -- STILL OPEN, re-verified by SI-05. `analyze corpus` still offers exactly two
+  ways forward ("redesign or raising the cap with a recorded rationale") in both
+  its description and its next_step and names no projector, although
+  `--state-projector` exists in generate_cases_from_tlc_dump.py.
+  scripts/tla_spec_dev.py is outside SI-05's conflict keys.
+- status: proposed
 
 ### SF-304
 
@@ -1710,7 +1766,17 @@ finding id rather than a URL and `status` is `recorded-local` rather than
   project, or stop encouraging line-number citations in the templates and cite
   symbols instead. Fixed here for this repository's surface, so no deferred
   finding was filed.
-- status: recorded-local
+- skill_change: applied(SI-05 -- scripts/scaffold_spec_workflow.py) and
+  proposed(tla-spec-dev, specs/results/epic-self-improvement-substrate/tickets/SI-05/proposals/SF-304-ship-citation-check.diff)
+  -- THE FINDING OFFERED TWO ROUTES AND SI-05 TOOK THE ONE IN ITS KEYS. "Stop
+  encouraging line-number citations in the templates and cite symbols instead"
+  is APPLIED: the scaffolded desired/current READMEs now ship the
+  cite-symbols-not-lines convention, so a new project starts on the side that
+  does not rot. "Ship the check with the scaffolded project" is PROPOSED as a
+  diff -- SI-05 grepped the whole skill surface and nothing outside
+  check_citations.py references it. (SI-05's own baseline carries three failing
+  test_source_citations cases, which is this finding still being true here.)
+- status: applied
 
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
 
@@ -2325,7 +2391,11 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 - root_cause: tool
 - workaround_applied: paraphrased the sentence so the narrative no longer contains the sentinel substring
 - recommendation: fixed in this repository. The substring test became equality for `narrative` and `justification`; extended to `refinement.detail` and `transition_diff` at the attribute-the-catch close, where the first repair had left the same defect in two more free-prose fields.; not filed by CA-04 because opening issues is outside a ticket agent's remit
-- status: recorded-local
+- skill_change: applied(7066e065) -- scripts/complexity_ledger.py is now
+  `return value == TEMPLATE_SENTINEL`, with a comment citing SF-305 by id. The
+  remaining `TEMPLATE_SENTINEL in ...` sites are status and enum fields, where a
+  substring test is correct. Verified by SI-05.
+- status: applied
 - surface: the narrative sentinel check
 - forced_workaround: paraphrase a legitimate quotation to avoid a substring
 - data_loss: yes

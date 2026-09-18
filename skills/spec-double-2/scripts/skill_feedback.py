@@ -149,6 +149,11 @@ class Finding:
             "recommendation": self.recommendation,
             "reference": self.reference,
             "filed": self.filed,
+            # SI-04. Carried as written, unparsed: the grammar belongs to the
+            # reader (`scripts/improvement_ledger.py`), and a second opinion
+            # about it here is the thing that ticket exists to avoid.
+            "skill_change": self.fields.get("skill_change", ""),
+            "goal": self.fields.get("goal", ""),
         }
 
 
@@ -299,6 +304,16 @@ Fields required on every finding:
 - `workaround_applied:` what the migration had to do to proceed, or `none`.
 - `recommendation:` `ticket <url>` or `PR <url>` against {FEEDBACK_REPO}
 - `status:` `open`, `filed`, or `wontfix`
+- `skill_change:` what changed in the SUBSTRATE as a result. One of
+  `none`, `proposed(<unit>, <diff or issue>)`, `applied(<commit>)`, or
+  `declined(<reason>)`. **`recorded-local` is not an answer here** -- a finding
+  written down in this repository and filed nowhere is the state
+  `GOAL-findings-become-changes` exists to end, and 13 of them accumulated
+  before the field existed. Leaving it off is not `none`: `none` is a claim
+  that no skill change was needed, and an absent field is nobody having been
+  asked (`references/bug_attribution.md` §3).
+- `goal:` the epic goal this finding bears on, if any, so that a finding and
+  the measurement it should move are on the same record.
 
 Category-specific fields, so the common cases are structured rather than prose:
 

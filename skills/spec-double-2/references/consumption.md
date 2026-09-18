@@ -65,6 +65,37 @@ whose id prefix belongs to the epic being closed.
 | **D1** | every finding carries a `disposition` from the vocabulary, and it is not `open` |
 | **D2** | a **terminal** disposition carries a `disposition_note` saying what was done |
 | **D3** | a **deferral** names a successor in `disposition_ticket` |
+| **D4** | a finding **anchored to a skill** carries a `skill_change` that is `applied` or `declined` |
+
+**D4 is `SI-04`'s, it is ADVISORY, and it is not checked by `disposition.py`.**
+D1–D3 are checked by an instrument that refuses (exit 1). D4 is checked by
+`scripts/improvement_ledger.py`, which warns and exits 0 — and the separation is
+deliberate twice over. `GOAL-no-new-gates` forbids adding a refusal; and
+`skill_change` did not exist when any sealed epic closed, so a refusing D4 would
+condemn the entire record on a field nobody could have filled. That is `MF-020` —
+an instrument changed after seeing its own data — and this page has already
+declined to make that move once, for D2/D3, for the same reason.
+
+**What D4 adds that D1–D3 cannot say.** D1–D3 check that a finding was *routed*;
+the page says so plainly below. Routing a finding about a skill to a ticket, and
+then closing that ticket, changes nothing about the skill. D4 is the clause that
+names the artifact: **a finding anchored to a skill is consumed only by a change
+to that skill.** It does not make consumption *true* — nothing in a field can,
+and the section on `CA-03`/`CA-04` below is the standing evidence — but it makes
+the difference between "went somewhere" and "the substrate is different now"
+*visible*, which is the thing four files were unable to answer.
+
+**The vocabulary, one line, carried by all four record files:**
+
+```
+skill_change: none | proposed(<unit>, <diff or issue>) | applied(<commit>) | declined(<reason>)
+```
+
+**An absent `skill_change` is not `none`.** `none` is a claim that no skill
+change was needed. Absent is nobody having been asked. `bug_attribution.md` §3
+governs: the correct answer to an absent input is UNDECIDED, never a PASS, and
+collapsing the two would report the whole pre-`SI-04` record as having decided
+something it never considered.
 
 **And one structural rule that precedes all three.** A row carrying the same key
 twice is **refused before any clause is evaluated** — a clause verdict computed

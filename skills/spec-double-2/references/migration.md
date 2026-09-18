@@ -166,6 +166,34 @@ and record its URL in `recommendation:` with `status: filed`. If you looked
 and found nothing, set `feedback_status: none-found`; silence is not an
 answer.
 
+**A finding whose `target:` is in this repository owes this repository a
+change.** Recording it is not consuming it. Every such finding ends the
+close-out as exactly one of:
+
+- `skill_change: applied(<commit>)` — the change is in this PR. The skill
+  surface lives at `skills/spec-double-2/`, so the file the finding names is
+  in your worktree, and this is the normal answer;
+- `skill_change: proposed(<unit>, <diff or issue>)` — a diff, or an issue
+  carrying one. **A proposal is a diff or an issue with a diff, never prose
+  alone**; prose-only is read as no proposal at all. This is the right answer
+  when the target sits outside your ticket's conflict keys;
+- `skill_change: declined(<reason>)` — including "the target no longer
+  exists". A recorded reason is a disposition; silence is not.
+
+`close ticket` prints one warning line per finding that names this repository
+and proposes no change, **and the close still proceeds**. It is a report, not
+a gate: a missing proposal refuses nothing, changes no exit status, and there
+is nothing to force past.
+
+The published commands in this document need one interpreter carrying `yaml`,
+`pytest` and `tomllib` together, which a bare `python3` on `PATH` is not
+guaranteed to be. Use the pinned form this repository's own tickets use:
+
+```
+uv run --python 3.12 --with pytest --with pyyaml --with jinja2 --with hypothesis \
+  python -m pytest tests -q
+```
+
 Close-out reads the document back and records **whether feedback was filed and
 where** in the append-only history entry (`feedback_filed`,
 `feedback_filed_where`, and the full `skill_feedback` record in

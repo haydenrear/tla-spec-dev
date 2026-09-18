@@ -1,0 +1,54 @@
+LOCAL SIGNAL -- GOAL-no-new-gates (guard)
+expected effect: the ledger warns and exits 0; no refusal path added
+measured on: feature/337-improvement-record vs origin/epic/self-improvement-substrate
+
+=== 1. the declared command ===
+$ grep -nE "SystemExit|sys.exit\([^0]" skills/spec-double-2/scripts/improvement_ledger.py
+(grep exit=1; 1 = NO MATCHES. The advisory reader has no refusal path and
+ no exit-code path: main() returns None and __main__ falls off the end.)
+
+=== 2. per-file counts, before -> after ===
+  skills/spec-double-2/scripts/disposition.py          5 -> 6
+  skills/spec-double-2/scripts/skill_feedback.py       0 -> 0
+  skills/spec-double-2/scripts/improvement_ledger.py   0 (new file) -> 0
+
+=== 3. NOT CLEAN, AND SAID PLAINLY: disposition.py went 5 -> 6. ===
+Every added/removed line in the diff that the metric matches:
+    -        raise SystemExit(
+    +            raise SystemExit(f"{path}: PyYAML is required to read the ledger")
+    +            raise SystemExit(
+    +    with pytest.raises(SystemExit):
+    +    with pytest.raises(SystemExit):
+    +                 if "sys.exit(" in line or "SystemExit" in line]
+
+    Reading them:
+      -  raise SystemExit(                      disposition.py: the duplicate-key
+      +  raise SystemExit(                      refusal, MOVED from load()'s body
+                                                into the new load() wrapper. Net 0.
+      +  raise SystemExit("... PyYAML is required to read the ledger")
+                                                THE ONE NET ADDITION. Net +1.
+      +  with pytest.raises(SystemExit):  x2     TEST ASSERTIONS in
+      +  if "sys.exit(" in line or ...           tests/test_disposition_requirement.py,
+                                                including the test that PINS this
+                                                goal. Not refusal paths.
+
+    THE ONE NET ADDITION, ARGUED RATHER THAN WAVED AT. Before this ticket, a
+    missing PyYAML made disposition.py die with an uncaught ModuleNotFoundError
+    and a traceback -- already a non-zero exit, already a stop. It is now a named
+    SystemExit in the same already-refusing instrument. No input that previously
+    succeeded now refuses; one input that previously CRASHED now refuses legibly.
+
+    The alternative was to let the missing dependency fall through to load()'s
+    existing "no `findings` -- refusing to report 0 of 0". That would have been
+    a clean grep and a WORSE instrument: a refusal message pointing at ABSENCE
+    when the cause was a missing interpreter package. That is SF-305's exact
+    class, which this repository has already paid for once.
+
+    The advisory reader this ticket ships carries zero. The epic agent decides
+    whether the +1 counts against the goal; it is not mine to net out.
+
+=== 4. runtime proof: the ledger exits 0 on every path tried ===
+  bare python3 (cannot import yaml)  EXIT=0
+  with PyYAML                        EXIT=0
+  nonexistent repo root              EXIT=0
+  --verbose                          EXIT=0
