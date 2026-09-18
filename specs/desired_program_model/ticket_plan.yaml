@@ -4,7 +4,7 @@
 version: 1
 name: self-improvement-substrate
 updated: "2026-09-17"
-schedule_revision: 1
+schedule_revision: 2
 purpose: "Make tla-spec-dev one plugin and one loop: the substrate improves because of what agents ran into while using it, and the epic agent is the one writer of the model, the matrix, the scorecard row and the plugin."
 
 planning_rules:
@@ -106,6 +106,16 @@ epic_goals:
     # and improves as one plugin"; one unit that cannot sync satisfies the count
     # and not the sentence, so the clause is now explicit and reported
     # separately.
+    # WAVE-4 GATE, 2026-09-18. Clause 1 was measured UNSATISFIABLE and is
+    # deliberately NOT reworded. git-integration-repo and plugin-repository --
+    # both left outside the bundle at kickoff -- import test-graph,
+    # spec-double-compiler and git-issue-workflow, so any home carrying them
+    # re-materialises standalone copies of contained skills. That happened in
+    # the project home on 2026-09-18 (three units, installSource GIT, one
+    # installedAt, minutes after the plugin install). The owner's decision was
+    # to move those two INTO the bundle (SI-12, #359) rather than amend the
+    # sentence to excuse copies that exist only as non-member dependencies.
+    # Changing the words would have made the clause true by making it say less.
     target: "three clauses, reported one verdict each: (1) one installed unit for this substrate and zero standalone copies of the five migrated skills in root or project home; (2) every listed graph and eval case green on the new layout; (3) that unit is change-managed -- a git source, no NEEDS_GIT_MIGRATION, and `skt sync` able to update it"
     evaluation_ticket: "SI-08"
     evidence_root: "specs/results/epic-self-improvement-substrate/goals/GOAL-one-unit"
@@ -171,6 +181,16 @@ epic_goals:
       value: "descriptions 923 words over the six units that become the plugin; card bodies 15,479 words total, ranging 933 (discovery) to 4,114 (git-epic-workflow)"
       measured_at: "b7a7d203"
       evidence: "specs/results/epic-self-improvement-substrate/baseline/kickoff.md"
+    # WAVE-4 GATE, 2026-09-18. The baseline MOVED AGAINST the goal and the
+    # target is deliberately unchanged. Card bodies went 15,598 -> 16,840
+    # (+1,242) because SI-06 and SI-07 added exactly what their tickets
+    # required: git-epic-workflow +521 (the five-block schema and rule 10),
+    # git-issue-workflow +325, discovery +163, test-graph +136, git-issue +97.
+    # Descriptions held at 923. The increase is rationalised, not excused --
+    # every added word is a rule an agent is expected to follow, which is why
+    # SI-09's job is to move them behind the reference map rather than delete
+    # them. SI-09 now has 1,242 more words to cut than its issue assumed, and
+    # SI-12 adds two more cards to the set.
     target: "descriptions <= 600 words in total; every card body <= 1,500 words with the remainder behind the reference map; no wide-lane budget case regresses"
     evaluation_ticket: "SI-08"
     evidence_root: "specs/results/epic-self-improvement-substrate/goals/GOAL-progressive-disclosure"
@@ -257,7 +277,7 @@ tickets:
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/335"
     schedule_revision: 1
     depends_on: ["SI-01"]
-    blocks: ["SI-04", "SI-05", "SI-06", "SI-08", "SI-10", "SI-11"]
+    blocks: ["SI-04", "SI-05", "SI-06", "SI-08", "SI-10", "SI-11", "SI-12"]
     wave: 2
     promotion_order: 20
     promotion_predecessor: "SI-01"
@@ -689,16 +709,78 @@ tickets:
         - "Nothing in the change refuses."
       evidence: []
 
+  # ADDED at the wave-4 gate, 2026-09-18, schedule_revision 2. This REVERSES
+  # the kickoff membership decision for two of the three excluded skills,
+  # because wave 4 measured that GOAL-one-unit clause 1 cannot hold while they
+  # are installed: both import contained skills, so every install re-creates
+  # standalone copies. `debugging` stays out -- nothing in the bundle depends
+  # on it, so it creates no such cycle.
+  - id: SI-12
+    title: "Nest git-integration-repo and plugin-repository, and make one unit true"
+    status: planned
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/359"
+    schedule_revision: 2
+    depends_on: ["SI-02"]
+    blocks: ["SI-08", "SI-09"]
+    wave: 5
+    promotion_order: 85
+    promotion_predecessor: "SI-07"
+    role: implementation
+    objective: "Bring the two remaining dependent skills into the bundle so that no non-member unit imports a contained one, and a home stops re-materialising standalone copies."
+    desired_actions: []
+    implementation_scope:
+      - "skills/git-integration-repo/**, skills/plugin-repository/** as constituents (git subtree, full history, no --squash)"
+      - "their skill-imports re-addressed intra-bundle: unit: tla-spec-dev with path: skills/<skill>/<file>"
+      - "integration-lib.sh's standalone-only resolution of git-issue-workflow/lib.sh (SI-02-DF-05); check whether this closes SI-02-DF-01"
+      - "the two new remotes added to migration/pulling-upstream.md"
+      - "README.md: the uninstall sequence downstream homes use to migrate"
+      - "debugging stays OUT; the root home is NOT modified from this ticket"
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests:
+        - "uv run --python 3.12 --with pytest --with pyyaml --with jinja2 --with hypothesis python -m pytest tests -q --ignore=tests/test_score_tools.py"
+      graph_after_unit_pass:
+        - "specWorkflow"
+        - "cliWorkflow"
+        - "effectProviderExamples"
+    conflict_keys:
+      production:
+        - "skills/git-integration-repo/**"
+        - "skills/plugin-repository/**"
+        - "README.md"
+        - "integration.toml"
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    goals:
+      - goal: GOAL-one-unit
+        contribution: direct
+        expected_effect: "standalone copies re-materialised by non-member dependents go from 3 to 0; no external importer of any contained skill remains"
+        local_signal: "ls .skill-manager/skills shows none of the seven contained skills; deps <unit> --who-imports shows no non-member importer"
+      - goal: GOAL-no-new-gates
+        contribution: guard
+        expected_effect: "nesting adds no refusal path"
+        local_signal: "N/A: no check is added by this ticket"
+    acceptance:
+      commands: []
+      assertions:
+        - "No non-member unit imports a contained skill."
+        - "The two new constituents carry no skill-script: dep resolved by a contained name (SIS-W2-F-05)."
+      evidence: []
+
   - id: SI-09
     title: "Progressive disclosure: every card short, the rest behind the reference map"
     status: planned
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/342"
     schedule_revision: 1
-    depends_on: ["SI-03", "SI-06", "SI-07"]
+    depends_on: ["SI-03", "SI-06", "SI-07", "SI-12"]
     blocks: ["SI-08"]
-    wave: 5
+    wave: 6
     promotion_order: 90
-    promotion_predecessor: "SI-07"
+    promotion_predecessor: "SI-12"
     role: implementation
     objective: "Cut what loads before it is needed. Descriptions shrink to what selects the skill; each card becomes an operational card with a reference map; the history and the rationale move to references. It runs last because it touches every card the other tickets edit."
     desired_actions: []
@@ -741,9 +823,9 @@ tickets:
     status: planned
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/341"
     schedule_revision: 1
-    depends_on: ["SI-01", "SI-02", "SI-03", "SI-04", "SI-05", "SI-06", "SI-07", "SI-09", "SI-10", "SI-11"]
+    depends_on: ["SI-01", "SI-02", "SI-03", "SI-04", "SI-05", "SI-06", "SI-07", "SI-09", "SI-10", "SI-11", "SI-12"]
     blocks: []
-    wave: 6
+    wave: 7
     promotion_order: 100
     promotion_predecessor: "SI-09"
     role: evaluation
