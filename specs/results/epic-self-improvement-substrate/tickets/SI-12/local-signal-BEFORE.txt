@@ -1,0 +1,79 @@
+GOAL-one-unit -- local signal, measured on this worktree's Skill Manager home
+home: /Users/hayde/IdeaProjects/wt-359-nest-remaining-dependents/.skill-manager
+expected_effect: 'standalone copies re-materialised by non-member dependents go from 3 to 0;
+                 no external importer of any contained skill remains'
+=======================================================================
+
+### BEFORE (this home, as it stands before installing the SI-12 bundle) ###
+--- standalone units in this home ---
+acp-cdc-ai-python
+debugging
+deploy-helm
+git-integration-repo
+git-issue-workflow
+hyper-experiments
+hyper-experiments-finance
+llm-wiki
+plugin-repository
+slm-agent
+spec-double-compiler
+test-graph
+tracer-agent
+tracing-observability
+vision-toolbelt-skill
+--- plugins ---
+andrej-karpathy-skills
+cdc-agent-substrate-plugin
+skt
+tla-spec-dev
+
+--- who-imports, BEFORE ---
+== git-integration-repo ==
+what imports git-integration-repo in /Users/hayde/IdeaProjects/wt-359-nest-remaining-dependents/.skill-manager
+
+  direct (1):
+    plugin-repository
+      [skill-imports  by name]  skills/plugin-repository/SKILL.md
+      [skill-imports  by name]  skills/plugin-repository/SKILL.md
+      [skill-imports  by name]  skills/plugin-repository/SKILL.md
+      [references     by coord]  skills/plugin-repository/skill-manager.toml  → https://github.com/haydenrear/git-integration-skill
+
+  reaches it only directly — 1 unit(s) in total
+== plugin-repository ==
+what imports plugin-repository in /Users/hayde/IdeaProjects/wt-359-nest-remaining-dependents/.skill-manager
+
+  nothing imports it directly
+
+  reaches it only directly — 0 unit(s) in total
+== test-graph ==
+what imports test-graph in /Users/hayde/IdeaProjects/wt-359-nest-remaining-dependents/.skill-manager
+
+  direct (1):
+    git-integration-repo
+      [skill-imports  by name]  skills/git-integration-repo/SKILL.md
+
+  through another unit (1):
+    plugin-repository
+
+  2 unit(s) in total
+== spec-double-compiler ==
+what imports spec-double-compiler in /Users/hayde/IdeaProjects/wt-359-nest-remaining-dependents/.skill-manager
+
+  direct (1):
+    git-integration-repo
+      [skill-imports  by name]  skills/git-integration-repo/SKILL.md
+
+  through another unit (1):
+    plugin-repository
+
+  2 unit(s) in total
+== git-issue-workflow ==
+what imports git-issue-workflow in /Users/hayde/IdeaProjects/wt-359-nest-remaining-dependents/.skill-manager
+
+  direct (2):
+    git-integration-repo
+      [references     by coord]  skills/git-integration-repo/skill-manager.toml  → https://github.com/haydenrear/git-issue-workflow-skill
+    plugin-repository
+      [skill-imports  by name]  skills/plugin-repository/SKILL.md
+
+  reaches it only directly — 2 unit(s) in total

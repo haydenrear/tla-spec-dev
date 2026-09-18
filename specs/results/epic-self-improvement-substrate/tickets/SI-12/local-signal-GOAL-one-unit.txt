@@ -1,0 +1,120 @@
+GOAL-one-unit -- local signal, measured on this worktree's Skill Manager home
+home: /Users/hayde/IdeaProjects/wt-359-nest-remaining-dependents/.skill-manager
+expected_effect: standalone copies re-materialised by non-member dependents go from 3 to 0;
+                 no external importer of any contained skill remains
+===========================================================================
+
+### BEFORE (captured earlier this session, same home, pre-migration) ###
+  git-integration-repo  <- imported by plugin-repository (3x skill-imports by name + 1 coord)
+  test-graph            <- imported by git-integration-repo (direct) + plugin-repository (transitive)
+  spec-double-compiler  <- imported by git-integration-repo (direct) + plugin-repository (transitive)
+  git-issue-workflow    <- imported by git-integration-repo (coord) + plugin-repository (by name)
+  => 3 contained skills had NON-MEMBER importers; full BEFORE text in local-signal-BEFORE.txt
+
+### AFTER ###
+--- standalone skills/ in this home: none of the 8 contained skills may appear ---
+acp-cdc-ai-python
+debugging
+deploy-helm
+hyper-experiments
+hyper-experiments-finance
+llm-wiki
+slm-agent
+tracer-agent
+tracing-observability
+vision-toolbelt-skill
+
+--- the 8 contained skills live inside the plugin ---
+discovery
+git-epic-workflow
+git-integration-repo
+git-issue
+git-issue-workflow
+plugin-repository
+spec-double-2
+test-graph
+
+--- who-imports EACH contained skill (clause 1: no non-member importer) ---
+== discovery ==
+what imports discovery in /Users/hayde/IdeaProjects/wt-359-nest-remaining-dependents/.skill-manager
+
+  nothing imports it directly
+
+  reaches it only directly — 0 unit(s) in total
+
+== git-epic-workflow ==
+what imports git-epic-workflow in /Users/hayde/IdeaProjects/wt-359-nest-remaining-dependents/.skill-manager
+
+  nothing imports it directly
+
+  reaches it only directly — 0 unit(s) in total
+
+== git-integration-repo ==
+what imports git-integration-repo in /Users/hayde/IdeaProjects/wt-359-nest-remaining-dependents/.skill-manager
+
+  nothing imports it directly
+
+  reaches it only directly — 0 unit(s) in total
+
+== git-issue ==
+what imports git-issue in /Users/hayde/IdeaProjects/wt-359-nest-remaining-dependents/.skill-manager
+
+  nothing imports it directly
+
+  reaches it only directly — 0 unit(s) in total
+
+== git-issue-workflow ==
+what imports git-issue-workflow in /Users/hayde/IdeaProjects/wt-359-nest-remaining-dependents/.skill-manager
+
+  nothing imports it directly
+
+  reaches it only directly — 0 unit(s) in total
+
+== plugin-repository ==
+what imports plugin-repository in /Users/hayde/IdeaProjects/wt-359-nest-remaining-dependents/.skill-manager
+
+  nothing imports it directly
+
+  reaches it only directly — 0 unit(s) in total
+
+== spec-double-2 ==
+what imports spec-double-2 in /Users/hayde/IdeaProjects/wt-359-nest-remaining-dependents/.skill-manager
+
+  nothing imports it directly
+
+  reaches it only directly — 0 unit(s) in total
+
+== test-graph ==
+what imports test-graph in /Users/hayde/IdeaProjects/wt-359-nest-remaining-dependents/.skill-manager
+
+  nothing imports it directly
+
+  reaches it only directly — 0 unit(s) in total
+
+--- a contained skill is NOT separately addressable (expected: unit not found) ---
+unit not found: git-integration-repo
+unit not found: plugin-repository
+
+--- show tla-spec-dev ---
+PLUGIN  tla-spec-dev@0.1.0  (sha -, source local_file)
+description: The TLA+ program-model toolchain: the spec-double-2 skill, the tla-spec-dev CLI, and the workflow skills that drive them, versioned and improved as one unit.
+path:        /Users/hayde/IdeaProjects/wt-359-nest-remaining-dependents/.skill-manager/plugins/tla-spec-dev
+
+contained skills (8):
+  - discovery
+  - git-epic-workflow
+  - git-integration-repo
+  - git-issue
+  - git-issue-workflow
+  - plugin-repository
+  - spec-double-2
+  - test-graph
+
+effective dependencies (unioned):
+  CLI:  tlc2                 (declared at: plugin level)
+  CLI:  tla-spec-dev         (declared at: plugin level)
+  CLI:  gh                   (declared at: skills/git-epic-workflow)
+  CLI:  gh                   (declared at: skills/git-epic-workflow)
+  CLI:  gh                   (declared at: skills/git-epic-workflow)
+  CLI:  jinja2-cli[yaml]     (declared at: skills/spec-double-2)
+  CLI:  pytest               (declared at: skills/spec-double-2)

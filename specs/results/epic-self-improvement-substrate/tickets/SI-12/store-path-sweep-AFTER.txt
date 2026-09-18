@@ -1,0 +1,32 @@
+contained skills (8): discovery git-epic-workflow git-integration-repo git-issue git-issue-workflow plugin-repository spec-double-2 test-graph
+tracked files under skills/ scanned: 1348
+
+=== A. standalone-only store paths (ALL tracked files, wider than the layout test) ===
+OFFENDER skills/git-issue-workflow/references/complete.md:116 (skill git-integration-repo): INT="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-integration-repo/scripts"
+OFFENDER skills/git-issue-workflow/references/integration-fanout.md:41 (skill git-integration-repo): INT="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-integration-repo/scripts"
+OFFENDER skills/git-issue-workflow/references/provision.md:158 (skill git-integration-repo): `${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-integration-repo/references/skill-homes.md`.
+OFFENDER skills/git-issue-workflow/skill-manager.toml:33 (skill git-integration-repo): # `$SKILL_MANAGER_HOME/skills/git-integration-repo/scripts/propagate.sh`, named
+OFFENDER skills/spec-double-2/references/plugin_evals.md:629 (skill git-issue): > /Users/…/.skill-manager/skills/git-issue, **outside the containment root** …
+OFFENDER skills/spec-double-2/references/plugin_evals.md:638 (skill git-issue): units/omega/skills/git-issue -> ~/.skill-manager/skills/git-issue
+OFFENDER skills/spec-double-2/references/plugin_evals.md:653 (skill git-issue): git-issue/skills/git-issue      -> $SKILL_MANAGER_HOME/skills/git-issue
+OFFENDER skills/spec-double-2/references/plugin_evals.md:654 (skill git-epic-workflow): git-epic-workflow/…             -> $SKILL_MANAGER_HOME/skills/git-epic-workflow
+OFFENDER skills/test-graph/skill-project.toml:104 (skill test-graph): #     `../.skill-manager/skills/test-graph` — an installed copy of the very
+OFFENDER skills/test-graph/skill-project.toml:12 (skill test-graph): # .skill-manager/skills/test-graph would be a second, stale SDK for the same
+total: 10
+
+=== B. frontmatter skill-imports naming a contained skill ===
+none
+
+=== C. git coords naming a repo this bundle contains ===
+skills/discovery/skill-project.toml:74: source = "github:haydenrear/test_graph_skill"
+skills/git-integration-repo/skill-manager.toml:29: # `github:haydenrear/git-issue-workflow-skill`. A git coord still RESOLVES after
+skills/git-integration-repo/skill-project.toml:109: #     `source = "github:haydenrear/git-issue-workflow-skill"` here would still
+skills/git-issue-workflow/references/integration-fanout.md:37: `skill-manager install github:haydenrear/git-integration-skill` is what `wt`
+skills/git-issue-workflow/scripts/agent-home.sh:374: skill-manager install github:haydenrear/git-issue-workflow-skill
+skills/git-issue-workflow/skill-manager.toml:10: #   github:haydenrear/test_graph_skill      -> skill "test-graph"            (validation graphs)
+skills/git-issue/skill-manager.toml:9: #   github:haydenrear/test_graph_skill  -> skill "test-graph"
+skills/plugin-repository/skill-manager.toml:28: # `github:haydenrear/git-integration-skill`. A git coord still RESOLVES after
+skills/test-graph/references/github-actions.md:146: <skill>/scripts/github-action.py --skill-coordinate github:haydenrear/test_graph_skill
+skills/test-graph/scripts/github-action.py:46: DEFAULT_SKILL_COORDINATE = "github:haydenrear/test_graph_skill"
+skills/test-graph/scripts/tests/test_provider_bindings.py:119: 'source = "github:haydenrear/test_graph_skill"',
+total: 11
