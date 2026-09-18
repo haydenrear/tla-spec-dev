@@ -1,0 +1,19 @@
+SI-11 / SI-06-DF-03: direct proof of the tracked-directory exclude guard
+Built by hand, independent of selftest.sh, reproducing the measured incident.
+
+$ git status --porcelain
+?? .skill-manager/
+?? specs/results/
+
+# untracked_root_entries() prints only the FIRST path segment of any untracked
+# path, so an ordinary evidence directory arrives at the exclude loop as 'specs/':
+$ git status --porcelain | sed -n 's|^?? \([^/]*\)/.*|\1/|p' | sort -u
+.skill-manager/
+specs/
+
+# The guard's question, asked of the INDEX rather than the working tree.
+$ git ls-files -- specs/        # non-empty => TRACKED => rule refused
+specs/keep.txt
+
+$ git ls-files -- .skill-manager/   # empty => not tracked => rule still written
+[]
