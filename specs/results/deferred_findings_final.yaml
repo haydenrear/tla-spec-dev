@@ -3690,7 +3690,26 @@ findings:
       them in its own worktree gets three BUILD FAILEDs that say nothing about
       its change; the risk is that a real graph regression is indistinguishable
       from this, in either direction.
-    disposition: pending
+    # ANSWERED AT WAVE 7 BY SI-13-DF-01, 2026-09-19. Do NOT implement the
+    # suggested_fix above. The measurement in this row is correct and its
+    # CONCLUSION IS OVER-BROAD: what cannot run is BARE GRADLE. The graphs run
+    # fine in a fresh ticket worktree through the test-graph skill's runner,
+    # because run_gradle() in skills/test-graph/scripts/_common.py:674 calls
+    # prepare_provider_bindings_or_warn(root) first (discover.py:34 likewise).
+    # The epic agent verified this directly at the wave-7 close by running
+    # specWorkflow through skills/test-graph/scripts/run.py: BUILD SUCCESSFUL
+    # in 1m 5s, rc=0.
+    #
+    # "Track build-logic" would REINTRODUCE what commit 175f5c7c deleted:
+    # tracked symlinks whose blobs held one developer's absolute home path,
+    # dangling in every other checkout and in CI.
+    #
+    # The epic agent generalised this row into "the graphs cannot run in a
+    # ticket worktree" and put that in FIVE ticket dispatches. Wave 6 has no
+    # graph verification because SI-09 was told so and complied. Corrected in
+    # issues #365-#372 and in the wave-7 artifact.
+    disposition: answered
+    answered_by: "SI-13-DF-01"
     disposition_ticket: null
 
   - id: SI-12-DF-06

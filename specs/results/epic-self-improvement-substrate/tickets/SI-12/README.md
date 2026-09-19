@@ -178,6 +178,10 @@ transcripts and warnings), recorded so nobody re-triages them.
 carrying the same broken resolver are invisible to it — 10 lines it cannot see.
 `SI-12-DF-04` `discovery/skill-project.toml:74` still declares a coord naming a
 contained repo, the silent-duplicate class. `SI-12-DF-05` the three declared
-graphs cannot run in any ticket worktree. `SI-12-DF-06` `install` refuses to
+graphs cannot run in any ticket worktree. **[CORRECTED AT WAVE 7 by SI-13-DF-01:
+this claim, as SI-12 reported it and as the epic agent repeated it, is
+over-broad. Only bare `gradlew` fails; the graphs run in a ticket worktree
+through the test-graph skill runner, verified directly. The row is now
+disposition: answered and its suggested remedy must not be implemented.]** `SI-12-DF-06` `install` refuses to
 replace an installed plugin and `remove` rejects `--yes`, so the documented
 re-install path silently no-ops.
