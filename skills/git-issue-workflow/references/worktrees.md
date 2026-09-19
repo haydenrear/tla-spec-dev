@@ -440,3 +440,65 @@ Create the ticket in your tracker first; `[integration].tracker` in
 - **`--no-home` exists but costs you the isolation.** A worktree created with it
   runs agents against the global home, which is what the per-worktree home is
   there to prevent. Use it only for a worktree no agent will run in.
+
+
+## The exit codes `wt new` refuses with
+
+Moved here from `SKILL.md` by SI-09 (progressive disclosure). The card says a
+failure is three lines and that the `fix:` line runs as printed; this section is
+what each provisioning exit means and what to do about it. § *A refusal* above
+covers `wt close`; these are `wt new`.
+
+A failure is three lines, and the second runs **as printed**:
+
+```
+error creating worktree: no Skill Manager home could be created for this worktree (usually: /path/to/repo has no project home yet)
+fix: /path/to/home/skills/git-issue-workflow/scripts/bootstrap-home.sh --root /path/to/repo
+log: /tmp/wt-XXXXXX-run.log
+```
+
+**Exit 3 — "no project home yet."** The common one, on the first ticket in a
+repository that has never been given a home. Run the `fix:` line verbatim — once
+per repository, not per worktree — and re-run `wt new`. The exception is an
+environment that refuses writes (a sandbox's "Operation not permitted"): the
+`fix:` line fails the same way there, so report it rather than running it.
+
+**Exit 7 — the base is behind its remote.** A bare base name resolves to the
+**local** ref, and a local `epic/*` branch does not advance when its ticket PRs
+are merged server-side. `new` refreshes the base's own remote ref first and
+refuses if the local one is behind it; the `fix:` line branches from the
+published tip. `--stale-base-ok` takes the local ref deliberately and says so on
+**stderr**, leaving stdout unchanged. `WT_FETCH=0` skips the refresh when
+offline. The full mechanism is § *The branch point* above.
+
+**Exit 1 — "working tree is not clean."** The parent checkout has uncommitted
+files. Creating a worktree never reads or writes them: pass `--dirty-ok` (or
+`WT_DIRTY_OK=1`, or `SKILL_GATES=off`) and it proceeds with one warning line.
+Never stash, commit, or discard someone's edits to get past it.
+
+**Exit 79 — a home mismatch, not an old CLI.** A bootstrap refusal saying the CLI
+"is the entrypoint of the home X … NOTHING IS OUT OF DATE" means the CLI it found
+binds a different home than the one being bootstrapped. Re-run naming the right
+home's CLI — `SKILL_MANAGER_CLI=<repo>/.skill-manager/bin/cli/skill-manager` —
+and never upgrade or reinstall skill-manager to get past it.
+
+## Resolving `wt` when `skt` is absent
+
+`skt ticket new|close <ticket>` is the front door and is on `PATH` in
+skt-carrying homes; `command -v skt` is the test. Only when that prints nothing,
+resolve this skill's own script — project home first, operator's home second.
+Two rungs, because git-issue-workflow is a CONTAINED SKILL of the `tla-spec-dev`
+plugin and its bytes are under `plugins/*/skills/`, not `skills/`:
+
+```bash
+WT=$(for d in "./.skill-manager"/skills/git-issue-workflow "./.skill-manager"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/wt
+[ -x "$WT" ] || WT="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/wt"
+
+"$WT" new   <ticket>     # worktree + its OWN Skill Manager home, launchable
+"$WT" close <ticket>     # teardown, through the close-out gate
+```
+
+Two idioms that do **not** work, both measured: brace expansion does not happen
+inside double quotes (`"$HOME"/{skills,plugins/*/skills}/x` matches nothing), and
+`ls -d … | head -1` sorts, putting `plugins/` first and inverting the intended
+standalone-first precedence. Use an explicit loop with `break`, as above.

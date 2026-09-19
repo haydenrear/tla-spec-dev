@@ -38,7 +38,7 @@ ticket never gets here and never needs it. (If it is genuinely missing,
 prints in place of the `PROPAGATE` key.)
 
 ```bash
-INT="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-integration-repo/scripts"
+INT="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-integration-repo "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-integration-repo; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts"
 
 "$INT/propagate.sh" <ticket>              # DRY RUN: branch + commit per changed constituent
 "$INT/propagate.sh" <ticket> --push       # also push feature/<ticket> to each origin
