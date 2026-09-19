@@ -4,10 +4,28 @@
 version: 1
 name: self-improvement-substrate
 updated: "2026-09-17"
-schedule_revision: 3
+schedule_revision: 4
 purpose: "Make tla-spec-dev one plugin and one loop: the substrate improves because of what agents ran into while using it, and the epic agent is the one writer of the model, the matrix, the scorecard row and the plugin."
 
 planning_rules:
+  # ADDED AT REVISION 4, 2026-09-19, AND IT CHANGES THE ENDGAME.
+  # The epic branch does NOT merge into tla-spec-dev's default branch. That
+  # repository must keep shipping the spec-double-compiler SKILL, because
+  # everyone who has it installed syncs from there; landing a PLUGIN layout on
+  # its main would break those syncs. The epic's result reaches users through
+  # tla-spec-dev-plugin instead, by cutover once the epic closes.
+  #
+  # This also retires a practice the epic agent started in wave 3 and repeated
+  # at every wave close WITHOUT stating what it implied: pushing the epic tip to
+  # tla-spec-dev-plugin's main. That made the install source track unmerged
+  # mid-epic work -- 354 commits ahead of tla-spec-dev's main at the wave-6
+  # gate. It stops here. The plugin repo's main receives the epic's result at
+  # cutover, not its work in progress.
+  no_default_branch_merge: >-
+    The epic branch never merges to tla-spec-dev's default branch, and the epic
+    tip is never pushed to tla-spec-dev-plugin's main mid-epic. tla-spec-dev
+    keeps shipping the skill; the plugin is delivered by cutover at epic close.
+    `finalize` for this epic means the cutover, not a default-branch merge.
   # ADDED AT REVISION 3, 2026-09-18. SI-13 and SI-15 land work in the
   # skill-manager repository (git@github.com:haydenrear/skill-manager.git),
   # which is a separate checkout and a separate pull request. Every piece of
@@ -173,7 +191,7 @@ epic_goals:
       measured_at: "b7a7d203"
       evidence: "specs/results/epic-self-improvement-substrate/baseline/kickoff.md"
     target: "four blocks in every wave artifact from wave 4 on (wave 1–3 artifacts are the baseline shape), and no ticket PR after SI-07 changes a file under specs/ except under results/"
-    evaluation_ticket: "SI-08"
+    evaluation_ticket: "SI-23"
     evidence_root: "specs/results/epic-self-improvement-substrate/goals/GOAL-epic-owns-the-model"
 
   - id: GOAL-no-new-gates
@@ -186,7 +204,7 @@ epic_goals:
       measured_at: "b7a7d203"
       evidence: "specs/results/epic-self-improvement-substrate/baseline/kickoff.md"
     target: "zero new refusal paths; every new check has a one-line warning form; the force cases stay green"
-    evaluation_ticket: "SI-08"
+    evaluation_ticket: "SI-23"
     evidence_root: "specs/results/epic-self-improvement-substrate/goals/GOAL-no-new-gates"
 
   - id: GOAL-progressive-disclosure
@@ -209,7 +227,7 @@ epic_goals:
     # them. SI-09 now has 1,242 more words to cut than its issue assumed, and
     # SI-12 adds two more cards to the set.
     target: "descriptions <= 600 words in total; every card body <= 1,500 words with the remainder behind the reference map; no wide-lane budget case regresses"
-    evaluation_ticket: "SI-08"
+    evaluation_ticket: "SI-23"
     evidence_root: "specs/results/epic-self-improvement-substrate/goals/GOAL-progressive-disclosure"
 
   - id: GOAL-evals-one-command
@@ -248,7 +266,7 @@ epic_goals:
       measured_at: "45a42b54"
       evidence: "specs/results/epic-self-improvement-substrate/goals/GOAL-evals-one-command"
     target: "all of the loop's cases under the plugin's evals/, runnable in one command; at least one case per nested skill; every case green or explicitly UNDECIDED with a reason; no units-override file and no second harness"
-    evaluation_ticket: "SI-08"
+    evaluation_ticket: "SI-23"
     evidence_root: "specs/results/epic-self-improvement-substrate/goals/GOAL-evals-one-command"
 
   - id: GOAL-pinned-eval-toolchain
@@ -277,6 +295,53 @@ epic_goals:
     target: "every full-suite run records the skt ref it used; the ref is pinned in the repository rather than resolved from the operator's home; the runner asks which version before a full run and refuses to guess silently"
     evaluation_ticket: "SI-08"
     evidence_root: "specs/results/epic-self-improvement-substrate/goals/GOAL-pinned-eval-toolchain"
+
+  - id: GOAL-one-plugin
+    kind: integration
+    statement: "The substrate is ONE installed plugin. skt ships inside it, wt ships inside skt, and the only thing installed separately is the skill-manager CLI, which comes from Homebrew."
+    metric: "units a fresh machine installs to get the whole substrate, and whether the front door resolves with skt contained"
+    harness: "a fresh home: brew install the CLI, install the plugin, then run the front door (`skt ticket new`) and `skill-manager list`"
+    baseline:
+      value: "2 installed units plus a brew formula: the tla-spec-dev plugin AND the skt plugin, separately versioned and separately synced; wt lives in git-issue-workflow/scripts/wt inside the bundle while the tool that calls it sits outside"
+      measured_at: "73867de9"
+      evidence: "specs/results/epic-self-improvement-substrate/goals/GOAL-one-plugin"
+    # THE BOOTSTRAP CYCLE WAS CHECKED BEFORE THIS GOAL WAS WRITTEN, because
+    # "skt installs plugins, so skt cannot live inside a plugin" is the obvious
+    # objection and it turns out to be false:
+    #   * `brew install haydenrear/skill-manager/skill-manager` is ALREADY the
+    #     supported install path; skill-manager 0.28.1 is running from
+    #     /opt/homebrew/Cellar. The JVM CLI that installs plugins is not skt.
+    #   * `<home>/bin/cli/skt` is a GENERATED WRAPPER, not the tool. It resolves
+    #     `plugins/skt/src/skt/cli.py` relative to the home it lives in, with no
+    #     absolute path baked in. Contained skt needs ONE more rung there --
+    #     the same two-rung change SI-12 made twice.
+    # So the chain is: brew -> skill-manager CLI -> installs the plugin ->
+    # provides skt, wt and every skill. No cycle.
+    target: "one installed plugin provides the substrate; the front door resolves with skt contained; no standalone skt unit in root or project home; the CLI comes from brew"
+    evaluation_ticket: "SI-23"
+    evidence_root: "specs/results/epic-self-improvement-substrate/goals/GOAL-one-plugin"
+
+  - id: GOAL-evals-earned
+    kind: quality
+    statement: "No eval is written for behaviour nobody has watched work. Each eval stage runs its test graphs and verifies the workflow scripts BY HAND first, and the eval encodes what was observed."
+    metric: "eval stages whose manual-verification record precedes their first eval case, over eval stages shipped"
+    harness: "each stage's own evidence directory: the graph run, the by-hand transcript of the scripts, and only then the case"
+    baseline:
+      value: "0 of the loop's eval stages have a manual-verification record; the 7 cases here and the 63 in skill-manager were written without one being required"
+      measured_at: "73867de9"
+      evidence: "specs/results/epic-self-improvement-substrate/goals/GOAL-evals-earned"
+    # THIS GOAL EXISTS BECAUSE OF THIS EPIC'S OWN RECORD, not as a principle.
+    # Four waves running, the recurring defect has been a check whose negative
+    # result is indistinguishable from not having looked -- committed by ticket
+    # agents AND by the epic agent, twice in one session at the wave-6 gate,
+    # including a sweep that carried a non-vacuity assert and still scanned the
+    # wrong population. An eval written for behaviour never observed by hand is
+    # that defect with a budget attached. Manual first is the cheapest known
+    # remedy: you cannot assert what a check should say until you have seen the
+    # behaviour say it.
+    target: "every eval stage ships a manual-verification record that predates its first case; no stage's cases are written before its graphs run"
+    evaluation_ticket: "SI-23"
+    evidence_root: "specs/results/epic-self-improvement-substrate/goals/GOAL-evals-earned"
 
 tickets:
   - id: SI-01
@@ -894,7 +959,7 @@ tickets:
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/360"
     schedule_revision: 3
     depends_on: ["SI-02", "SI-12"]
-    blocks: ["SI-14", "SI-15", "SI-08"]
+    blocks: ["SI-14", "SI-15", "SI-08", "SI-19"]
     wave: 7
     promotion_order: 95
     promotion_predecessor: "SI-09"
@@ -945,7 +1010,7 @@ tickets:
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/361"
     schedule_revision: 3
     depends_on: ["SI-13"]
-    blocks: ["SI-15", "SI-08"]
+    blocks: ["SI-15", "SI-08", "SI-19"]
     wave: 8
     promotion_order: 100
     promotion_predecessor: "SI-13"
@@ -996,7 +1061,7 @@ tickets:
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/362"
     schedule_revision: 3
     depends_on: ["SI-13", "SI-14"]
-    blocks: ["SI-08"]
+    blocks: ["SI-08", "SI-18"]
     wave: 9
     promotion_order: 110
     promotion_predecessor: "SI-14"
@@ -1041,12 +1106,12 @@ tickets:
       evidence: []
 
   - id: SI-08
-    title: "Evaluation: run the improvement card on this epic and a blind adopter, and decide the goals"
+    title: "Evaluation A: decide the eight current goals on the substrate as it stands, and freeze that reading"
     status: planned
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/341"
     schedule_revision: 1
     depends_on: ["SI-01", "SI-02", "SI-03", "SI-04", "SI-05", "SI-06", "SI-07", "SI-09", "SI-10", "SI-11", "SI-12", "SI-13", "SI-14", "SI-15"]
-    blocks: []
+    blocks: ["SI-16", "SI-23"]
     wave: 10
     promotion_order: 120
     promotion_predecessor: "SI-15"
@@ -1055,12 +1120,19 @@ tickets:
       - GOAL-one-unit
       - GOAL-findings-become-changes
       - GOAL-blockers-propose
-      - GOAL-epic-owns-the-model
-      - GOAL-no-new-gates
-      - GOAL-progressive-disclosure
-      - GOAL-evals-one-command
       - GOAL-pinned-eval-toolchain
-    objective: "Measure every goal on the integrated epic tip from a fresh clone, then run a blind adopter through one small ticket under the plugin and score its PR on the improvement card. Report baseline -> measured -> target per clause; never edit a target."
+    objective: >-
+      SPLIT AT REVISION 4, then NARROWED by the owner. This is evaluation A. It
+      decides ONLY THE FOUR goals that no later ticket contributes to --
+      one-unit, findings-become-changes, blockers-propose and
+      pinned-eval-toolchain -- because a goal whose contributor promotes
+      after this ticket cannot honestly be called decided here. The other
+      four moved to SI-23. Measure them on the integrated tip after SI-15, from a
+      fresh clone -- then FREEZE that reading. The substrate has been
+      re-baselined twice already; every further ticket moves what the goals were
+      written about, so this reading is taken before skt is nested rather than
+      after. Report baseline -> measured -> target per clause; never edit a
+      target. Evaluation B (SI-23) judges the restructured substrate.
     desired_actions: []
     implementation_scope:
       - "measurement only; no behavioral delta"
@@ -1092,6 +1164,392 @@ tickets:
         contribution: guard
         expected_effect: "decides the goal; adds no behavioral delta"
         local_signal: "N/A: this ticket is the measurement"
+      - goal: GOAL-pinned-eval-toolchain
+        contribution: guard
+        expected_effect: "decides the goal; adds no behavioral delta"
+        local_signal: "N/A: this ticket is the measurement"
+    acceptance:
+      commands:
+        - "the harness named on each goal, run on the integrated epic tip from a fresh clone"
+      assertions:
+        - "Every goal reports baseline -> measured -> target, one verdict per clause."
+        - "A run that ends on the turn ceiling is UNDECIDED, not red."
+        - "Blindness claims state what each judge and the adopter reported receiving."
+      evidence: []
+
+  - id: SI-16
+    title: "Nest skt into the plugin: one unit carries the substrate"
+    status: planned
+    github_issue: "TBD"
+    schedule_revision: 4
+    depends_on: ["SI-08"]
+    blocks: ["SI-17", "SI-18", "SI-20", "SI-23"]
+    wave: 11
+    promotion_order: 130
+    promotion_predecessor: "SI-08"
+    role: implementation
+    objective: "Bring skt into the bundle as a constituent so the substrate installs as one plugin, and give the generated front-door wrapper the plugin rung it needs to resolve a contained skt."
+    desired_actions: []
+    implementation_scope:
+      - "skt nested at skills/skt/ or as a constituent (git subtree, full history, no --squash), from https://github.com/haydenrear/skt"
+      - "the generated <home>/bin/cli/skt wrapper gains a plugins/*/ rung; it resolves plugins/skt/src/skt/cli.py relative to the home it lives in and must keep doing so with no absolute path"
+      - "skt already contains skill-manager and unit-authoring skills; decide and state what happens to each"
+      - "skt carries its own test_graph/ -- reconcile with SI-13's classification rather than duplicating it"
+      - "the standalone skt unit uninstalled from the project home; the ROOT home is not modified"
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests: []
+      graph_after_unit_pass: []
+    conflict_keys:
+      production: ["skills/skt/**", "integration.toml", "skill-project.toml"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    goals:
+      - goal: GOAL-one-plugin
+        contribution: direct
+        expected_effect: "installed units carrying the substrate go from 2 to 1"
+        local_signal: "skill-manager list shows no standalone skt; the front door still resolves"
+      - goal: GOAL-no-new-gates
+        contribution: guard
+        expected_effect: "nesting adds no refusal path"
+        local_signal: "N/A: no check is added"
+    acceptance:
+      commands: []
+      assertions:
+        - "The front door `skt ticket new` works from a home that carries only the plugin."
+        - "The wrapper contains no absolute home path."
+      evidence: []
+
+  - id: SI-17
+    title: "Move wt into skt: the worktree tool lives with the lifecycle CLI"
+    status: planned
+    github_issue: "TBD"
+    schedule_revision: 4
+    depends_on: ["SI-16"]
+    blocks: ["SI-20", "SI-23"]
+    wave: 12
+    promotion_order: 140
+    promotion_predecessor: "SI-16"
+    role: implementation
+    objective: "Move wt from git-issue-workflow into skt. Both are contained by now, so this is an intra-bundle move rather than a cross-repo one."
+    desired_actions: []
+    implementation_scope:
+      - "skills/git-issue-workflow/scripts/wt and src/git_issue_workflow/wt.py move into skt"
+      - "every caller re-addressed; `wt` is named by SKILL.md pages, references, the PROPAGATE key and .github/scripts/wt_smoke.sh"
+      - "SI-09 just rewrote these cards -- re-read them before editing, and keep the reference map correct"
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests: []
+      graph_after_unit_pass: []
+    conflict_keys:
+      production: ["skills/skt/**", "skills/git-issue-workflow/**"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    goals:
+      - goal: GOAL-one-plugin
+        contribution: direct
+        expected_effect: "wt ships with the CLI that calls it"
+        local_signal: "wt resolves from skt; no caller names the old path"
+      - goal: GOAL-progressive-disclosure
+        contribution: guard
+        expected_effect: "the move does not re-inflate the cards SI-09 cut"
+        local_signal: "card bodies measured with the pinned instrument, before and after"
+    acceptance:
+      commands: []
+      assertions:
+        - "No caller resolves wt at its git-issue-workflow path."
+        - "Card bodies do not grow beyond SI-09's measurements without a stated reason."
+      evidence: []
+
+  - id: SI-18
+    title: "Remove skt from skill-manager: the model comments, the @command binding, the citations"
+    status: planned
+    github_issue: "TBD"
+    schedule_revision: 4
+    depends_on: ["SI-15", "SI-16"]
+    blocks: ["SI-22", "SI-23"]
+    wave: 13
+    promotion_order: 150
+    promotion_predecessor: "SI-17"
+    role: implementation
+    objective: "Take skt out of the skill-manager repository now that it ships in the plugin. Scope is skt and the evals only -- history stays where it is."
+    desired_actions: []
+    implementation_scope:
+      - "THE EPIC AGENT OWNS THE TLA EDIT and performs it: skt is named in ZERO TLA identifiers (no constant, variable, action or invariant). The hits are three comments -- GitHistoryInternal.tla:216 and :251, HomeIntegrityInternal.tla:596 -- so there is NO state-space consequence and no TLC re-check is owed."
+      - "GitHistoryInternal.tla:251 carries an `@command wt close / skt ticket close` ANNOTATION binding a modeled action to a CLI command. That one has teeth: repoint it or it cites a command the repo no longer owns."
+      - "two spec_manifest.yaml citations (skill-publisher-skill/skills/skt/SKILL.md, .../unit-authoring/SKILL.md) BOTH RESOLVE TODAY -- keep test_source_citations green"
+      - "two regression .cfg headers name skt in prose"
+      - "specs/epics/*/ticket_plan.yaml mention skt 56 times across four CLOSED epics: that is HISTORY. Leave it."
+      - "skill-manager has a STAGED, UNCOMMITTED .gitignore change in its index -- do not sweep it into a commit"
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests: []
+      graph_after_unit_pass: []
+    conflict_keys:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    goals:
+      - goal: GOAL-one-plugin
+        contribution: direct
+        expected_effect: "skill-manager stops carrying skt"
+        local_signal: "no skt reference outside history in skill-manager's editable surface"
+      - goal: GOAL-epic-owns-the-model
+        contribution: direct
+        expected_effect: "the TLA edit is made by the epic agent, as the standing rule requires"
+        local_signal: "the model delta appears in the wave review artifact under the epic agent's name"
+    acceptance:
+      commands: []
+      assertions:
+        - "No TLA identifier ever named skt; the edit is prose and citations only."
+        - "The @command binding on GitHistoryInternal.tla:251 is repointed or removed deliberately."
+        - "skill-manager's citation tests stay green."
+      evidence: []
+
+  - id: SI-19
+    title: "Eval ladder 1/4: scaffold a test graph, verify by hand, then one small eval"
+    status: planned
+    github_issue: "TBD"
+    schedule_revision: 4
+    depends_on: ["SI-13", "SI-14"]
+    blocks: ["SI-20", "SI-23"]
+    wave: 14
+    promotion_order: 160
+    promotion_predecessor: "SI-18"
+    role: implementation
+    objective: "First rung of the ladder. Scaffold a test graph, run it, verify the workflow scripts by hand, record what was observed -- and only then write one small eval that encodes it."
+    desired_actions: []
+    implementation_scope:
+      - "MANUAL FIRST, and the record is the deliverable: run the graphs, drive the scaffold scripts by hand, write down what each did"
+      - "only then one SMALL eval case; small is deliberate -- the ladder starts slow"
+      - "consumes SI-14's pinned toolchain and SI-13's graph classification"
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests: []
+      graph_after_unit_pass: []
+    conflict_keys:
+      production: ["evals/**"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    goals:
+      - goal: GOAL-evals-earned
+        contribution: direct
+        expected_effect: "the first stage with a manual record preceding its case"
+        local_signal: "the manual-verification record is committed and predates the case"
+      - goal: GOAL-evals-one-command
+        contribution: enabling
+        expected_effect: "the new case runs in the one command"
+        local_signal: "it appears in the suite run"
+    acceptance:
+      commands: []
+      assertions:
+        - "The manual record exists and predates the eval case."
+        - "The case encodes behaviour that was actually observed."
+      evidence: []
+
+  - id: SI-20
+    title: "Eval ladder 2/4: skt, all functionalities, manual first"
+    status: planned
+    github_issue: "TBD"
+    schedule_revision: 4
+    depends_on: ["SI-16", "SI-17", "SI-19"]
+    blocks: ["SI-21", "SI-23"]
+    wave: 15
+    promotion_order: 170
+    promotion_predecessor: "SI-19"
+    role: implementation
+    objective: "Second rung. Verify every skt function by hand in its FINAL home -- contained, with wt inside it -- and then write small evals for what was observed."
+    desired_actions: []
+    implementation_scope:
+      - "skt's verbs exercised by hand: status, check, sync, publish, build, ticket new/close, home close-out, home sync"
+      - "it runs AFTER SI-16 and SI-17 deliberately: an eval target must be in its final position before it is evaluated, or the eval is written against something about to move"
+      - "small cases, one behaviour each"
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests: []
+      graph_after_unit_pass: []
+    conflict_keys:
+      production: ["evals/**"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    goals:
+      - goal: GOAL-evals-earned
+        contribution: direct
+        expected_effect: "second stage with a manual record preceding its cases"
+        local_signal: "the record names each verb and what it did"
+      - goal: GOAL-one-plugin
+        contribution: guard
+        expected_effect: "skt works from inside the bundle"
+        local_signal: "every verb exercised against the contained copy"
+    acceptance:
+      commands: []
+      assertions:
+        - "Every skt verb is exercised against the CONTAINED copy, not a standalone one."
+        - "Known-weak verbs are recorded as such rather than passed."
+      evidence: []
+
+  - id: SI-21
+    title: "Eval ladder 3/4: the tla-spec-dev CLI and the plugin's own surface"
+    status: planned
+    github_issue: "TBD"
+    schedule_revision: 4
+    depends_on: ["SI-20"]
+    blocks: ["SI-22", "SI-23"]
+    wave: 16
+    promotion_order: 180
+    promotion_predecessor: "SI-20"
+    role: implementation
+    objective: "Third rung. Verify the tla-spec-dev CLI and the plugin's skills by hand, then encode them as small evals."
+    desired_actions: []
+    implementation_scope:
+      - "the CLI's verbs: scaffold, open, run, analyze, generate, retire, close"
+      - "`run spec-unit-tests --ticket` is KNOWN-WEAK (SIS-KICKOFF-F-04): resolves two targets, executes one, lists both. Verify the actual behaviour; do not encode the documented one."
+      - "the eval lane has no case covering the SCORECARD -- the instrument this epic uses to decide its own goals. That gap was filed at wave 4 and is still open."
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests: []
+      graph_after_unit_pass: []
+    conflict_keys:
+      production: ["evals/**"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    goals:
+      - goal: GOAL-evals-earned
+        contribution: direct
+        expected_effect: "third stage, manual record first"
+        local_signal: "the record covers each CLI verb"
+      - goal: GOAL-evals-one-command
+        contribution: direct
+        expected_effect: "at least one case per nested skill becomes reachable"
+        local_signal: "per-skill coverage counted"
+    acceptance:
+      commands: []
+      assertions:
+        - "Known-weak behaviour is encoded as observed, not as documented."
+        - "The scorecard gap is either covered or restated as still open."
+      evidence: []
+
+  - id: SI-22
+    title: "Eval ladder 4/4: skill-manager CLI interactions, per agent type"
+    status: planned
+    github_issue: "TBD"
+    schedule_revision: 4
+    depends_on: ["SI-18", "SI-21"]
+    blocks: ["SI-23"]
+    wave: 17
+    promotion_order: 190
+    promotion_predecessor: "SI-21"
+    role: implementation
+    objective: "Fourth rung. Verify the skill-manager CLI interactions the plugin needs, for each type of agent, and encode them."
+    desired_actions: []
+    implementation_scope:
+      - "the brew-installed CLI is the bootstrap: brew -> skill-manager -> installs the plugin -> provides skt, wt and every skill. Exercise that chain from a FRESH home."
+      - "per agent type: epic agent, ticket agent, and whatever else the substrate serves -- this is where progressive disclosure per agent type gets its measurement"
+      - "runs after SI-18 so skt is already out of skill-manager and the interactions are the final ones"
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests: []
+      graph_after_unit_pass: []
+    conflict_keys:
+      production: ["evals/**"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    goals:
+      - goal: GOAL-evals-earned
+        contribution: direct
+        expected_effect: "fourth stage, manual record first"
+        local_signal: "the fresh-home chain is walked by hand and recorded"
+      - goal: GOAL-one-plugin
+        contribution: direct
+        expected_effect: "the brew -> CLI -> plugin chain is demonstrated end to end"
+        local_signal: "a fresh home reaches a working front door"
+    acceptance:
+      commands: []
+      assertions:
+        - "The bootstrap chain is demonstrated from a fresh home, not asserted."
+        - "Each agent type's interactions are named and covered or explicitly deferred."
+      evidence: []
+
+  - id: SI-23
+    title: "Evaluation B: judge the restructured substrate and the eval ladder"
+    status: planned
+    github_issue: "TBD"
+    schedule_revision: 4
+    depends_on: ["SI-08", "SI-16", "SI-17", "SI-18", "SI-19", "SI-20", "SI-21", "SI-22"]
+    blocks: []
+    wave: 18
+    promotion_order: 200
+    promotion_predecessor: "SI-22"
+    role: evaluation
+    owns_goals:
+      - GOAL-one-plugin
+      - GOAL-evals-earned
+      - GOAL-epic-owns-the-model
+      - GOAL-no-new-gates
+      - GOAL-progressive-disclosure
+      - GOAL-evals-one-command
+    objective: >-
+      Decide SIX goals on the restructured substrate: GOAL-one-plugin and
+      GOAL-evals-earned, plus the four that SI-08 could not honestly freeze
+      because tickets promoting after it kept contributing to them --
+      epic-owns-the-model (SI-18), no-new-gates (SI-16),
+      progressive-disclosure (SI-17) and evals-one-command (SI-19, SI-21).
+      RE-READ the four SI-08 did freeze and show both readings side by side,
+      so the pair says what the restructure cost or bought. Measurement
+      only; never edit a target.
+    desired_actions: []
+    implementation_scope:
+      - "measurement only; no behavioral delta"
+      - "report SI-08's frozen reading beside the new one, clause by clause"
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests: []
+      graph_after_unit_pass: []
+    conflict_keys:
+      production: ["specs/results/epic-self-improvement-substrate/goals/**"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    goals:
+      - goal: GOAL-one-plugin
+        contribution: guard
+        expected_effect: "decides the goal; adds no behavioral delta"
+        local_signal: "N/A: this ticket is the measurement"
+      - goal: GOAL-evals-earned
+        contribution: guard
+        expected_effect: "decides the goal; adds no behavioral delta"
+        local_signal: "N/A: this ticket is the measurement"
       - goal: GOAL-epic-owns-the-model
         contribution: guard
         expected_effect: "decides the goal; adds no behavioral delta"
@@ -1108,15 +1566,11 @@ tickets:
         contribution: guard
         expected_effect: "decides the goal; adds no behavioral delta"
         local_signal: "N/A: this ticket is the measurement"
-      - goal: GOAL-pinned-eval-toolchain
-        contribution: guard
-        expected_effect: "decides the goal; adds no behavioral delta"
-        local_signal: "N/A: this ticket is the measurement"
     acceptance:
-      commands:
-        - "the harness named on each goal, run on the integrated epic tip from a fresh clone"
+      commands: []
       assertions:
         - "Every goal reports baseline -> measured -> target, one verdict per clause."
+        - "SI-08's frozen reading is shown beside the new one; a goal that moved says which ticket moved it."
         - "A run that ends on the turn ceiling is UNDECIDED, not red."
-        - "Blindness claims state what each judge and the adopter reported receiving."
       evidence: []
+
