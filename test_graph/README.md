@@ -3,7 +3,20 @@
 This graph validates the `tla-spec-dev` workflow against a disposable git
 repository created under `test_graph/build/validation-reports/<runId>/`.
 
-Run it from the repository root with the Test Graph skill wrappers:
+## One command
+
+```bash
+python3 test_graph/run-graphs.py          # materialise bindings, run all three graphs, report
+python3 test_graph/run-graphs.py --list   # classification only; runs nothing
+```
+
+Three graphs are registered and all three run here — `specWorkflow`,
+`cliWorkflow`, `effectProviderExamples`. None is opt-in and none is dead, and
+`--list` says so rather than leaving it to be inferred. Verdicts are read from
+each run's own `summary.json`; a graph with no fresh report is UNDECIDED, not
+green. The command always exits 0: it reports, it does not gate.
+
+## Running a graph directly
 
 ```bash
 # NOT `~/.skill-manager`: the test-graph unit lives in the home THIS checkout is
@@ -13,6 +26,22 @@ Run it from the repository root with the Test Graph skill wrappers:
 "$SKILL_MANAGER_HOME"/skills/test-graph/scripts/discover.py specWorkflow
 "$SKILL_MANAGER_HOME"/skills/test-graph/scripts/run.py specWorkflow
 ```
+
+After SI-02 this repository carries the test-graph skill itself, so
+`skills/test-graph/scripts/run.py` is the copy that matches this checkout and is
+what `run-graphs.py` prefers.
+
+**Do not run `cd test_graph && ./gradlew <graph>` in a fresh worktree.**
+`settings.gradle.kts` includes the build `build-logic`, which is a *managed
+provider binding*: a generated symlink, gitignored, with `provider-bindings.json`
+as the committed record (they were untracked in 175f5c7c because as tracked
+symlinks their blobs held one developer's absolute home path). A fresh checkout
+has no `build-logic`, so bare Gradle fails at configuration time in ~2s with
+"Included build '.../build-logic' does not exist". The skill runner materialises
+the bindings first — `run_gradle()` calls `prepare_provider_bindings_or_warn` —
+and so does `run-graphs.py`, explicitly and out loud. Measured both ways in a
+fresh checkout at 07b9a97d: bare Gradle BUILD FAILED in 2s; the same checkout
+through the runner ran `specWorkflow` to a green report in 1m42s.
 
 The `specWorkflow` graph performs the workflow end to end:
 
