@@ -3,8 +3,12 @@
 ## The install coordinate (owner decision, 2026-09-18)
 
 The plugin is installed from **`github:haydenrear/tla-spec-dev-plugin`**, a
-private repository created at the wave-2 gate. Its `main` is a push of this
-epic branch's tip.
+private repository created at the wave-2 gate.
+
+> **SUPERSEDED IN PART AT REVISION 4, 2026-09-19.** Everything in this section
+> about *pushing the epic tip to the plugin repo* is retired — read
+> **The mirror is retired** at the end of this section before acting on any
+> command here. The install coordinate itself is unchanged.
 
 Two options were measured before choosing. `skill-manager install` **does**
 accept a branch through `--ref`, so
@@ -15,17 +19,37 @@ repository instead. No skill-manager migration machinery was needed for either:
 `spec-double-compiler` was already uninstalled from the project home as part of
 the wave-2 home migration, so nothing had to be renamed in place.
 
-**The obligation this creates:** the plugin repo does not update itself. Push
-the epic tip to it at every wave close, or an installing home gets the state of
-the last push:
+**The obligation this created — RETIRED, see below.** As originally written,
+this section said the plugin repo does not update itself, so the epic tip had to
+be pushed to it at every wave close:
 
 ```bash
+# RETIRED AT REVISION 4 -- DO NOT RUN. Kept so the retired practice is legible.
 git push tla-spec-dev-plugin origin/epic/self-improvement-substrate:refs/heads/main
 ```
 
-The remote `tla-spec-dev-plugin` is configured on this repository. When the epic
-merges to `main` here, that push becomes `origin/main:refs/heads/main` and the
-two stop diverging.
+## The mirror is retired (owner decision, 2026-09-19)
+
+**Do not push the epic branch to `tla-spec-dev-plugin` mid-epic.** The epic
+agent started that practice in wave 3 and repeated it at every wave close
+without once stating what it implied: **the install source was tracking
+unmerged, mid-epic work.** At the wave-6 gate the plugin repo's `main` was
+`45dae6eb`, the epic tip — **354 commits ahead of `tla-spec-dev`'s `main`**
+(`5d05ba7f`). Anyone installing the coordinate got work that had not passed a
+default-branch merge, presented as if it were releasable.
+
+The sentence this replaces also predicted that "when the epic merges to `main`
+here … the two stop diverging." **That merge will never happen.**
+`planning_rules.no_default_branch_merge` (revision 4): the epic branch never
+merges to `tla-spec-dev`'s default branch, because that repository must keep
+shipping the `spec-double-compiler` **skill** — everyone who has it installed
+syncs from there, and landing a **plugin** layout on its `main` would break
+those syncs.
+
+**How the plugin repo gets the result instead: by cutover, once, at epic
+close.** Until then its `main` stays where it is and is deliberately stale
+relative to the epic branch. The remote stays configured; only the mid-epic
+push is retired.
 
 **Known defect at the coordinate:** installing from either git source fails the
 toolchain's own two CLI installers (`SIS-W2-F-05`) — `tlc2` and `tla-spec-dev`
