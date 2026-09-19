@@ -353,3 +353,96 @@ Reducing the wave width is also an answer, and it is the user's call.
   re-running the gate before removal.
 - Never remove a worktree holding uncommitted, stashed, unpushed, or
   epic-unmerged work without the user's explicit decision to discard it.
+
+
+## The front door, and the five ways agents miss it
+
+Moved here from `SKILL.md` rule 10 by SI-09 (progressive disclosure). The rule on
+the card is the instruction; this is the measured reasoning behind it, which an
+agent needs only when the front door has actually failed it.
+
+The epic branch and every ticket worktree path are *declared* by the plan and the
+assignment — the one case the conventional front door's derived path cannot
+serve. In a home carrying the `skt` plugin, one command does the declared pair:
+worktree at the declared path, pinned to the resolved base, WITH its own home,
+rolled back together if the bootstrap fails.
+
+```bash
+# skt lives in bin/cli of the home, NOT in skills/ -- it is a plugin.
+SKT="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/bin/cli/skt"
+[ -x "$SKT" ] || SKT="$(command -v skt)"          # or on PATH
+"$SKT" ticket new <ticket> --base "$commit_oid" --path <declared-worktree>
+```
+
+**Check for it at that path.** Measured twice by eval: an agent looked for `skt`
+under `skills/`, did not find it there because it is a plugin, and fell through
+to the hand-run pair below — reading `wt` and `bootstrap-home.sh` and replaying
+their steps. Both runs had a working `skt` in `bin/cli` the whole time.
+`ls skills/` is the wrong question, and the answer to the right one is one `-x`
+test.
+
+It applies the index-base pinning conventions (clean slate, OIDs resolved once,
+create-only retention ref, branch from the pinned commit) and refuses a
+retention-ref conflict rather than repinning. Without skt, the same pair is two
+hand-run steps — and `git worktree add` on its own leaves the agent writing the
+operator's global home:
+
+```bash
+SKILLS="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts"
+
+# ONE chained command, deliberately: the add alone produces a worktree
+# with NO home — the exact hazard measured live in the W2 eval.
+git worktree add <declared-worktree> -b <declared-branch> "$commit_oid" \
+  && "$SKILLS/bootstrap-home.sh" --root <declared-worktree>
+```
+
+Teardown is one command in every case, because it resolves a ticket by searching
+rather than by the path convention: `skt ticket close <ticket>`, or
+`"$SKILLS/wt" close <ticket>` where skt is absent. A repository that has never
+been given a home makes `bootstrap-home.sh` the *first* thing run in it, which is
+the same one-time per-repository step `wt new` prints as its `fix:` line
+elsewhere.
+
+### Reaching that by-hand pair is itself a finding — report it
+
+It is written for a home that genuinely has no `skt`, and it *works*, which is
+the whole problem: an agent that merely could not FIND the front door lands on
+it, produces a plausible worktree, and leaves no trace but four tool calls where
+one would have done. Measured four times across the eval suite, for four
+different reasons, and none of the four reported anything.
+
+So run the `-x` test first. If it did not resolve, the by-hand pair is correct
+and there is nothing to report. If it resolved and you are on the by-hand pair
+anyway, say which of these you were in:
+
+- `skt` is installed but was not on `PATH`;
+- you looked where a plugin never is (`skills/`);
+- you found it and it **failed** — quote its `error:` line verbatim;
+- you found it and could not read the home it pointed at;
+- you found it, it printed `error:` **and exited 0**.
+
+**That last case is live, and the exit code will lie to you.** Measured on four
+of five agents in one wave: `skt ticket new` failed its home bootstrap, printed
+`worktree and branch rolled back`, and **returned 0**. An agent that branches on
+`$?` concludes the worktree exists and then works in a directory that was never
+created. So do not test the exit code — test the path:
+
+```bash
+"$SKT" ticket new <ticket> --base "$commit_oid" --path <declared-worktree>
+test -d <declared-worktree> || { echo "rolled back despite exit 0"; }
+```
+
+When it has rolled back, the by-hand pair above is the correct response and the
+rollback is clean — no stray branch, path, or retention ref — so there is nothing
+to undo first. Read the bootstrap's own `fix:` line before replaying it: it
+usually names the remedy, and
+`bootstrap-home.sh --root <worktree> --allow-unprojected` is the documented way
+to accept a home whose unreachable units are ones you are not using. Say which of
+these you were in either way.
+
+All five are front-door defects, not facts about the repository. An epic agent
+has two places to put that line — the wave review artifact
+(`references/human-review.md`) for its own provisioning, and the ticket's PR body
+when a ticket agent reports it — and files it against the skill that owns the
+door: `git-epic-workflow` for the declared-path route above, `git-issue-workflow`
+for `wt`, `skt` for the plugin.

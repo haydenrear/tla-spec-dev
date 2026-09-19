@@ -3,18 +3,11 @@ name: plugin-repository
 description: >-
   Create and operate "plugin repositories" — a skill-manager PLUGIN whose
   `skills/` directory holds several skill repos as ordinary tracked files, so a
-  bundle of skills versions, installs, syncs, reviews and improves as ONE unit
-  while each skill keeps its own repo and its own history. Use when several
-  skill-manager skills always ship together, when a change spans more than one
-  skill and you do not want N repos / N PRs / N syncs that land out of order, or
-  when a set of skills should install, sync and be improved as ONE unit that can
-  also carry hooks, commands and agents. NOT for editing or publishing a single
-  skill (`skt` / `skill-dev`), and not for authoring one unit from scratch
-  (`skt:unit-authoring`) — this is for bundling existing skill REPOS with
-  fan-out back to them. It is a SPECIALIZATION of
-  `git-integration-repo`: that skill owns the git model (no submodules, strip
-  `.git` before the first commit, fan-out with `propagate.sh`) and this one owns
-  what makes the parent a valid plugin at the same time.
+  bundle versions, installs, syncs and improves as ONE unit while each skill
+  keeps its own repo. Use when several skills always ship together, or when a
+  change spans more than one and you do not want N repos / N PRs / N syncs
+  landing out of order. NOT for publishing a single skill (`skt`) or authoring
+  one unit (`skt:unit-authoring`). A SPECIALIZATION of `git-integration-repo`.
 skill-imports:
   - unit: tla-spec-dev
     path: skills/git-integration-repo/SKILL.md
@@ -68,22 +61,22 @@ independently useful to other bundles, and a change made in the parent fans back
 out to those repos as branches and MRs.
 
 That is the whole idea: **a plugin repository is a self-improvement substrate.**
-An agent that consumes it has one thing to reason about, one thing to change,
-and one thing to pull. `references/why.md` is the argument in full — read it
-before designing a bundle, because which skills belong in one plugin repo is the
-only decision here that is expensive to reverse.
+An agent that consumes it has one thing to reason about, one thing to change, and
+one thing to pull. `references/why.md` is the argument in full — read it before
+designing a bundle, because which skills belong in one plugin repo is the only
+decision here that is expensive to reverse.
 
 ## This skill owns the plugin half. It owns nothing else.
 
 `git-integration-repo` is a **hard dependency**, declared in
 `skill-manager.toml`, and every script here sources its `integration-lib.sh`
-(which in turn sources `git-issue-workflow`'s `lib.sh`). The division is exact:
+(which sources `git-issue-workflow`'s `lib.sh`). The division is exact:
 
 | Question | Owner |
 |---|---|
 | Constituents as plain files, never submodules; strip `.git` → commit → restore | `git-integration-repo` (`references/git-model.md`) |
 | Pull every skill repo to its upstream tip at once | `git-integration-repo` — `scripts/refresh.sh` |
-| Fan a merged parent change back out to each skill repo (branches, MRs, tracking issue) | `git-integration-repo` — `scripts/propagate.sh` |
+| Fan a merged parent change back out to each skill repo | `git-integration-repo` — `scripts/propagate.sh` |
 | Worktree + its own Skill Manager home for a ticket | `git-issue-workflow` — `skt ticket new` / `wt` |
 | `plugin.json`, `skill-manager-plugin.toml`, contained-skill semantics, deps | `skt` — `references/plugins.md`, `skills/unit-authoring` |
 | **The parent being a valid plugin AND a valid integration repo at once** | **here** |
@@ -116,43 +109,42 @@ repo's README under "Companion edits".
 
 ## The four rules that are only true here
 
-1. **Constituents live at `skills/<name>/`, not `constituents/<name>/`** —
-   that is where skill-manager and the plugin runtime look. `verify.sh`,
-   `refresh.sh` and `propagate.sh` read the path from `integration.toml` and are
-   indifferent; **two dependency scripts are not**, and both are wrapped here:
-   `add-constituent.sh` hardcodes the directory (use `scripts/add-skill.sh`),
-   and `finalize-constituents.sh` guards the commit-before-`.git` invariant with
-   the pathspec `-- constituents`, which in a plugin repo matches nothing and
+1. **Constituents live at `skills/<name>/`, not `constituents/<name>/`** — that
+   is where skill-manager and the plugin runtime look. `verify.sh`, `refresh.sh`
+   and `propagate.sh` read the path from `integration.toml` and are indifferent;
+   **two dependency scripts are not**, and both are wrapped here:
+   `add-constituent.sh` hardcodes the directory (use `scripts/add-skill.sh`), and
+   `finalize-constituents.sh` guards the commit-before-`.git` invariant with the
+   pathspec `-- constituents`, which in a plugin repo matches nothing and
    therefore **never fires** — so finalizing early silently produces gitlinks.
    Use `scripts/finalize.sh`, which re-asks against the manifest's real paths.
 
 2. **The plugin is a unit; the skills inside it are not.** Change management
-   works, at plugin granularity and on purpose — `skt` sees one unit, one
+   works at plugin granularity and on purpose — `skt` sees one unit, one
    `gitHash`, one notification, and `skt publish` on a home-edited contained
-   skill pushes to the **plugin repo**, which is the whole point. What breaks is
-   anything that addressed the skill by its *old* identity: a
-   `skill-imports: unit: <skill>` now fails validation (measured), a git-coord
-   reference silently installs a duplicate standalone copy, and a hardcoded
-   `$SKILL_MANAGER_HOME/skills/<unit>/…` stops existing because the bytes are at
-   `plugins/<plugin>/skills/<unit>/`. All three, with evidence, rewrites, and
-   one real skill-manager bug about intra-bundle imports:
-   **`references/imports.md`**. `scripts/verify.sh` greps for the first and
-   third inside the bundle.
+   skill pushes to the **plugin repo**. What breaks is anything that addressed
+   the skill by its *old* identity: a `skill-imports: unit: <skill>` now fails
+   validation (measured), a git-coord reference silently installs a duplicate
+   standalone copy, and a hardcoded `$SKILL_MANAGER_HOME/skills/<unit>/…` stops
+   existing because the bytes are at `plugins/<plugin>/skills/<unit>/`. All
+   three, with evidence, rewrites, and one real skill-manager bug about
+   intra-bundle imports: **`references/imports.md`**. `scripts/verify.sh` greps
+   for the first and third inside the bundle.
 
 3. **A contained skill is invoked `plugin:skill`.** `skt:unit-authoring`, not
-   `unit-authoring`. Cross-references in prose, harness `units = [...]` lists
-   and `skill-project.toml` entries move to the plugin coord —
+   `unit-authoring`. Cross-references in prose, harness `units = [...]` lists and
+   `skill-project.toml` entries move to the plugin coord —
    `references/migration.md`.
 
 4. **Propagate before you refresh — because refresh SKIPS, not clobbers.** The
    plugin repo is also a cache of the upstream skill repos, so an edit that
-   landed in the parent — by hand, or by `skt publish` from a consumer's home —
-   reaches `alpha-skill`'s own repo only through `propagate.sh`. Until it does,
-   that constituent's tree is dirty and `refresh.sh` prints `has local changes
-   — … SKIPPING` and leaves it alone (measured; it does **not** destroy the
-   edit). The cost is subtler than data loss: the pull you thought was atomic
-   silently covered a subset, and you cut a version on it. Read refresh's
-   SKIPPING lines. `references/lifecycle.md` sequences both directions.
+   landed in the parent reaches `alpha-skill`'s own repo only through
+   `propagate.sh`. Until it does, that constituent's tree is dirty and
+   `refresh.sh` prints `has local changes — … SKIPPING` and leaves it alone
+   (measured; it does **not** destroy the edit). The cost is subtler than data
+   loss: the pull you thought was atomic silently covered a subset, and you cut a
+   version on it. Read refresh's SKIPPING lines.
+   `references/lifecycle.md` sequences both directions.
 
 ## Workflows
 
@@ -171,34 +163,31 @@ repo's README under "Companion edits".
 ## Quick reference
 
 ```bash
-# Both rungs, because both of these skills ARE bundled now (rule 2, applied to
-# this page rather than only described by it): they are contained skills of the
-# tla-spec-dev plugin, so their bytes are under plugins/<plugin>/skills/.
+# Both rungs, because both of these skills ARE bundled now: they are contained
+# skills of the tla-spec-dev plugin, so their bytes are under plugins/<plugin>/skills/.
 P="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/plugin-repository "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/plugin-repository; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts"
 S="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-integration-repo "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-integration-repo; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts"   # the dependency
 
 # --- create ---
-$P/init-plugin-repo.sh my-plugin ~/IdeaProjects/my-plugin-repo   # plugin + integration markers, git init
+$P/init-plugin-repo.sh my-plugin ~/IdeaProjects/my-plugin-repo
 cd ~/IdeaProjects/my-plugin-repo
 $P/add-skill.sh alpha-skill git@github.com:owner/alpha-skill.git main
-$P/add-skill.sh beta-skill  git@github.com:owner/beta-skill.git  main
-git add -A && git commit -m "bundle alpha-skill, beta-skill"     # BEFORE finalize — the invariant
-$P/finalize.sh                                                   # guard the invariant, then restore each skill's .git
-$P/verify.sh                                                     # plugin checks + the dependency's
+git add -A && git commit -m "bundle alpha-skill"     # BEFORE finalize — the invariant
+$P/finalize.sh                                       # guard the invariant, restore each .git
+$P/verify.sh                                         # plugin checks + the dependency's
 
 # --- pull every skill's upstream in, as one change ---
 git checkout -b feature/pull-upstream
-$S/refresh.sh                                                    # READ its SKIPPING lines
+$S/refresh.sh                                        # READ its SKIPPING lines
 git add -A && git commit -m "pull skills to upstream tips"
-$P/release.sh minor                                              # bumps both manifests; does NOT commit
-git add -A && git commit -m "release <version>"
-$P/verify.sh
+$P/release.sh minor                                  # bumps both manifests; does NOT commit
+git add -A && git commit -m "release <version>" && $P/verify.sh
 #   ...PR, merge, then consumers: skill-manager sync my-plugin --git-latest
 
 # --- change several skills at once, then fan out ---
-skt ticket new PLUG-12       # worktree + its own home (git-issue-workflow)
+skt ticket new PLUG-12                               # worktree + its own home
 #   ...edit across skills/, commit, merge back to the parent main tree...
-$S/propagate.sh PLUG-12 --push --mr                              # per-skill branches, MRs, one tracking issue
+$S/propagate.sh PLUG-12 --push --mr                  # per-skill branches, MRs, tracking issue
 $P/verify.sh
 
 # --- prove this skill itself ---
@@ -214,9 +203,9 @@ scripts added later. The reason it is not politeness is in
 ## Plugin repos and harnesses
 
 A harness's `units = [...]` is a *list of coords resolved at install time*; a
-plugin repo is *the bundle itself*, versioned. When a harness exists only to
-name a set of skills that always travel together, that set wants to be a plugin
-repo — and then the harness either disappears or shrinks to the part a plugin
-cannot do: binding doc-repo sources into a project root and managing named
-instances. A plugin repo also carries `hooks/`, `commands/` and `agents/`, which
-no bare skill can. `references/why.md` § *Plugin repo or harness* decides it.
+plugin repo is *the bundle itself*, versioned. When a harness exists only to name
+a set of skills that always travel together, that set wants to be a plugin repo —
+and then the harness either disappears or shrinks to the part a plugin cannot do:
+binding doc-repo sources into a project root and managing named instances. A
+plugin repo also carries `hooks/`, `commands/` and `agents/`, which no bare skill
+can. `references/why.md` § *Plugin repo or harness* decides it.

@@ -155,7 +155,7 @@ than a courtesy: nothing you put in it appears in any diff. Launch agents throug
 contract applies; do not export the variables by hand.
 
 Full mechanism, the `live`/`frozen` policy, and teardown:
-`${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-integration-repo/references/skill-homes.md`.
+`references/skill-homes.md` (this skill's own page; it was never git-integration-repo's).
 
 > Why "depend on the same ones": every constituent branch, the parent branch, the
 > MR title prefix, and the tracking issue all key off `<ticket>`. A single id

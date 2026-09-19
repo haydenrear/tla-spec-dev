@@ -113,7 +113,7 @@ Merge the parent feature branch back into the integration **main** tree, then le
 still wired — this is how you confirm the change landed properly across the parent:
 
 ```bash
-INT="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-integration-repo/scripts"
+INT="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-integration-repo "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-integration-repo; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts"
 git -C <repo-root> merge --no-ff feature/<ticket>
 "$INT/verify.sh"               # parent tree clean + every constituent has its .git + origin
 ```

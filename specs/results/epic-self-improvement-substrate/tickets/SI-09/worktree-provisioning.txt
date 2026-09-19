@@ -1,0 +1,17 @@
+Front door used: skt ticket new (resolved at
+${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/bin/cli/skt, test -x -> present).
+Command: skt ticket new SI-09 --base faf0aa33584c18be324e7cabbfe49325148c0f81
+         --path ../wt-342-progressive-disclosure
+Exit code 0, and the PATH was tested rather than the exit code (SI-11-DF-04):
+directory exists, HEAD == faf0aa33. No by-hand fallback was reached.
+
+Two deviations, both recorded as findings:
+- Branch created as feature/SI-09, not the declared
+  feature/342-progressive-disclosure. skt derives the branch from the ticket id
+  and has no --branch flag. Renamed with `git branch -m` before any commit.
+  (SI-09-DF-02)
+- specs/tickets/SI-09/ does not exist at the declared base_sha faf0aa33; it
+  first appears at b0e6b54c, that commit's direct child. The declared spec_unit
+  command therefore errors at the declared base. Fast-forwarded the feature
+  branch to b0e6b54c (a strict descendant; contributes no diff of its own).
+  (SI-09-DF-01)

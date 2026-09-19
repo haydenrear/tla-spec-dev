@@ -3741,3 +3741,137 @@ findings:
       which is every ticket agent measuring its own change.
     disposition: pending
     disposition_ticket: null
+  - id: SI-09-DF-01
+    found_by: "SI-09"
+    found_at_commit: "b0e6b54c"
+    schedule_revision: 3
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/desired_program_model/ticket_plan.yaml", "issue #342 assignment block"]
+    summary: >-
+      The assignment's `base_sha` predates the commit that scaffolds this
+      ticket's own spec workspace, so a ticket agent that branches exactly where
+      it is told cannot run the validation command the same assignment declares.
+      base_sha is faf0aa33584c18be324e7cabbfe49325148c0f81; `specs/tickets/SI-09/`
+      (29 files) first exists at b0e6b54c, which is faf0aa33's direct child. The
+      dispatch brief additionally states the workspace "is already scaffolded",
+      which is true of the epic branch tip but not of the pinned base.
+    reproduction: >-
+      `skt ticket new SI-09 --base faf0aa33584c18be324e7cabbfe49325148c0f81` then
+      `python3 skills/spec-double-2/scripts/tla_spec_dev.py --spec-root specs run
+      spec-unit-tests --ticket SI-09` -> `ERROR: spec-unit target does not exist:
+      <wt>/specs/tickets/SI-09/desired`. `git ls-tree -r --name-only faf0aa33 --
+      specs/tickets/SI-09/` is empty; the same command at b0e6b54c lists 29 files.
+      Resolved in this ticket by fast-forwarding the feature branch to b0e6b54c,
+      which is a strict ancestor-descendant move and adds no diff of its own.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-09/spec-unit-BASELINE.txt"
+    why_out_of_scope: >-
+      The canonical plan and the rendered assignment are the epic agent's, not a
+      ticket's. SI-09's conflict keys are skills/*/SKILL.md and
+      skills/*/references/**; editing the plan to repin a base would be a ticket
+      rewriting its own dispatch.
+    suggested_fix: >-
+      Render `base_sha` from the commit that scaffolds the ticket workspace, not
+      from the commit that precedes it — or scaffold every wave's workspaces
+      before pinning the wave's bases. A cheap mechanical check at dispatch: for
+      each ticket, assert `git ls-tree -r base_sha -- specs/tickets/<id>/` is
+      non-empty whenever the assignment declares a `--ticket <id>` spec_unit
+      command.
+    blast_radius: >-
+      Every ticket in a wave whose workspaces are scaffolded after the plan
+      commit is pinned. Silent for a ticket that never runs its spec_unit
+      command, and a confusing hard error for one that does.
+    disposition: pending
+    disposition_ticket: null
+
+  - id: SI-09-DF-02
+    found_by: "SI-09"
+    found_at_commit: "b0e6b54c"
+    schedule_revision: 3
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["skt ticket new"]
+    summary: >-
+      `skt ticket new` honours `--path` but derives the BRANCH name from the
+      ticket id, with no flag for the branch the assignment declares. The epic
+      brief's own command, `skt ticket new SI-09 --base <sha> --path
+      ../wt-342-progressive-disclosure`, produced branch `feature/SI-09` while
+      the assignment declares `feature/342-progressive-disclosure`. Both the
+      worktree path and the branch name are declared fields, and the front door
+      can only satisfy one of them.
+    reproduction: >-
+      Run the brief's command verbatim; `git rev-parse --abbrev-ref HEAD` in the
+      new worktree prints `feature/SI-09`. Corrected here with `git branch -m
+      feature/SI-09 feature/342-progressive-disclosure` before any commit, so
+      the pushed branch matches the assignment.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-09/worktree-provisioning.txt"
+    why_out_of_scope: >-
+      `skt` is a separate plugin and is not in this repository, so the fix is not
+      applicable here; only the report is.
+    suggested_fix: >-
+      Give `skt ticket new` a `--branch <name>` flag that mirrors `--path`, and
+      have the epic brief pass both declared fields. Until then, epic briefs
+      should state the `git branch -m` follow-up explicitly rather than leaving
+      each agent to notice the mismatch — four of this epic's ticket agents would
+      have had to make the same correction.
+    blast_radius: >-
+      Any epic that declares a feature_branch whose name is not `feature/<ticket-id>`.
+      A ticket agent that does not notice pushes a branch the epic's own
+      assignment-validation will not match.
+    disposition: pending
+    disposition_ticket: null
+
+  - id: SI-09-DF-03
+    found_by: "SI-09"
+    found_at_commit: "b0e6b54c"
+    schedule_revision: 3
+    severity: minor
+    surface:
+      production: ["skills/git-epic-workflow/SKILL.md", "skills/git-issue-workflow/SKILL.md"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["GOAL-progressive-disclosure"]
+    summary: >-
+      GOAL-progressive-disclosure's "every card body <= 1,500 words" clause is
+      not reachable for the two workflow cards without deleting instruction.
+      After moving every piece of rationale behind the reference map,
+      git-epic-workflow measures 1,820 and git-issue-workflow 1,775. What remains
+      on each is instruction, not reasoning: 14 numbered rules, the front-door
+      path test, epic-mode selection, and the ordered close-out sequence. The
+      goal's own wording is that nothing load-bearing is deleted, it is moved and
+      linked — so the remaining gap can only be closed by removing rules or by
+      pushing instructions (rather than their reasons) behind links, both of
+      which contradict the goal they would satisfy.
+    reproduction: >-
+      `awk 'BEGIN{fm=0} /^---$/{fm++; next} fm>=2' skills/<name>/SKILL.md | wc -w`
+      on the merged result. Six of eight cards meet the clause; these two do not.
+      The other clause of the same goal (descriptions <= 600 total) is met at
+      exactly 600.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-09/word-counts-AFTER.txt"
+    why_out_of_scope: >-
+      Changing a target so a measured result passes is forbidden to the ticket
+      agent, and `goal-signal.md` says a goal unreachable from this slice is a
+      deferred finding for the plan owner rather than extra work for the ticket.
+    suggested_fix: >-
+      Owner decision at SI-08: either accept a per-card budget that scales with
+      how many distinct non-negotiable rules a card carries, or split
+      git-epic-workflow and git-issue-workflow into a rules card plus an
+      operations card, which is a structural change to two units and belongs to
+      its own ticket.
+    blast_radius: >-
+      The goal's verdict at SI-08. No runtime effect; both cards are 61% and 58%
+      smaller than at kickoff.
+    disposition: pending
+    disposition_ticket: null
