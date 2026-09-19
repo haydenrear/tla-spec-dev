@@ -3875,3 +3875,219 @@ findings:
       smaller than at kickoff.
     disposition: pending
     disposition_ticket: null
+  - id: SI-13-DF-01
+    found_by: "SI-13"
+    found_at_commit: "07b9a97d"
+    schedule_revision: 4
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: ["test_graph/README.md"]
+    summary: >-
+      SI-12-DF-05 says the three graphs "CANNOT RUN IN A TICKET WORKTREE AT
+      ALL". Its measurement is right and its conclusion is too broad. What
+      cannot run is BARE GRADLE: `cd test_graph && ./gradlew <graph>` in a
+      fresh checkout fails at configuration time because `build-logic` is a
+      managed provider binding -- a generated, gitignored symlink with
+      `test_graph/provider-bindings.json` as the durable record. The graphs
+      themselves run fine in a fresh worktree when invoked through the
+      test-graph skill's runner, because `run_gradle()` in
+      `skills/test-graph/scripts/_common.py` calls
+      `prepare_provider_bindings_or_warn(root)` before invoking Gradle. Its
+      suggested remedy, "track build-logic", would reintroduce exactly what
+      commit 175f5c7c removed: tracked symlinks whose blobs held one
+      developer's absolute home path, dangling in every other checkout.
+    reproduction: >-
+      In one throwaway checkout at 07b9a97d: `cd test_graph && ./gradlew
+      specWorkflow` -> BUILD FAILED in 2s, "Included build '.../build-logic'
+      does not exist", no links created. Then, same checkout, `python3
+      skills/test-graph/scripts/run.py specWorkflow` -> the three links are
+      materialised and BUILD SUCCESSFUL in 1m42s, summary.json status=passed,
+      9/9 nodes passed.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-13/control-a-bare-gradlew-fresh-checkout.txt"
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-13/control-b-skill-runner-fresh-checkout.txt"
+    why_out_of_scope: >-
+      In scope and handled: SI-13 documented it in test_graph/README.md and
+      made the materialisation explicit in test_graph/run-graphs.py. Recorded
+      as a finding because SI-12-DF-05 remains in this backlog with a remedy
+      that should not be applied, and the next reader of that row needs to see
+      the correction next to it.
+    suggested_fix: >-
+      Close SI-12-DF-05 as answered rather than implementing its suggestion.
+      The epic contract clause "ticket agents cannot run the graphs" should be
+      replaced with "run them through the skill runner, or through
+      test_graph/run-graphs.py, never through bare gradlew".
+    blast_radius: >-
+      Every epic ticket that declares these graphs. Five tickets so far have
+      been told the graphs are unmeasurable in a worktree; they are measurable.
+    skill_change: "applied(test_graph/run-graphs.py + test_graph/README.md in this PR)"
+    disposition: pending
+    disposition_ticket: null
+  - id: SI-13-DF-02
+    found_by: "SI-13"
+    found_at_commit: "07b9a97d"
+    schedule_revision: 4
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      Two parser defects in skill-manager's `.github/scripts/select-graph-set.py`,
+      the script that decides which graphs CI runs. (1) `discover_all()` ran its
+      regex over the raw build file, so a graph name written inside a COMMENT
+      registered a phantom graph; rewriting the header comment in this ticket
+      took the registered count from 30 to 31 with no graph added, and a phantom
+      name in the matrix produces a CI job for a task Gradle does not have.
+      (2) `_graph_nodes()` counted braces over the whole line, so the
+      conditionally-registered graph written as `} else testGraph(...) {` closed
+      its own block immediately and was recorded with 0 nodes instead of 24 --
+      and that node list is what `gateway_graphs()` reads, so the graph was
+      reported as booting no gateway when it boots one.
+    reproduction: >-
+      In skill-manager before the fix: `discover_all()` returns 31 names
+      including `...` once the header comment contains a quoted testGraph
+      example; `_graph_nodes()["hyper-experiments"]` has length 1 where the
+      registration declares 24 nodes.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-13/skill-manager-classification.txt"
+    why_out_of_scope: >-
+      In scope for this ticket's skill-manager half and fixed there, in the
+      skill-manager PR, not in this repository.
+    suggested_fix: >-
+      Applied: discovery blanks comments before matching, and the brace walk
+      counts from the match onwards. Both carry the measurement in a comment.
+    blast_radius: >-
+      skill-manager CI's graph matrix, and any count of "how many graphs does
+      this repository have" taken from that script.
+    skill_change: "applied(skill-manager: .github/scripts/select-graph-set.py, branch feature/si13-graph-classification)"
+    disposition: pending
+    disposition_ticket: null
+  - id: SI-13-DF-03
+    found_by: "SI-13"
+    found_at_commit: "07b9a97d"
+    schedule_revision: 4
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      The two products carry DIFFERENT versions of the test-graph skill, and
+      SI-14/SI-15 move work across both. skill-manager's copy
+      (skills/test_graph/, underscore) takes several graph names per
+      invocation, runs Gradle with --continue, writes a sweep ledger under
+      build/validation-sweeps/<sweepId>/sweep.json and prints
+      selected/executed/passed/failed/not_run; it also ships sweep.py.
+      tla-spec-dev's copy (skills/test-graph/, hyphen, contained in the plugin
+      after SI-02) takes ONE graph name (`nargs="?"`), has no sweep ledger and
+      no sweep.py. A sweep-shaped instruction written against one product is
+      an argparse error in the other, and "graphs_executed" cannot be read
+      from the tla-spec-dev side at all.
+    reproduction: >-
+      `grep -n 'nargs' skills/test-graph/scripts/run.py` in tla-spec-dev shows
+      `nargs="?"` for a single graph; the same file in skill-manager
+      (skills/test_graph/scripts/run.py) shows `nargs="*"` plus
+      summarize_sweep()/read_ledger().
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-13/tla-spec-dev-one-command-run.txt"
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-13/skill-manager-one-command-run-home-integrity.txt"
+    why_out_of_scope: >-
+      Reconciling the two copies of a skill is a change to the skill unit and
+      to whichever home ships it, not to this ticket's validation surface.
+      SI-13 worked around it: each product's one command matches the runner
+      that product actually has.
+    suggested_fix: >-
+      Decide which copy is canonical and sync the other, or state that the
+      plugin-contained copy is deliberately older. Until then, do not write
+      cross-product instructions that assume a sweep.
+    blast_radius: >-
+      SI-14 and SI-15, which move the eval toolchain and 63 cases across both
+      repositories and will want one way to run graphs in both.
+    skill_change: "proposed(test-graph, sync the plugin-contained copy up to the sweep-capable runner; no diff attempted from this ticket)"
+    disposition: pending
+    disposition_ticket: null
+  - id: SI-13-DF-04
+    found_by: "SI-13"
+    found_at_commit: "07b9a97d"
+    schedule_revision: 4
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      skill-manager's test_graph/docs/ carries rendered DAGs for two graphs
+      that no longer exist -- skill-dev-smoke.dot/.png and
+      specExternalPhase.dot/.png -- with no registration in build.gradle.kts
+      and no sources directory. Twelve registered graphs have no rendered doc
+      at all, so docs/ cannot be read as a list of what exists in either
+      direction. This is the only DEAD artifact the classification found: no
+      REGISTERED graph is dead, and sources/lib is not dead either (it holds
+      shared helper classes pulled in by 206 //SOURCES lines).
+    reproduction: >-
+      Compare `ls test_graph/docs/*.dot` against the 30 names discovered from
+      build.gradle.kts: skill-dev-smoke and specExternalPhase are in docs and
+      not in the build file.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-13/skill-manager-classification.txt"
+    why_out_of_scope: >-
+      Deleting rendered artifacts in another repository is not this ticket's
+      slice, and a stale .png misleads nobody who reads the one command's
+      output.
+    suggested_fix: >-
+      Delete the two orphaned doc pairs, or regenerate docs/ from the
+      registrations with discover.py so the directory means something.
+    blast_radius: >-
+      A reader counting graphs from docs/ gets 18, not 30.
+    skill_change: "declined(no unit change: this is repository content, not skill behaviour)"
+    disposition: pending
+    disposition_ticket: null
+  - id: SI-13-DF-05
+    found_by: "SI-13"
+    found_at_commit: "07b9a97d"
+    schedule_revision: 4
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      Four committed case_coverage.json files under examples/effect_providers/
+      carry an ABSOLUTE path in their `source:` field, and it is the path of
+      whichever worktree last regenerated them -- currently
+      /Users/hayde/IdeaProjects/wt-334-plugin-migration/... . Running this
+      repository's own test graphs rewrites all four to the running worktree's
+      path, so a ticket agent that runs the graphs it is told to run comes back
+      to four modified committed files that have nothing to do with its change.
+      Reverted by hand in SI-13 rather than committed.
+    reproduction: >-
+      In a fresh ticket worktree: `python3 test_graph/run-graphs.py`, then
+      `git status --short` -> four M entries under
+      examples/effect_providers/**/case_coverage.json, each a one-line diff
+      replacing the previous worktree's absolute path with this one's.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-13/tla-spec-dev-one-command-run.txt"
+    why_out_of_scope: >-
+      examples/** is not in SI-13's conflict keys, and the fix is a decision
+      about whether generated corpus metadata should record an absolute path at
+      all -- a change to the generator, not to the validation surface.
+    suggested_fix: >-
+      Record `source:` relative to the spec root, or drop it from the committed
+      artifact. Until then expect graph runs to dirty these four files, and do
+      not read that as a change the ticket made.
+    blast_radius: >-
+      Every ticket that runs the graphs. It also interacts with the known
+      repository failure
+      test_example_drivers_write_inside_spec_tree::test_a_validation_run_does_not_generate_over_a_committed_corpus,
+      which is about a validation run writing inside a committed corpus.
+    skill_change: "declined(no unit change: the path is written by this repository's case generation, not by a skill)"
+    disposition: pending
+    disposition_ticket: null

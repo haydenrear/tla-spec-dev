@@ -1,0 +1,129 @@
+== tla-spec-dev test graphs ==
+registered in test_graph/build.gradle.kts: 3
+  RUN      specWorkflow               the tla-spec-dev workflow end to end (scaffold, open, complete, spec-unit, close) against a disposable git repository, plus the reference-adapter import check
+  RUN      cliWorkflow                the CLI installs from this checkout and answers --help
+  RUN      effectProviderExamples     the committed effect-provider examples execute
+  (no opt-in graphs here: none of these reaches a third-party service)
+  (no dead graphs here)
+
+== managed provider bindings ==
+  build-logic -> ../skills/test-graph/project_sdk_sources/build-logic, sdk -> ../skills/test-graph/project_sdk_sources/sdk, standard-nodes -> ../skills/test-graph/project_sdk_sources/standard-nodes
+  runner: /Users/hayde/IdeaProjects/wt-360-test-graphs-both-products/skills/test-graph/scripts/run.py
+
+---- specWorkflow ----
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :build-logic:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :build-logic:compileKotlin
+> Task :build-logic:compileJava NO-SOURCE
+> Task :build-logic:pluginDescriptors
+> Task :build-logic:processResources
+> Task :build-logic:classes
+> Task :build-logic:jar
+
+> Task :specWorkflow
+[toolchain] jbang=0.137.0 (path: /opt/homebrew/bin/jbang)
+[toolchain] uv=0.12.15 (path: /opt/homebrew/bin/uv)
+testGraph 'specWorkflow' run=20260919-224128 steps=9 fullPlanSteps=9 traceId=5efaa665666cb854e15a84a391dfdb8a
+  plan[1/9] spec.cli.install  [testbed, uv]  sources/tla_spec_dev_cli_install.py
+  plan[2/9] spec.workflow.repo  [testbed, uv]  sources/spec_workflow_create_repo.py
+  plan[3/9] spec.workflow.start  [action, uv]  sources/spec_workflow_start_ticket.py
+  plan[4/9] spec.workflow.complete  [action, uv]  sources/spec_workflow_complete_ticket.py
+  plan[5/9] spec.workflow.spec_units  [assertion, uv]  sources/spec_workflow_spec_units.py
+  plan[6/9] spec.workflow.close  [assertion, uv]  sources/spec_workflow_close_ticket.py
+  plan[7/9] spec.workflow.failure_cleanup_probe  [assertion, uv]  sources/spec_workflow_failure_cleanup_probe.py
+  plan[8/9] spec.workflow.cleanup  [fixture, uv]  sources/spec_workflow_cleanup.py
+  plan[9/9] spec.reference.adapters_resolve  [assertion, uv]  sources/reference_adapters_resolve.py
+  [1/9] spec.cli.install (uv)
+  [2/9] spec.workflow.repo (uv)
+  [3/9] spec.workflow.start (uv)
+  [4/9] spec.workflow.complete (uv)
+  [5/9] spec.workflow.spec_units (uv)
+  [6/9] spec.workflow.close (uv)
+  [7/9] spec.workflow.failure_cleanup_probe (uv)
+  [8/9] spec.workflow.cleanup (uv)
+  [9/9] spec.reference.adapters_resolve (uv)
+wrote /Users/hayde/IdeaProjects/wt-360-test-graphs-both-products/test_graph/build/validation-reports/20260919-224128/summary.json + /Users/hayde/IdeaProjects/wt-360-test-graphs-both-products/test_graph/build/validation-reports/20260919-224128/report.md
+testGraph 'specWorkflow' done. traceId=5efaa665666cb854e15a84a391dfdb8a reports: /Users/hayde/IdeaProjects/wt-360-test-graphs-both-products/test_graph/build/validation-reports/20260919-224128
+
+[Incubating] Problems report is available at: file:///Users/hayde/IdeaProjects/wt-360-test-graphs-both-products/test_graph/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 1m 24s
+5 actionable tasks: 5 executed
+
+---- cliWorkflow ----
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :build-logic:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :build-logic:compileKotlin UP-TO-DATE
+> Task :build-logic:compileJava NO-SOURCE
+> Task :build-logic:pluginDescriptors UP-TO-DATE
+> Task :build-logic:processResources UP-TO-DATE
+> Task :build-logic:classes UP-TO-DATE
+> Task :build-logic:jar UP-TO-DATE
+
+> Task :cliWorkflow
+[toolchain] jbang=0.137.0 (path: /opt/homebrew/bin/jbang)
+[toolchain] uv=0.12.15 (path: /opt/homebrew/bin/uv)
+testGraph 'cliWorkflow' run=20260919-224229 steps=2 fullPlanSteps=2 traceId=70cfc315b821a6f105e0b549048c7433
+  plan[1/2] spec.cli.install  [testbed, uv]  sources/tla_spec_dev_cli_install.py
+  plan[2/2] spec.cli.help  [assertion, uv]  sources/tla_spec_dev_cli_help.py
+  [1/2] spec.cli.install (uv)
+  [2/2] spec.cli.help (uv)
+wrote /Users/hayde/IdeaProjects/wt-360-test-graphs-both-products/test_graph/build/validation-reports/20260919-224229/summary.json + /Users/hayde/IdeaProjects/wt-360-test-graphs-both-products/test_graph/build/validation-reports/20260919-224229/report.md
+testGraph 'cliWorkflow' done. traceId=70cfc315b821a6f105e0b549048c7433 reports: /Users/hayde/IdeaProjects/wt-360-test-graphs-both-products/test_graph/build/validation-reports/20260919-224229
+
+[Incubating] Problems report is available at: file:///Users/hayde/IdeaProjects/wt-360-test-graphs-both-products/test_graph/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 14s
+5 actionable tasks: 1 executed, 4 up-to-date
+
+---- effectProviderExamples ----
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :build-logic:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :build-logic:compileKotlin UP-TO-DATE
+> Task :build-logic:compileJava NO-SOURCE
+> Task :build-logic:pluginDescriptors UP-TO-DATE
+> Task :build-logic:processResources UP-TO-DATE
+> Task :build-logic:classes UP-TO-DATE
+> Task :build-logic:jar UP-TO-DATE
+
+> Task :effectProviderExamples
+[toolchain] jbang=0.137.0 (path: /opt/homebrew/bin/jbang)
+[toolchain] uv=0.12.15 (path: /opt/homebrew/bin/uv)
+testGraph 'effectProviderExamples' run=20260919-224243 steps=1 fullPlanSteps=1 traceId=40a8b8e23b50b0a940f1a6f570770b7a
+  plan[1/1] effect.providers.examples  [assertion, uv]  sources/effect_provider_examples.py
+  [1/1] effect.providers.examples (uv)
+wrote /Users/hayde/IdeaProjects/wt-360-test-graphs-both-products/test_graph/build/validation-reports/20260919-224243/summary.json + /Users/hayde/IdeaProjects/wt-360-test-graphs-both-products/test_graph/build/validation-reports/20260919-224243/report.md
+testGraph 'effectProviderExamples' done. traceId=40a8b8e23b50b0a940f1a6f570770b7a reports: /Users/hayde/IdeaProjects/wt-360-test-graphs-both-products/test_graph/build/validation-reports/20260919-224243
+
+[Incubating] Problems report is available at: file:///Users/hayde/IdeaProjects/wt-360-test-graphs-both-products/test_graph/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 1m 16s
+5 actionable tasks: 1 executed, 4 up-to-date
+
+== verdicts (read from each run's own summary.json, not from exit codes) ==
+  PASSED    specWorkflow               runner_exit=0  /Users/hayde/IdeaProjects/wt-360-test-graphs-both-products/test_graph/build/validation-reports/20260919-224128/summary.json
+  PASSED    cliWorkflow                runner_exit=0  /Users/hayde/IdeaProjects/wt-360-test-graphs-both-products/test_graph/build/validation-reports/20260919-224229/summary.json
+  PASSED    effectProviderExamples     runner_exit=0  /Users/hayde/IdeaProjects/wt-360-test-graphs-both-products/test_graph/build/validation-reports/20260919-224243/summary.json
+
+This command always exits 0. A red or undecided graph is a report, not a refusal.
