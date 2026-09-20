@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.276",
+  "startedAt": "2026-09-20T16:45:12.045Z",
+  "durationSeconds": 106,
+  "costUsd": 0.5380525,
+  "partial": false,
+  "suite": {
+    "root": "/private/tmp/tla-spec-dev-eval-view",
+    "ablation": "none",
+    "caseFilter": "use-the-front-door",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "tla-spec-dev",
+        "version": "0.1.0",
+        "path": "/private/tmp/tla-spec-dev-eval-view"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "use-the-front-door",
+      "dir": "evals/git-issue-workflow/use-the-front-door",
+      "source": "mixed",
+      "promptMarkdown": "`ISSUE.md` is a ticket somebody has handed you to implement in this\nrepository.\n\nBefore changing anything, write `PLAN.md`: the exact commands you would run\nto start this ticket, in order, with the reason for each. Start from where\nthe work will happen.\n\nEnd your reply with the first command, verbatim. The grader reads your reply\nand cannot open the file you wrote.\n",
+      "runsPerCase": 1,
+      "timeoutSeconds": 900,
+      "maxTurns": 30,
+      "graders": [
+        {
+          "name": "starts-at-the-front-door",
+          "type": "file_exists",
+          "weight": 2,
+          "config": {
+            "path": ".eval/front-door",
+            "exists": true
+          }
+        },
+        {
+          "name": "the-first-command-is-quoted",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "(skt\\s+ticket\\s+new|wt\\s+new|git\\s+worktree\\s+add)",
+            "flags": "",
+            "match": "contains"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0.6666666666666666,
+            "passed": false,
+            "turns": 12,
+            "costUsd": 0.5380525,
+            "judgeCostUsd": 0,
+            "durationSeconds": 105,
+            "startedAt": "2026-09-20T16:45:12.951Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-IvBtaL/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "starts-at-the-front-door",
+                "passed": true,
+                "weight": 2,
+                "explanation": ".eval/front-door exists as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "the-first-command-is-quoted",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0.6666666666666666,
+        "passRate": 0
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 0,
+    "overallScore": 0.6666666666666666,
+    "overallPassRate": 0
+  }
+}
