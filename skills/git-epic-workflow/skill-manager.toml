@@ -20,8 +20,22 @@
 # repository was RENAMED to skt (GitHub redirects the old name), and the
 # skill-manager skill now lives inside that plugin rather than in a
 # repository of its own. One coordinate, because there is now one repository.
+# SI-16: the hard reference to github:haydenrear/skt is GONE, and its absence
+# is the point. skt is a CONTAINED SKILL of this same plugin now, so this
+# coord no longer names a thing to go and fetch -- but it still RESOLVES,
+# which is worse than an error: install unions this list and clones a
+# SECOND, STANDALONE skt at its own version beside the one the bundle
+# already ships. Measured on a fresh home before this line was removed:
+# `skill-manager list` reported BOTH `skt plugin 0.8.2 git 0f38078` and
+# `tla-spec-dev plugin 0.1.0`, and because the standalone installer ran
+# second it overwrote bin/cli/skt with rel="plugins/skt/src/skt/cli.py" --
+# the pre-demotion path -- which then failed the front door with the
+# bootstrap-rung defect that standalone skt at 0f38078 still has.
+#
+# plugin-repository/references/layout.md states the rule: a reference to a
+# skill that is also a member of this bundle is "redundant at best and an
+# install-time cycle at worst -- drop it and rely on the bundle."
 skill_references = [
-	"github:haydenrear/skt"
 ]
 
 [[cli_dependencies]]
