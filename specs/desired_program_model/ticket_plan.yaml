@@ -272,7 +272,11 @@ epic_goals:
     #   this plugin      7 cases under evals/, run by evals/run.sh, which
     #                    stages a 6,264-entry view because `claude plugin eval`
     #                    refuses a directory over 20,000 entries.
-    #   skill-manager    63 cases under specs/evals/harness/evals/, run by
+    #   skill-manager    55 cases under specs/evals/harness/evals/, run by
+    #                    (CORRECTED AT WAVE 9: this said 63, which counted
+    #                    generated copies under build/. SI-15 measured 55
+    #                    sources. The error was the epic agent's and it was
+    #                    repeated from revision 3 onward.)
     #                    eval_run_case() in a 43,330-byte lib.sh, against a
     #                    branched home built per case.
     #
@@ -287,7 +291,7 @@ epic_goals:
     # in specs/evals/harness/. The documented one-command entry is already
     # fiction on that side, which is part of why this goal is worth widening.
     baseline_widened:
-      value: "70 cases across two repositories and two runners: 7 in this plugin's evals/ (staged-view runner), 63 in skill-manager's specs/evals/harness/evals/ (branched-home runner). Neither of skill-manager's two documented entry points, build-env.sh and run.sh, exists."
+      value: "62 cases across two repositories and two runners: 7 in this plugin's evals/ (staged-view runner), 55 in skill-manager's specs/evals/harness/evals/ (branched-home runner). Neither of skill-manager's two documented entry points, build-env.sh and run.sh, exists. CORRECTED AT WAVE 9: this baseline said 70/63, counting generated copies under build/ as sources."
       measured_at: "45a42b54"
       evidence: "specs/results/epic-self-improvement-substrate/goals/GOAL-evals-one-command"
     target: "all of the loop's cases under the plugin's evals/, runnable in one command; at least one case per nested skill; every case green or explicitly UNDECIDED with a reason; no units-override file and no second harness"
@@ -352,7 +356,7 @@ epic_goals:
     metric: "eval stages whose manual-verification record precedes their first eval case, over eval stages shipped"
     harness: "each stage's own evidence directory: the graph run, the by-hand transcript of the scripts, and only then the case"
     baseline:
-      value: "0 of the loop's eval stages have a manual-verification record; the 7 cases here and the 63 in skill-manager were written without one being required"
+      value: "0 of the loop's eval stages have a manual-verification record; the 7 cases here and the 55 in skill-manager were written without one being required"
       measured_at: "73867de9"
       evidence: "specs/results/epic-self-improvement-substrate/goals/GOAL-evals-earned"
     # THIS GOAL EXISTS BECAUSE OF THIS EPIC'S OWN RECORD, not as a principle.
@@ -1084,7 +1088,7 @@ tickets:
       evidence: []
 
   - id: SI-15
-    title: "One place for every eval: move skill-manager's 63 cases into the plugin and run all 70 together"
+    title: "One place for every eval: move skill-manager's 55 cases into the plugin and run them together"
     status: planned
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/362"
     schedule_revision: 3
@@ -1097,7 +1101,7 @@ tickets:
     objective: "Move every eval the development loop runs into the plugin's evals/, so that one command runs all of them against one environment. `claude plugin eval` runs on a plugin; this repository is one and skill-manager is not, which is why the cases move here rather than a second harness being built there."
     desired_actions: []
     implementation_scope:
-      - "skill-manager specs/evals/harness/evals/** (63 cases) moved into this plugin's evals/, joined with the 7 already here"
+      - "skill-manager specs/evals/harness/evals/** (55 SOURCE cases; 63 counts generated copies under build/) moved into this plugin's evals/, joined with the 7 already here"
       - "the two runners reconciled into one: this plugin's evals/run.sh staged view, and skill-manager's eval_run_case() branched home (lib.sh, 43,330 bytes) -- decide which environment each case actually needs and say why"
       - "skill-manager's units-template/ (toolchain, fixture) and wide/ lane carried or retired, each with a reason"
       - "the skt fixture from SI-14 consumed by the moved cases"
