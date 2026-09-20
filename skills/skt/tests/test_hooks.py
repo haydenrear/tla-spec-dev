@@ -11,7 +11,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from test_check import make_unit_upstream, unit_record, advance_upstream  # noqa: E402
 from test_status import make_home, make_repo  # noqa: E402
 
-PLUGIN_ROOT = Path(__file__).resolve().parents[1]
+# SI-16: skt is a CONTAINED SKILL now. Its source stays beside these tests
+# (skills/skt/src), but the hooks LIFTED to the carrier plugin root, which is
+# three levels up: tests -> skills/skt -> skills -> <plugin root>.
+SKT_ROOT = Path(__file__).resolve().parents[1]
+PLUGIN_ROOT = Path(__file__).resolve().parents[3]
 HOOKS = PLUGIN_ROOT / "hooks"
 
 
@@ -35,7 +39,7 @@ def seed_cache(home: Path, cwd: Path) -> None:
     cache_state=missing and stays silent.
     """
     subprocess.run(
-        [sys.executable, str(PLUGIN_ROOT / "src" / "skt" / "cli.py"), "check"],
+        [sys.executable, str(SKT_ROOT / "src" / "skt" / "cli.py"), "check"],
         capture_output=True, text=True, cwd=cwd,
         env={"PATH": "/usr/bin:/bin", "SKILL_MANAGER_HOME": str(home)},
         check=False,

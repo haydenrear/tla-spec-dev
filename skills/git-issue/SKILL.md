@@ -18,7 +18,7 @@ skill-imports:
   - unit: deploy-helm
     path: SKILL.md
     reason: Issues that touch deployable surfaces reference deploy-helm environments for validation.
-  - unit: skt
+  - unit: tla-spec-dev
     path: skills/skill-manager/references/workflows.md
     reason: This skill is installed and synced as a skill-manager unit.
 ---

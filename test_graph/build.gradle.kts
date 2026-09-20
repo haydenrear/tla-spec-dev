@@ -28,4 +28,26 @@ validationGraph {
     testGraph("effectProviderExamples") {
         node("sources/effect_provider_examples.py")
     }
+
+    /*
+     * SI-16: skt's graphs, merged in with the plugin-to-plugin migration.
+     * They assert what an import cannot reach -- the install script, the
+     * wrapper it writes, and the two shell hooks -- and after the demotion
+     * those artifacts live at THIS plugin's root, so they now measure the
+     * carrier layout rather than skt's former standalone one.
+     */
+    testGraph("sktSurface") {
+        node("sources/skt_wrapper_installed.py")
+        node("sources/skt_status_tiers.py")
+        node("sources/skt_check_cached.py")
+        node("sources/skt_hook_contract.py")
+        node("sources/skt_ticket_roundtrip.py")
+    }
+
+    // The subset a hook change reruns, and nothing else.
+    testGraph("sktHooks") {
+        node("sources/skt_wrapper_installed.py")
+        node("sources/skt_check_cached.py")
+        node("sources/skt_hook_contract.py")
+    }
 }

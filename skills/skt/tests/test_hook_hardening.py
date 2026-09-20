@@ -29,7 +29,7 @@ def run_post_tool(home: Path, cwd: Path, *, with_home_env: bool = True) -> subpr
     env = {
         "PATH": "/usr/bin:/bin",
         "SKT_PYTHON": sys.executable,
-        "CLAUDE_PLUGIN_ROOT": str(Path(__file__).resolve().parents[1]),
+        "CLAUDE_PLUGIN_ROOT": str(Path(__file__).resolve().parents[3]),
         "CLAUDE_SESSION_ID": "dedup-session",
     }
     if with_home_env:

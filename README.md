@@ -19,8 +19,20 @@ single `skt check` notification — see *Install Locally* below.
 | `test-graph` | `tla-spec-dev:test-graph` | `haydenrear/test_graph_skill` |
 | `git-integration-repo` | `tla-spec-dev:git-integration-repo` | `haydenrear/git-integration-skill` |
 | `plugin-repository` | `tla-spec-dev:plugin-repository` | `haydenrear/plugin-repository-skill` |
+| `skt` | `tla-spec-dev:skt` | `haydenrear/skt` |
+| `skill-manager` | `tla-spec-dev:skill-manager` | `haydenrear/skt` |
+| `unit-authoring` | `tla-spec-dev:unit-authoring` | `haydenrear/skt` |
 
-SI-12 added the last two. They were left outside the bundle at kickoff, and that
+SI-16 added the last three at once, and by a different move: `skt` was a
+**plugin**, not a skill, so absorbing it **demoted** it to a contained skill
+while **lifting** its plugin surface onto this one — the two shipped hooks to
+`hooks/`, `install-skt.sh` to `skill-scripts/`, its `skill-script:skt` CLI dep
+to `skill-manager-plugin.toml`. `${CLAUDE_PLUGIN_ROOT}` survives that move but
+now resolves to THIS plugin's root, so every path hanging off it gained a
+`skills/skt/` segment. One consequence worth knowing: unlike the seven skills,
+`git subtree pull` does not round trip for skt — see `integration.toml`.
+
+SI-12 added the two before those. They were left outside the bundle at kickoff, and that
 turned out to be the one thing keeping `GOAL-one-unit` clause 1 unsatisfiable:
 both of them **import** skills this bundle contains, so every home carrying them
 re-materialised standalone copies of three contained skills. `debugging` stays
@@ -104,13 +116,13 @@ STAGE=$(mktemp -d) && git archive HEAD | tar -x -C "$STAGE"
 #    long rather than six.
 for u in spec-double-compiler git-epic-workflow git-issue-workflow \
          git-issue discovery test-graph \
-         git-integration-repo plugin-repository; do
+         git-integration-repo plugin-repository skt; do
   "$SM" uninstall "$u" --yes 2>/dev/null || true   # absent is fine
 done
 
-# 3. Confirm: ONE unit, eight contained skills, and no standalone leftovers.
+# 3. Confirm: ONE unit, eleven contained skills, and no standalone leftovers.
 "$SM" show tla-spec-dev                  # lists the contained skills
-"$SM" list | grep -E 'tla-spec-dev|spec-double|git-issue|git-epic|discovery|test-graph|git-integration|plugin-repository'
+"$SM" list | grep -E 'tla-spec-dev|spec-double|git-issue|git-epic|discovery|test-graph|git-integration|plugin-repository|skt'
 ls "$HOME_DIR/plugins/tla-spec-dev/skills/"
 "$SM" show test-graph                    # expected: "unit not found" -- it is contained now
 ```

@@ -25,7 +25,7 @@ skill-imports:
   - unit: deploy-helm
     path: SKILL.md
     reason: Tickets touching deployable surfaces validate against deploy-helm environments inside the test graph.
-  - unit: skt
+  - unit: tla-spec-dev
     path: skills/skill-manager/references/workflows.md
     reason: This skill is installed and synced as a skill-manager unit.
 ---

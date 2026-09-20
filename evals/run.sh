@@ -32,11 +32,25 @@
 #    silently. A staged copy carries whatever the checkout carries.
 #
 # 2. STAGES THE HOOKS. `evals/hooks/hooks.json` is copied to
-#    `<view>/hooks/hooks.json`. It is NOT committed at the repository root,
-#    because the repository IS the plugin: a root `hooks/hooks.json` would run
-#    a SessionStart script in every session of every user who installs
-#    tla-spec-dev, and a fixture hook's blocking exit 2 would be able to refuse
-#    somebody's ordinary session. Staging keeps the shipped plugin hookless.
+#    `<view>/hooks/hooks.json`.
+#
+#    SI-16 CHANGED WHAT THAT COPY DOES, and the old wording here is retired.
+#    This used to say "staging keeps the shipped plugin hookless", which was
+#    true while the repository shipped no hooks. It now DOES: absorbing skt
+#    lifted its two hooks to the repository root, so `hooks/hooks.json` is a
+#    COMMITTED FILE and this `cp` OVERWRITES it inside the view.
+#
+#    That is deliberate and is left as an overwrite, not a merge. An eval run
+#    must load the fixture-placing hooks and only those; merging skt's
+#    SessionStart in would add a `skt status` spawn to every case and move
+#    scores in a ticket that is not about evals. The consequence to know is
+#    that AN EVAL RUN DOES NOT EXERCISE THE SHIPPED HOOKS -- so this suite is
+#    not evidence about them. Their evidence is <home>/logs/skt/hook.log and
+#    the sktHooks graph (SI-16-DF-02).
+#
+#    The original reason the fixture hooks stay uncommitted still stands: a
+#    fixture hook's blocking exit 2 would be able to refuse somebody's ordinary
+#    session. skt's two shipped hooks never exit non-zero by contract.
 #
 # 3. PUTS THE CHECKOUT'S CLI FIRST ON PATH. Without `evals/bin` first, the run
 #    grades whichever `tla-spec-dev` the operator has installed. Measured: a

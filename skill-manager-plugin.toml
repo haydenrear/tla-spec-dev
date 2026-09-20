@@ -73,3 +73,21 @@ on_path = "tla-spec-dev"
 [cli_dependencies.install.any]
 script = "install-tla-spec-dev.sh"
 binary = "tla-spec-dev"
+
+# SI-16: skt's own plugin-level dep, moved here verbatim when skt was demoted
+# from a plugin to a contained skill. It has to be HERE and its installer has to
+# be at THIS root's skill-scripts/ for exactly the reason the long comment above
+# gives: `PluginUnit.unionCli` resolves a `skill-script:` installer by the
+# INSTALLED UNIT's name, which is now `tla-spec-dev`. Left on the contained
+# skill it would reproduce SIS-W2-F-05 for skt --
+# "skill-script not found: <home>/skills/skt/skill-scripts/install-skt.sh".
+#
+# install-skt.sh reads `$SKILL_DIR/skills/skt/src/skt/cli.py`, because on the
+# plugin rung SKILL_DIR is the PLUGIN root, not the skill's.
+[[cli_dependencies]]
+spec = "skill-script:skt"
+on_path = "skt"
+
+[cli_dependencies.install.any]
+script = "install-skt.sh"
+binary = "skt"
