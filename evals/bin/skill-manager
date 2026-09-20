@@ -1,0 +1,61 @@
+#!/bin/sh
+# THE EPIC BRANCH'S CLI, NOT THE OPERATOR'S BREW INSTALL.
+#
+# Sibling of `evals/bin/tla-spec-dev`, for the same measured reason: without a
+# shim first on PATH, a run grades whichever copy the operator happens to have
+# installed. For `skill-manager` that copy is
+# /opt/homebrew/Cellar/skill-manager/0.28.1 via ~/.skill-manager/bin/cli, and
+# this epic's evals are supposed to be measuring the CLI on
+# `epic/self-improvement-substrate`.
+#
+# WHAT IT EXECS, AND WHY THAT IS NOT A BUILD. skill-manager's repo root carries
+# `./skill-manager`, a 346-byte bash wrapper that exports
+# SKILL_MANAGER_INSTALL_DIR and runs `exec jbang "$DIR/SkillManager.java"`. So
+# reaching the epic branch's CLI is a PATH entry pointing at that wrapper in a
+# checkout -- no rebuild, no install, and nothing written over the operator's
+# brew copy. Measured 2026-09-19 against the materialised checkout:
+#
+#   skill-manager 0.28.1+g6ffacb88ff96
+#   build:  6ffacb88ff96 (detached)
+#
+# The version string names the commit, which is how a run record can quote the
+# CLI'S OWN account of which code ran rather than only ours.
+#
+# WHY IT REFUSES INSTEAD OF FALLING THROUGH. A shim that silently execs the
+# installed CLI when the checkout is missing restores the exact defect it exists
+# to prevent, and does it invisibly -- the run still scores, against code nobody
+# is reviewing. `evals/bin/tla-spec-dev` ends in `exit 127` for this reason and
+# so does this.
+#
+# WHY IT RUNS NO `git`. Verification that the checkout IS the pinned commit is
+# done ONCE, operator-side, by `evals/lib/toolchain.py`, which writes
+# `.si14-commit` beside the checkout. This shim only reads that file. Running
+# git here would put git on the critical path of every CLI call inside an eval
+# sandbox, where an unset TMPDIR is already known to break Apple's git before it
+# does anything (plugin_evals.md §3, fact 2: eight unmeasurable runs).
+#
+# EVERYTHING IT PRINTS GOES TO STDERR. A shim that writes to stdout corrupts the
+# output of the command it is standing in for.
+set -eu
+here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+repo=$(CDPATH= cd -- "$here/../.." && pwd)
+
+cache="${SI14_TOOLCHAIN_CACHE:-$repo/.toolchain}"
+checkout="$cache/skill-manager"
+wrapper="$checkout/skill-manager"
+stamp="$checkout/.si14-commit"
+
+if [ ! -x "$wrapper" ] || [ ! -f "$stamp" ]; then
+    echo "skill-manager shim: no materialised checkout at $checkout." >&2
+    echo "  Refusing to fall through to the installed CLI, which would grade" >&2
+    echo "  code nobody is reviewing (the brew copy, not the epic branch)." >&2
+    echo "  Materialise it first:  python3 $repo/evals/lib/toolchain.py materialise" >&2
+    echo "  (evals/run.sh does this for you.)" >&2
+    exit 127
+fi
+
+# The pinned commit, for anything downstream that wants to record what it ran.
+SKILL_MANAGER_EVAL_COMMIT=$(cat "$stamp")
+export SKILL_MANAGER_EVAL_COMMIT
+
+exec "$wrapper" "$@"

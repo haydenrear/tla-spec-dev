@@ -288,8 +288,53 @@ echo "  tla2tools:    ${jar:-NOT FOUND}"
 
 # The rest of what skill-manager.toml declares. A dependency that is missing is
 # said out loud here rather than discovered as a confusing failure on turn 30.
-for tool in python3 pytest jinja2 tlc2 git gradle; do
+#
+# `skill-manager` joined this list in SI-14, for the same reason `tla-spec-dev`
+# is checked above: the run is supposed to reach THIS epic's CLI through
+# `evals/bin/skill-manager`, not the operator's brew install at
+# /opt/homebrew/Cellar/skill-manager/0.28.1.
+for tool in python3 pytest jinja2 tlc2 git gradle skill-manager; do
     p=$(command -v "$tool" 2>/dev/null || true)
     echo "  ${tool}: ${p:-NOT ON PATH}"
 done
+
+# ------------------------------------------------------- the PINNED toolchain
+#
+# WHAT MAKES A SCORE QUOTABLE. Before SI-14, no eval run recorded the toolchain
+# it ran against: `skt` resolved from the operator's live home at whatever
+# `main` pointed to that day (gitRef main, gitHash 286a3694, installed
+# 2026-09-14) -- and `main` had ALREADY moved to 0f380781 by 2026-09-19.
+# Two runs a week apart were not known to be comparable, so a score that moved
+# could not be attributed to the change that was supposed to move it.
+#
+# `evals/run.sh` materialises the commits pinned in
+# `evals/lib/toolchain.lock.toml` and stages the record beside the view.
+# Printing it HERE is what puts those commits in the run's own trace, next to
+# the score, instead of only in a file on the operator's disk.
+record="$plugin/toolchain/RECORD.json"
+if [ -f "$record" ]; then
+    echo "place: the pinned toolchain (evals/lib/toolchain.lock.toml):"
+    python3 - "$record" <<'PY' || echo "  (the record is present but could not be read)"
+import json, sys
+with open(sys.argv[1], encoding="utf-8") as fh:
+    rec = json.load(fh)
+units = rec.get("units") or []
+if not units:
+    # AN EMPTY RECORD IS NOT A PINNED RECORD. Say so, rather than print nothing
+    # and let the silence read as "there was nothing to report".
+    print("  THE RECORD NAMES NO UNITS -- this run cannot say what it ran against")
+for u in units:
+    print(f"  {u['unit']}: {u['pinned_commit']} ({u.get('ref_source', 'source unrecorded')})")
+    if u.get("self_report"):
+        print(f"      the CLI itself says: {u['self_report'].splitlines()[0]}")
+for note in rec.get("drift") or []:
+    print(f"  drift: {note}")
+PY
+else
+    # NOT A REFUSAL. A run without the record is still a run; what it is not is a
+    # run whose score can be quoted against a toolchain. Say which one this is.
+    echo "place: NO TOOLCHAIN RECORD at $record."
+    echo "  This run cannot name the toolchain it used. If it was not started"
+    echo "  by evals/run.sh, that is why."
+fi
 exit 0

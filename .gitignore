@@ -31,6 +31,19 @@ bin/
 # each run's report back out of the throwaway view into here.
 evals/results/
 
+# The MATERIALISED toolchain: checkouts of the units pinned in
+# `evals/lib/toolchain.lock.toml`, fetched at their pinned commits by
+# `evals/lib/toolchain.py`. THE PIN IS SOURCE AND IS COMMITTED; the checkouts it
+# produces are derived and are not. They are also large -- skill-manager alone is
+# 11,481 entries and 18M of .git -- which is why `evals/run.sh` excludes this
+# directory from the staged view, whose entry ceiling is 20,000.
+#
+# IT IS AT THE ROOT AND NOT UNDER `evals/` DELIBERATELY: eval case discovery is
+# a recursive glob over the eval dir, and the materialised skill-manager carries
+# 56 case.yaml files of its own that would otherwise be discovered, scored and
+# billed as this suite's.
+.toolchain/
+
 ### IntelliJ IDEA ###
 .idea
 *.iws

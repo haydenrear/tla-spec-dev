@@ -35,7 +35,8 @@ with my findings. The list is the smaller half. **The method is the point.**
 
 | I believed | The truth | What found it |
 |---|---|---|
-| `scaffold_script:` runs the fixture script | Never invoked, at any placement | An inline body of `exit 3`. The case still scored 1.00 |
+| `scaffold_script:` runs the fixture script | Top-level + inline: never invoked. But `context.scaffold_script: <path>` under `--scaffold` **does** run, as the operator, with network (2.1.276) | An inline body of `exit 3` scoring 1.00; then, for SI-14, a filed script that wrote a marker |
+| A case's `plugins:` entry is additive and harmless | It **silently disables the target plugin's hooks**. 4 runs: hook fired 2/2 without it, 0/2 with it, both scoring 1.00 | Two identical cases differing only in that key, and a hook that appended to one file |
 | The `llm` grader reads the workspace | It reads the final response and nothing else | A hook wrote `banana` into a file; graded three ways |
 | Symlinking `.claude` leaks my skills into runs | Zero of 20 appeared; the run gets a fresh HOME | Reading the `init` event instead of inferring from three names |
 | Containment forces physical copies of units | It applies to the entry path only, never inside a plugin | Trying a symlink inside a wrapper |
@@ -426,14 +427,46 @@ staged `SessionStart` hook wrote one file and whose `Stop` hook wrote another
 scored 1.00 with both verdict paths present, `${CLAUDE_PLUGIN_ROOT}` resolving
 to the view, with no Bash grant and no scratch HOME.
 
-### `scaffold_script:` does not run — use a hook
+### `scaffold_script:` — CORRECTED on 2.1.276: the key is live, but only one spelling of it
 
-A case may declare `scaffold_script:` and the CLI has a `--scaffold` flag that
-prints a warning about running it. **The script is never executed.** Measured at
-every placement — top level, `execution:`, `setup:`, `workspace:`, `sandbox:`,
-`scaffold.script` — and in both forms, a file name and inline bash. The
-decisive probe was an inline body of `echo ... >&2; exit 3`: the case still
-scored 1.00, so it was not failing quietly, it was never invoked.
+This section used to say, flatly, *"the script is never executed"*. That was
+measured on **2.1.261** and it is **half right on 2.1.276**. Three probes,
+$0.06 total, re-measured for SI-14 because a ticket's whole design rested on it:
+
+| spelling | what happens on 2.1.276 |
+|---|---|
+| top-level `scaffold_script:` with an inline body | **accepted and silently ignored.** The case scored 1.00 and the marker was never written — the 2.1.261 finding, still true |
+| `context.scaffold_script:` with an inline body | **refused at case-LOAD time**, because the value is read as a PATH: `case "...": path "echo ... > /tmp/marker " does not exist` |
+| `context.scaffold_script: ./scaffold.sh` + `--scaffold` | **RUNS.** The CLI prints `scaffold: <abs path>` and the script executes |
+
+So the key is not dead; it is a **path, under `context:`, gated behind
+`--scaffold`**. What the third probe's script reported about its own
+environment:
+
+```
+FILED SCAFFOLD RAN pwd=/private/tmp/e-jS2iI9/home/cwd whoami=hayde
+HOME=/private/tmp/e-jS2iI9/home
+git ls-remote https://github.com/haydenrear/skt main -> 0f380781…
+```
+
+It runs **as the operator, outside the sandbox, with working network**, in the
+run workspace — but under a **scratch `HOME`**, so it cannot read
+`~/.skill-manager`.
+
+**Prefer a `SessionStart` hook anyway, and place fixtures from one.** Three
+reasons, each of which is a silent wrong answer rather than an error:
+
+* **`--scaffold` is OFF BY DEFAULT.** A suite whose fixture depends on it runs
+  *unscaffolded* for anyone who forgets the flag, and still scores.
+* **It is per case.** A hook dispatching on `EVAL_CASE` serves every case; N
+  cases needing the same fixture means N scripts or N clones.
+* **`plugins:` entries are validated at case-load time**, so a directory the
+  scaffold creates during the run is not there when the loader looks for it.
+
+Where it *is* the right tool is work that must happen **as the operator, before
+the sandbox**, and that nothing loads at case-load time — fetching a pinned
+toolchain, for instance. `evals/lib/toolchain.py` does that job from
+`run.sh` instead, for the first reason above.
 
 Place fixtures from a **`SessionStart` hook** in `hooks/hooks.json`. One hook
 serves every case and dispatches on `EVAL_CASE` (see above), so it lives beside
