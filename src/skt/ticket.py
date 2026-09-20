@@ -144,11 +144,33 @@ def _print_contract(contract) -> None:
 
 
 def _bootstrap_script() -> Path | None:
-    giw = homes.find_home(".")
-    if giw is None:
+    """Resolve git-issue-workflow's bootstrap-home.sh, standalone OR contained.
+
+    TWO RUNGS, and the second one is not optional. A home may carry the unit
+    installed standalone at `<home>/skills/<unit>/`, or CONTAINED in a plugin
+    at `<home>/plugins/<plugin>/skills/<unit>/`. Before this, only the first
+    was checked, so a home that had the file all along -- one rung over --
+    failed the front door: `ticket new` rolled the worktree back with
+    "bootstrap-home.sh not found in this home".
+
+    That is not hypothetical. A home is SUPPOSED to reach the contained state:
+    bundling a skill into a plugin and removing the standalone duplicate is
+    what stops two copies of one unit drifting apart. Resolving one rung
+    punished exactly the homes that had done the right thing, and the refusal
+    printed a remedy -- install the standalone skill -- that would undo it.
+
+    Standalone stays FIRST so existing precedence is unchanged where both
+    exist. The glob is sorted for determinism across plugins.
+    """
+    home = homes.find_home(".")
+    if home is None:
         return None
-    candidate = giw / "skills" / UNIT / "scripts" / "bootstrap-home.sh"
-    return candidate if candidate.is_file() else None
+    candidates = [home / "skills" / UNIT / "scripts" / "bootstrap-home.sh"]
+    candidates += sorted(home.glob(f"plugins/*/skills/{UNIT}/scripts/bootstrap-home.sh"))
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+    return None
 
 
 def dirty_ok() -> bool:
