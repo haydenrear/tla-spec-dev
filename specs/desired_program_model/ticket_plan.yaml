@@ -3,8 +3,8 @@
 # mirror it for handoff; they do not replace it.
 version: 1
 name: self-improvement-substrate
-updated: "2026-09-17"
-schedule_revision: 4
+updated: "2026-09-20"
+schedule_revision: 5
 purpose: "Make tla-spec-dev one plugin and one loop: the substrate improves because of what agents ran into while using it, and the epic agent is the one writer of the model, the matrix, the scorecard row and the plugin."
 
 planning_rules:
@@ -21,11 +21,25 @@ planning_rules:
   # mid-epic work -- 354 commits ahead of tla-spec-dev's main at the wave-6
   # gate. It stops here. The plugin repo's main receives the epic's result at
   # cutover, not its work in progress.
+  # SUPERSEDED IN PART AT REVISION 5, 2026-09-20, BY OWNER DECISION.
+  # The cutover HAPPENED MID-EPIC, at wave 10, with eight tickets still planned:
+  # `git push tla-spec-dev-plugin HEAD:refs/heads/main` moved that repo's main
+  # 45dae6eb -> 8e9679fb. The rule below forbade exactly that, and it was written
+  # to constrain the epic agent after it mirrored the tip through waves 3-6
+  # without stating what it implied. So this amendment is recorded rather than
+  # written into the sentence: the rule did its job, and the owner overrode it
+  # deliberately because the home and project migrations had already begun and
+  # rolling them back was worse than cutting over early.
+  # The FIRST half of the rule is untouched and still binding: the epic branch
+  # never merges to tla-spec-dev's default branch.
   no_default_branch_merge: >-
-    The epic branch never merges to tla-spec-dev's default branch, and the epic
-    tip is never pushed to tla-spec-dev-plugin's main mid-epic. tla-spec-dev
-    keeps shipping the skill; the plugin is delivered by cutover at epic close.
-    `finalize` for this epic means the cutover, not a default-branch merge.
+    The epic branch never merges to tla-spec-dev's default branch; tla-spec-dev
+    keeps shipping the spec-double-compiler SKILL so existing installs keep
+    syncing. The plugin is delivered through tla-spec-dev-plugin, whose main was
+    cut over on 2026-09-20 at wave 10 by owner decision -- earlier than this rule
+    originally allowed. From that point tla-spec-dev-plugin's main IS the epic's
+    delivery surface and later waves land on it. `finalize` for this epic means
+    the cutover and the SI-24 root-home rebuild, not a default-branch merge.
   # ADDED AT REVISION 3, 2026-09-18. SI-13 and SI-15 land work in the
   # skill-manager repository (git@github.com:haydenrear/skill-manager.git),
   # which is a separate checkout and a separate pull request. Every piece of
@@ -1210,24 +1224,30 @@ tickets:
       evidence: []
 
   - id: SI-16
-    title: "Nest skt into the plugin: one unit carries the substrate"
+    title: "Demote skt from plugin to contained skill: one plugin carries the substrate"
     status: planned
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/365"
-    schedule_revision: 4
+    schedule_revision: 5
     depends_on: ["SI-08"]
-    blocks: ["SI-17", "SI-18", "SI-20", "SI-23"]
+    blocks: ["SI-17", "SI-18", "SI-20", "SI-23", "SI-24"]
     wave: 11
     promotion_order: 130
     promotion_predecessor: "SI-08"
     role: implementation
-    objective: "Bring skt into the bundle as a constituent so the substrate installs as one plugin, and give the generated front-door wrapper the plugin rung it needs to resolve a contained skt."
+    objective: "Absorb skt into tla-spec-dev-plugin. This is a PLUGIN-TO-PLUGIN migration, not the skill nesting SI-02 and SI-12 performed: skt is demoted to a contained skill while its plugin-level surface -- hooks above all -- is lifted onto the carrier plugin. The two halves travel in OPPOSITE directions, which is the whole difficulty."
     desired_actions: []
     implementation_scope:
-      - "skt nested at skills/skt/ or as a constituent (git subtree, full history, no --squash), from https://github.com/haydenrear/skt"
-      - "the generated <home>/bin/cli/skt wrapper gains a plugins/*/ rung; it resolves plugins/skt/src/skt/cli.py relative to the home it lives in and must keep doing so with no absolute path"
-      - "skt already contains skill-manager and unit-authoring skills; decide and state what happens to each"
-      - "skt carries its own test_graph/ -- reconcile with SI-13's classification rather than duplicating it"
-      - "the standalone skt unit uninstalled from the project home; the ROOT home is not modified"
+      - "git subtree add --prefix=skills/skt <skt-remote> b7ea313a, full history, no --squash, following specs/results/epic-self-improvement-substrate/migration/pulling-upstream.md. Subtree from the PR #54 BRANCH, not main: main (0f3807) lacks the front-door fix and nesting from it would carry the defect this epic has tripped over nine times into the unit meant to replace it. skt is NOT configured as a remote on this repo yet -- the seven existing constituents are; add it first."
+      - "HOOKS LIFT UP. skt/hooks/ (hooks.json, skt-post-tool.sh, skt-session-start.sh) moves to the PLUGIN ROOT hooks/. tla-spec-dev-plugin has NO hooks/ directory today and has never shipped a hook, so there is no collision and no local precedent -- the plugin's only other hooks.json is evals/hooks/hooks.json, which is eval-harness scaffolding and is NOT the plugin hook surface."
+      - "SOURCE MOVES DOWN. src/skt/ becomes skills/skt/src/skt/. ${CLAUDE_PLUGIN_ROOT} SURVIVES the demotion but resolves to the CARRIER plugin root, so every path hanging off it gains a skills/skt/ segment. There are exactly 10 references: 2 in hooks/hooks.json, 4 in the two hook scripts (each resolves $CLAUDE_PLUGIN_ROOT/src/skt/cli.py), and 4 in tests/test_hooks.py, tests/test_hook_hardening.py and test_graph/support/skt_fixture.py."
+      - "install-skt.sh MOVES to the plugin's own skill-scripts/. PluginUnit.unionCli resolves a skill-script: installer by the INSTALLED UNIT's name, never the declaring skill's. SI-11 measured this exact failure for tlc2 (SIS-W2-F-05): every fresh install reported 'skill-script not found: <home>/skills/tla-spec-dev/skill-scripts/install-tlc2.sh'. Leaving install-skt.sh on the contained skill reproduces it for skt."
+      - "manifests fold: .claude-plugin/plugin.json (skt 0.8.2 dissolves into tla-spec-dev 0.1.0), skt's [[cli_dependencies]] spec = skill-script:skt / on_path = skt joins the carrier's skill-manager-plugin.toml, and [plugins.skt] is DELETED from the plugin's skill-project.toml -- that single line is the two-units-not-one state."
+      - "skt's own skill-project.toml declares name = skill-publisher (a THIRD identity, neither skt nor tla-spec-dev) and pulls [skills.skill-manager] from github:haydenrear/skill-manager-skill as an external coord. Resolve both deliberately and say what happened to each."
+      - "skt's three contained skills -- skill-manager, skt, unit-authoring -- are ALL absent from the carrier's eight, so ContainedNameCollisionIsRefused cannot fire. Verified by name intersection, not assumed."
+      - "the generated <home>/bin/cli/skt wrapper gains a plugins/*/ rung resolving plugins/tla-spec-dev/skills/skt/src/skt/cli.py relative to the home it lives in, with no absolute path. NOTE the pre-demotion path plugins/skt/src/skt/cli.py is now WRONG and must not be reintroduced."
+      - "test_graph merges: skt has 5 sources (skt_ticket_roundtrip, skt_check_cached, skt_status_tiers, skt_wrapper_installed, skt_hook_contract), the carrier has 12, and the path overlap is ZERO -- measured against both populations, not inferred from an empty comparison. Both settings.gradle.kts declare rootProject.name = validation-graph-starter, includeBuild(build-logic) and one sdk:java include, so the Gradle wiring merges without conflict. Reconcile the 5 against SI-13's classification (tla-spec-dev has 3 graphs, all RUN, none opt-in, none dead) rather than duplicating it."
+      - "VERIFY THE HOOKS BY THEIR LOG, NEVER BY AN EVAL SCORE. Two independent silencers stack here: SI-14-DF-01 established that a case declaring plugins: silently disables the target plugin's hooks while BOTH ARMS STILL SCORE 1.00, and skt-session-start.sh's own contract is that it NEVER exits non-zero because a broken orientation hook must not break the session. The honest instrument is the hook's own evidence: every invocation appends one line to <home>/logs/skt/hook.log."
+      - "the standalone skt unit uninstalled from the project home; the ROOT home is not modified by this ticket -- SI-24 rebuilds it."
     current_increment:
       model_state: []
       model_actions: []
@@ -1253,7 +1273,10 @@ tickets:
       commands: []
       assertions:
         - "The front door `skt ticket new` works from a home that carries only the plugin."
-        - "The wrapper contains no absolute home path."
+        - "The wrapper contains no absolute home path, and resolves plugins/tla-spec-dev/skills/skt/src/skt/cli.py -- not the pre-demotion plugins/skt/ path."
+        - "Both hooks fire from the carrier plugin: <home>/logs/skt/hook.log gains a line per session start. An eval score is NOT accepted as evidence here."
+        - "A fresh home install reports no skill-script-not-found for install-skt.sh."
+        - "No standalone skt unit remains in the project home; `skill-manager list` shows one substrate unit."
       evidence: []
 
   - id: SI-17
@@ -1267,12 +1290,13 @@ tickets:
     promotion_order: 140
     promotion_predecessor: "SI-16"
     role: implementation
-    objective: "Move wt from git-issue-workflow into skt. Both are contained by now, so this is an intra-bundle move rather than a cross-repo one."
+    objective: "Move wt from git-issue-workflow into skt. After SI-16 both are CONTAINED SKILLS of the same plugin, so this is a move between two sibling directories inside one repository -- no remote, no subtree, no cross-repo PR."
     desired_actions: []
     implementation_scope:
-      - "skills/git-issue-workflow/scripts/wt and src/git_issue_workflow/wt.py move into skt"
-      - "every caller re-addressed; `wt` is named by SKILL.md pages, references, the PROPAGATE key and .github/scripts/wt_smoke.sh"
+      - "three tracked paths move, verified present on the epic branch: skills/git-issue-workflow/scripts/wt (executable), skills/git-issue-workflow/src/git_issue_workflow/wt.py, and skills/git-issue-workflow/.github/scripts/wt_smoke.sh. Destination is skills/skt/, beside the CLI that calls wt."
+      - "every caller re-addressed; `wt` is named by SKILL.md pages, references, the PROPAGATE key and wt_smoke.sh"
       - "SI-09 just rewrote these cards -- re-read them before editing, and keep the reference map correct"
+      - "the @command annotation on skill-manager's GitHistoryInternal.tla:251 binds a modeled action to `wt close / skt ticket close`. SI-18 owns that edit; do not touch skill-manager here, but do not invalidate the citation either -- if wt's invocation path changes, say so, because SI-18 depends on it."
     current_increment:
       model_state: []
       model_actions: []
@@ -1302,25 +1326,30 @@ tickets:
       evidence: []
 
   - id: SI-18
-    title: "Remove skt from skill-manager: the model comments, the @command binding, the citations"
+    title: "skill-manager adopts the unified plugin: drop vendored skt, teach the resolver the plugin rung, stop onboard re-installing"
     status: planned
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/367"
-    schedule_revision: 4
-    depends_on: ["SI-15", "SI-16"]
-    blocks: ["SI-22", "SI-23"]
-    wave: 13
-    promotion_order: 150
-    promotion_predecessor: "SI-17"
+    schedule_revision: 5
+    depends_on: ["SI-15", "SI-16", "SI-17", "SI-19", "SI-20", "SI-21", "SI-22", "SI-24"]
+    blocks: ["SI-23"]
+    wave: 18
+    promotion_order: 190
+    promotion_predecessor: "SI-22"
     role: implementation
-    objective: "Take skt out of the skill-manager repository now that it ships in the plugin. Scope is skt and the evals only -- history stays where it is."
+    objective: "Make the skill-manager repository consume the unified tla-spec-dev-plugin instead of carrying its own skt. DISPATCHED AS A SEPARATE AGENT IN THE skill-manager REPOSITORY AND A SEPARATE SESSION (owner decision, 2026-09-20), after the rebuilt root home has been validated by the eval ladder. Scope is skt, the resolver, onboard and the evals -- history stays where it is."
     desired_actions: []
     implementation_scope:
+      - "THE VENDORED skt COPY IS NOT CANONICAL AND DELETING IT LOSES NOTHING. skill-publisher-skill/src/skt and skill-publisher-skill/skills/skt were last touched by `chore: vendored skt 0.3.0` and `chore: refresh vendored skill copies from merged leaf mains`; canonical skt is haydenrear/skt, now contained in the plugin. Confirm that before deleting, then delete."
+      - "ProjectVendoredResolver RESOLVES ONLY ONE RUNG AND THAT IS THE SAME DEFECT AS THE FRONT DOOR. Its own javadoc (src/main/java/dev/skillmanager/project/ProjectVendoredResolver.java:24) states the rule as skills/<from_unit>[/<from_subpath>]/<leaf> -- there is no plugins/*/skills/ rung, so `from_unit = \"test-graph\"` CANNOT be satisfied by a plugin-contained test-graph. Add the plugin rung. This is the measured reason 30 of 77 manifests on this machine cannot follow the migration."
+      - "onboard RE-INSTALLS. `skill-manager onboard` installs the bundled skills and starts the gateway, and is the suspected reason a migrated project re-acquires standalone units. Establish what it installs after the plugin exists, and make it not re-materialise contained skills."
+      - "skill-manager's own skill-project.toml declares [plugins.skt] source = github:haydenrear/skill-publisher-skill -- the VENDORING repo, not haydenrear/skt. Replace the whole declaration with the single unified coord github:haydenrear/tla-spec-dev-plugin."
+      - "install tla-spec-dev-plugin into the repo's home and RERUN ALL TEST GRAPHS. SI-13 classified 32 registered testGraph(...) tasks against a header comment claiming two; use that classification and do not re-derive it."
       - "THE EPIC AGENT OWNS THE TLA EDIT and performs it: skt is named in ZERO TLA identifiers (no constant, variable, action or invariant). The hits are three comments -- GitHistoryInternal.tla:216 and :251, HomeIntegrityInternal.tla:596 -- so there is NO state-space consequence and no TLC re-check is owed."
-      - "GitHistoryInternal.tla:251 carries an `@command wt close / skt ticket close` ANNOTATION binding a modeled action to a CLI command. That one has teeth: repoint it or it cites a command the repo no longer owns."
-      - "two spec_manifest.yaml citations (skill-publisher-skill/skills/skt/SKILL.md, .../unit-authoring/SKILL.md) BOTH RESOLVE TODAY -- keep test_source_citations green"
+      - "GitHistoryInternal.tla:251 carries an `@command wt close / skt ticket close` ANNOTATION binding a modeled action to a CLI command. That one has teeth: SI-17 moved wt, so repoint it or it cites a command the repo no longer owns."
+      - "two spec_manifest.yaml citations (skill-publisher-skill/skills/skt/SKILL.md, .../unit-authoring/SKILL.md) resolve against the vendored copy this ticket deletes -- repoint them at the plugin and keep test_source_citations green"
       - "two regression .cfg headers name skt in prose"
       - "specs/epics/*/ticket_plan.yaml mention skt 56 times across four CLOSED epics: that is HISTORY. Leave it."
-      - "skill-manager has a STAGED, UNCOMMITTED .gitignore change in its index -- do not sweep it into a commit"
+      - "cross_repo_rule applies: this opens a SECOND pull request in git@github.com:haydenrear/skill-manager.git against that repo's epic/self-improvement-substrate branch, NEVER main, and names repo/branch/PR/what-changed in its own PR body."
     current_increment:
       model_state: []
       model_actions: []
@@ -1350,6 +1379,58 @@ tickets:
         - "skill-manager's citation tests stay green."
       evidence: []
 
+  - id: SI-24
+    title: "Nuke and rebuild the root home from a recorded manifest"
+    status: planned
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/377"
+    schedule_revision: 5
+    depends_on: ["SI-16", "SI-17"]
+    blocks: ["SI-18", "SI-19", "SI-20", "SI-21", "SI-22", "SI-23"]
+    wave: 13
+    promotion_order: 150
+    promotion_predecessor: "SI-17"
+    role: implementation
+    objective: "Delete /Users/hayde/.skill-manager and rebuild it from a recorded list, so the eval ladder runs against the home we will actually ship rather than one carrying a decade of migration residue. THE EPIC AGENT PERFORMS THIS, NOT A TICKET AGENT: root-home mutation needs owner say-so and rule 8 forbids ticket agents from touching it. The owner gave that say-so on 2026-09-20."
+    desired_actions: []
+    implementation_scope:
+      - "the manifest was captured 2026-09-20T19:25Z BEFORE any destructive step, at specs/results/epic-self-improvement-substrate/migration/root-home-inventory.md: 21 installed units with kind, origin, ref and hash."
+      - "13 of 21 carry clean git coords and reinstall from them. EIGHT DO NOT, and that is the whole risk of this ticket: cdc-agent-substrate-plugin points at /Users/hayde/IdeaProjects/wt-108-cdc-mvp-023/, a DELETED ticket worktree -- meta-harness's own manifest independently records that this coord already broke `project resolve`; five harnesses (code-reviewer, live-swarm-agent, repo-coder, repo-tester, run-tracer) come from meta-orchestrator-202/test_graph/fixtures/harness/ with no git coord; slm-agent and tracer-agent from meta-orchestrator-202/constituents/ with no ref and no hash."
+      - "VERIFY ALL EIGHT SOURCE PATHS EXIST BEFORE DELETING ANYTHING. A path that is already gone is a unit that cannot come back, and the home is the only remaining copy."
+      - "the two rows being replaced collapse into one: skt (PLUGIN, main, 0f3807 -- the UNFIXED front door) and tla-spec-dev (PLUGIN, epic/self-improvement-substrate, 8e9679fb, from the OLD repo) both go, and github:haydenrear/tla-spec-dev-plugin at main comes in alone. That collapse is GOAL-one-plugin made visible in the manifest."
+      - "the brew CLI survives: skill-manager 0.28.1 runs from /opt/homebrew/Cellar and is not part of the home. <home>/bin/cli/skill-manager is a generated shim and comes back with the home."
+      - "standalone test-graph is NOT reinstalled. It is the last duplicate of a plugin-contained skill in this home, and 30 of 77 manifests on this machine vendor their Gradle SDK through it -- but those projects are FROZEN for the migration (owner decision, 2026-09-20), and SI-18 adds the resolver rung that lets them follow later."
+      - "PROJECT REGISTRATIONS ARE NOT RESTORED BY THIS TICKET. Four projects are registered today (git-epic-workflow, hyper-experiments-finance-polymarket, skill-manager, support-agent-rears) and git-epic-workflow has no skill-project.toml at all. Re-register deliberately, one at a time, or leave unregistered and say so."
+      - "record what came back and what did not, as a table, in the wave artifact. A unit silently absent from a rebuilt home is exactly the complete-looking-table-over-partial-data failure this epic keeps logging."
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests: []
+      graph_after_unit_pass: []
+    conflict_keys:
+      production: ["specs/results/epic-self-improvement-substrate/migration/**"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    goals:
+      - goal: GOAL-one-plugin
+        contribution: direct
+        expected_effect: "the root home carries ONE substrate unit; the standalone skt and the old-repo tla-spec-dev both go"
+        local_signal: "skill-manager list in the rebuilt root home shows tla-spec-dev-plugin and no standalone skt"
+      - goal: GOAL-evals-earned
+        contribution: enabling
+        expected_effect: "the eval ladder runs against the shipped home rather than a residual one"
+        local_signal: "SI-19..SI-22 all execute against the rebuilt home"
+    acceptance:
+      commands: []
+      assertions:
+        - "Every one of the 8 coord-less units was verified present at its source path BEFORE the delete, or was deliberately dropped with a reason."
+        - "The rebuilt home carries no standalone copy of any skill the plugin contains."
+        - "GOAL-one-plugin clause 'no standalone skt unit in root or project home' holds in BOTH homes -- read the clause text before reporting, it names two homes."
+        - "The front door `skt ticket new` works in the rebuilt home."
+      evidence: []
+
   - id: SI-19
     title: "Eval ladder 1/4: scaffold a test graph, verify by hand, then one small eval"
     status: planned
@@ -1359,7 +1440,7 @@ tickets:
     blocks: ["SI-20", "SI-23"]
     wave: 14
     promotion_order: 160
-    promotion_predecessor: "SI-18"
+    promotion_predecessor: "SI-24"
     role: implementation
     objective: "First rung of the ladder. Scaffold a test graph, run it, verify the workflow scripts by hand, record what was observed -- and only then write one small eval that encodes it."
     desired_actions: []
@@ -1491,9 +1572,9 @@ tickets:
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/371"
     schedule_revision: 4
     depends_on: ["SI-18", "SI-21"]
-    blocks: ["SI-23"]
+    blocks: ["SI-18", "SI-23"]
     wave: 17
-    promotion_order: 190
+    promotion_order: 185
     promotion_predecessor: "SI-21"
     role: implementation
     objective: "Fourth rung. Verify the skill-manager CLI interactions the plugin needs, for each type of agent, and encode them."
@@ -1535,11 +1616,11 @@ tickets:
     status: planned
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/372"
     schedule_revision: 4
-    depends_on: ["SI-08", "SI-16", "SI-17", "SI-18", "SI-19", "SI-20", "SI-21", "SI-22"]
+    depends_on: ["SI-08", "SI-16", "SI-17", "SI-18", "SI-19", "SI-20", "SI-21", "SI-22", "SI-24"]
     blocks: []
-    wave: 18
+    wave: 19
     promotion_order: 200
-    promotion_predecessor: "SI-22"
+    promotion_predecessor: "SI-18"
     role: evaluation
     owns_goals:
       - GOAL-one-plugin
