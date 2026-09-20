@@ -6,8 +6,8 @@
 # ------------------------------------------------------------------------
 # An integration repository is a SPECIALIZATION: it only exists when a repo has
 # constituents. A ticket and a worktree exist for EVERY repo. So the general
-# machinery — `wt`, new-change.sh, close-change.sh, bootstrap-home.sh,
-# agent-home.sh and this file — is owned by the skill an agent handed a ticket
+# machinery — new-change.sh, close-change.sh, bootstrap-home.sh, agent-home.sh
+# and this file — is owned by the skill an agent handed a ticket
 # actually opens, and the specialized skill depends on it rather than the other
 # way round:
 #
@@ -63,7 +63,9 @@ LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 #      outermost_integration_root, checkout_kind, worktree_parent_dir,
 #      ticket_worktree_path, ticket_worktree_candidates,
 #      assert_worktree_outside_integration, assert_parent_clean, $PY.
-WORKTREE_LIB_ABI=1
+#   2  SI-17 moved `wt` out of this unit and into skt. A script here can no
+#      longer spell the front door as "$SCRIPT_DIR/wt", so: wt_bin().
+WORKTREE_LIB_ABI=2
 
 die()  { printf 'error: %s\n' "$*" >&2; exit 1; }
 info() { printf '  %s\n' "$*" >&2; }
@@ -103,6 +105,49 @@ step() { printf '\n== %s ==\n' "$*" >&2; }
 # that parses the prose does not. So: never add a key without adding it to `references/worktrees.md`,
 # and never make a key's value anything but a path or a command that runs.
 contract() { printf '%-10s %s\n' "$1" "$2"; }
+
+# ------------------------------------------------------------ where `wt` IS
+#
+# The CLOSE key and several FIX lines name the front door, and SI-17 moved the
+# front door: `wt` ships with skt now, not beside this file. The old spelling,
+# "$SCRIPT_DIR/wt", would still PRINT — it is only a string in a contract line —
+# and would hand the caller an absolute path that does not exist. That is the
+# expensive direction: a dead path in a key reads as an answer, and this
+# repository has paid for that class twice already (#27, and the `--verbose`
+# fix that re-ran the search which had just failed).
+#
+# Rungs, first hit wins, and `wt` must be EXECUTABLE at the one that answers:
+#   0. $WT_BIN                 explicit override, for a test or an odd layout
+#   1. ../../skt/scripts       the sibling in a CHECKOUT of the bundle
+#   2. <home>/skills/skt/scripts, then <home>/plugins/*/skills/skt/scripts —
+#      standalone rung first, plugin rung second, because skt is a CONTAINED
+#      skill of the tla-spec-dev plugin and its bytes are under plugins/.
+#
+# $LIB_DIR, not $SCRIPT_DIR: the caller may be git-integration-repo, whose
+# SCRIPT_DIR is its own scripts/ directory across the dependency. The rung is
+# relative to THIS file, which is the one that knows where it sits in the unit.
+#
+# THE FALLBACK IS A COMMAND, NOT A GUESS. When nothing resolves, this answers
+# `skt ticket` — so `$(wt_bin) close T-1` degrades to `skt ticket close T-1`,
+# which is true in any home carrying the plugin and runnable as printed. A
+# guessed path would be the dead-path defect above, reintroduced as a default.
+wt_bin() {
+  local d home
+  if [ -n "${WT_BIN:-}" ]; then
+    printf %s "$WT_BIN"
+    return 0
+  fi
+  home="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"
+  for d in "$LIB_DIR/../../skt/scripts" \
+           "$home"/skills/skt/scripts \
+           "$home"/plugins/*/skills/skt/scripts; do
+    if [ -x "$d/wt" ]; then
+      printf '%s/wt' "$(cd "$d" && pwd -P)"
+      return 0
+    fi
+  done
+  printf 'skt ticket'
+}
 
 # The failure half. Both lines, always: a FAILED with no FIX is the banner this
 # replaces, and a FIX with no FAILED is a command with no reason to run it.

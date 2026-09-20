@@ -3,9 +3,9 @@ name: git-issue-workflow
 description: >-
   Use when handed a GitHub issue to implement — a body, a URL, a bare "#N", or
   `gh issue view` output — or asked to start, pick up, complete or close out a
-  ticket, including one assigned from a shared epic workflow. Ships the worktree
-  front door every ticket starts and ends with: `skt ticket new|close`, or this
-  skill's `scripts/wt`. Read before touching the repo — a
+  ticket, including one assigned from a shared epic workflow. Drives the worktree
+  lifecycle every ticket starts and ends with, through `skt ticket new|close` or
+  `skt`'s `scripts/wt`. Read before touching the repo — a
   `git-epic-workflow:assignment` marker selects epic mode. Trigger on "implement
   this issue", "complete this ticket", "work this epic ticket", "run the
   evaluation ticket", "open the MR", or receiving an agent-tagged PR.
@@ -49,9 +49,9 @@ command -v skt    # prints a path -> use `skt ticket new|close <ticket>` and sto
 that directory concludes it is absent from a home that has it. Its whole surface:
 `skt ticket new <ticket> [<base>] [--base <ref>] [--path <dir>]` and `skt ticket
 close <ticket>`; a dirty parent tree goes through the environment,
-`WT_DIRTY_OK=1`. Only when `command -v skt` prints nothing, resolve this skill's
-own `scripts/wt` — the two-rung spelling is `references/worktrees.md`
-§ *Resolving `wt` when `skt` is absent*.
+`WT_DIRTY_OK=1`. Only when `command -v skt` prints nothing, resolve `wt` by
+path — it ships with `skt`, and the two-rung spelling is
+`references/worktrees.md` § *Resolving `wt` when `skt` is absent*.
 
 **`cd` to the path `new` printed** — `<parent>/<repo>-<ticket>`, not
 `../wt-<ticket>`, so do not guess it. Anything a caller acts on is a keyed
@@ -214,10 +214,11 @@ out (`references/integration-fanout.md`).
 - It does not reimplement the spec, test-graph or fan-out mechanics — it
   **sequences** them, from `spec-double-compiler`, `test-graph` and
   `git-integration-repo`.
-- The **worktree lifecycle it does own**: `scripts/wt`, `new-change.sh`,
-  `close-change.sh`, `bootstrap-home.sh`, `agent-home.sh` and `lib.sh`, because a
+- The **worktree lifecycle it does own**: `new-change.sh`, `close-change.sh`,
+  `bootstrap-home.sh`, `agent-home.sh` and `lib.sh`, because a
   ticket and a worktree exist for every repo while an integration repository is a
-  specialization. They used to live in `git-integration-repo`, and an agent
+  specialization. The front door `wt` is `skt`'s and holds no policy.
+  These used to live in `git-integration-repo`, and an agent
   working a plain repo — reading that skill's description and correctly
   concluding it was irrelevant — never learned `wt` existed and wrote its own
   worktree script. The dependency runs specialized → general:

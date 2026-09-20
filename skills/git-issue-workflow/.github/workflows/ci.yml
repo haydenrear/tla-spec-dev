@@ -1,21 +1,21 @@
 # CI for git-issue-workflow.
 #
-# This repository had NO workflows, and it ships `wt` — the worktree front door
-# EVERY ticket in EVERY repo of this fleet starts and ends with. The single most
-# load-bearing script in the workspace was verified by nobody.
+# This repository had NO workflows, and it shipped `wt` — the worktree front
+# door EVERY ticket in EVERY repo of this fleet starts and ends with. The single
+# most load-bearing script in the workspace was verified by nobody.
 #
-# Three jobs, and what each is for:
+# SI-17 MOVED `wt`, AND TWO OF THE THREE JOBS WENT WITH IT.
 #
-#   tests     tests/test_wt_wrapper.py, the typed Python surface over `wt`.
-#             17 tests, seconds. Run on the interpreter floor pyproject.toml
-#             declares AND on the version the fleet's homes actually run,
-#             because `requires-python = ">=3.11"` was a claim nothing checked.
+# `wt`, its Python surface (`wt.py`) and the smoke suite that drives it now ship
+# with skt, so the jobs that measured them are skt's `.github/workflows/ci.yml`
+# — moved there rather than deleted, because a job that stops running is
+# indistinguishable from a job that passes. What is left HERE is the half that
+# is still this unit's: the scripts `wt` delegates to, and the unit manifest.
 #
-#   wt-smoke  .github/scripts/wt_smoke.sh — a real `wt new` / `wt info` /
-#             `wt close` round trip against a throwaway git repository, from a
-#             bare shell with no skill-manager installed. This is the half the
-#             Python wrapper cannot reach: the wrapper parses the contract, the
-#             smoke proves the contract describes something that happened.
+# The `tests` job is GONE because its subject is gone: this unit no longer ships
+# a Python package at all (`src/`, `pyproject.toml` and `uv.lock` went with
+# `wt.py`), so there is nothing for pytest to collect and a job that collects
+# nothing exits 5, not 0.
 #
 #   units     SKILL.md frontmatter and the unit manifest still parse, plus
 #             shellcheck over every shipped script. The frontmatter half is not
@@ -58,50 +58,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  tests:
-    name: pytest (python ${{ matrix.python-version }})
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.11", "3.13"]
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-        with:
-          enable-cache: true
-
-      - name: Give git a committer identity
-        run: |
-          git config --global user.email "ci@git-issue-workflow.invalid"
-          git config --global user.name "git-issue-workflow CI"
-          git config --global init.defaultBranch main
-
-      # The interpreter is pinned rather than inherited: bare `python3` in this
-      # workspace resolves to 3.14 without pytest on the machines these scripts
-      # are developed on, and an unpinned CI job would carry that ambiguity into
-      # the one place that is supposed to remove it.
-      - name: Run the wrapper suite
-        run: uv run --python ${{ matrix.python-version }} --with pytest pytest tests -q
-
-  wt-smoke:
-    name: wt new / close round trip
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-
-    steps:
-      - uses: actions/checkout@v4
-
-      # No uv, no skill-manager, no home. That is the point: the smoke runs in
-      # the environment a human running `wt` by hand is in, which is the shape
-      # every home-resolution bug this skill has had lived in.
-      - name: Smoke the worktree front door
-        run: bash .github/scripts/wt_smoke.sh
-
   units:
     name: unit manifest and frontmatter
     runs-on: ubuntu-latest
@@ -126,7 +82,11 @@ jobs:
       # across these scripts (unused vars, cd-without-guard, unquoted command
       # substitution) and they are named here rather than tolerated silently, so
       # that lowering the bar would have to be a diff someone reviews.
+      # `scripts/wt` and `.github/scripts/*.sh` are no longer listed: SI-17 moved
+      # both to skt, and shellcheck exits 1 on a path that does not exist, so
+      # leaving them would fail this job for a file this unit no longer ships.
+      # They are linted by skt's own `units` job now.
       - name: Lint the shipped shell scripts
         run: |
           shellcheck --severity=warning --exclude=SC2034,SC2164,SC2046 \
-            scripts/wt scripts/*.sh .github/scripts/*.sh
+            scripts/*.sh

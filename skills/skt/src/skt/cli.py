@@ -71,8 +71,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     ticket = sub.add_parser(
         "ticket",
-        help="worktree lifecycle: new/close/info via git-issue-workflow, plus "
-        "list/sweep over every ticket worktree of the repository",
+        help="worktree lifecycle: new/close/info via this plugin's scripts/wt, "
+        "plus list/sweep over every ticket worktree of the repository",
         # The SHAPE of a call, ahead of the option list. An eval watched an
         # agent guess the argument form and spend a call on the usage error;
         # argparse leads with options, and the verb-then-id order is the part

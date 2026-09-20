@@ -33,7 +33,7 @@ open questions the implementer should resolve first>
 ## Worktree & branch
 Create the worktree AND its own Skill Manager home with ONE command, from the
 repo root. It is the same command for a plain repo and an integration repo:
-`WT="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/wt"`
+`WT="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/skt "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/skt; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/wt"`
 `"$WT" new <issue-number>-<slug>`
 It prints one line — `created worktree <path>`. **cd to the path it printed.**
 That path is `<parent>/<repo-name>-<issue-number>-<slug>`, not `../wt-...`, so

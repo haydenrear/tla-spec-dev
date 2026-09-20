@@ -324,7 +324,7 @@ branches by hand because `wt` chooses the worktree path
 (`<parent>/<repo>-<ticket>`) and an epic assignment **declares** it — the
 assignment wins. The home the two routes produce is identical, and teardown is
 the same single command either way:
-`"$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/wt" close <issue-number>-<slug>`,
+`"$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/skt "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/skt; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/wt" close <issue-number>-<slug>`,
 which finds a hand-made `../wt-<issue-number>-<slug>` by search.
 
 Resume the declared branch/worktree instead of creating another when it already

@@ -8,7 +8,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from git_issue_workflow.wt import (  # noqa: E402
+from skt.wt import (  # noqa: E402
     BootstrapFailed,
     CloseRefused,
     StaleBase,

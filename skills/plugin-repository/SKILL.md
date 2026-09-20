@@ -77,7 +77,7 @@ decision here that is expensive to reverse.
 | Constituents as plain files, never submodules; strip `.git` → commit → restore | `git-integration-repo` (`references/git-model.md`) |
 | Pull every skill repo to its upstream tip at once | `git-integration-repo` — `scripts/refresh.sh` |
 | Fan a merged parent change back out to each skill repo | `git-integration-repo` — `scripts/propagate.sh` |
-| Worktree + its own Skill Manager home for a ticket | `git-issue-workflow` — `skt ticket new` / `wt` |
+| Worktree + its own Skill Manager home for a ticket | `skt` — `skt ticket new` / `scripts/wt`; the lifecycle it drives is `git-issue-workflow`'s |
 | `plugin.json`, `skill-manager-plugin.toml`, contained-skill semantics, deps | `skt` — `references/plugins.md`, `skills/unit-authoring` |
 | **The parent being a valid plugin AND a valid integration repo at once** | **here** |
 | **Why a bundle, which skills belong in one, and who watches it** | **here** — `references/why.md` |

@@ -75,7 +75,70 @@
 # if it forwards them. A caller that parsed the ONE-LINE summary is parsing
 # prose and never could be relied on; `wt info` is what such a caller should
 # read instead.
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"; . "$SCRIPT_DIR/lib.sh"
+#
+# SI-17 ANSWERED IT AGAIN, AND THE ANSWER MOVED THIS FILE.
+# ------------------------------------------------------
+# `wt` now ships with `skt`, the lifecycle CLI that calls it, and the paragraph
+# above is why that cost almost nothing: this file holds no policy, so moving it
+# moved no rule. What did NOT move is the policy — new-change.sh,
+# close-change.sh and lib.sh stay in git-issue-workflow, because the rules about
+# which repo is branched and which home a worktree closes into are that skill's,
+# and duplicating them here is the one thing this file has always refused to do.
+#
+# So the single thing this file gained is a RESOLVER for that directory.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Three rungs, in order, and the first that actually HAS lib.sh wins:
+#
+#   0. $GIT_ISSUE_WORKFLOW_SCRIPTS — the override git-integration-repo's
+#      `integration-lib.sh` already documents for this exact lookup. One
+#      spelling across the fleet rather than a second one invented here.
+#   1. the sibling in a CHECKOUT of the bundle, `../../git-issue-workflow/scripts`.
+#      This keeps `wt` runnable from a clone with NO home at all, which is the
+#      shape `.github/scripts/wt_smoke.sh` runs in and the shape every
+#      home-resolution bug this lifecycle has ever had lived in.
+#   2. an installed home: `skills/<unit>/scripts` FIRST, then
+#      `plugins/*/skills/<unit>/scripts`. Both rungs, standalone first, because
+#      git-issue-workflow is a CONTAINED skill and its bytes are under
+#      `plugins/` — resolving only rung one punished exactly the homes that had
+#      done the right thing (the same lesson as `tests/test_bootstrap_rungs.py`).
+#
+# An explicit loop with `break`, never `ls -d … | head -1`: that SORTS, which
+# puts `plugins/` ahead of `skills/` and inverts the intended precedence. And
+# the test is `-f "$d/lib.sh"`, not `-d "$d"`: an empty directory left by a
+# half-finished install is not a resolution, and a rung that answers with one
+# sends the source below to a file that is not there.
+_giw_scripts() {
+  local d home
+  if [ -n "${GIT_ISSUE_WORKFLOW_SCRIPTS:-}" ]; then
+    printf %s "$GIT_ISSUE_WORKFLOW_SCRIPTS"
+    return 0
+  fi
+  home="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"
+  for d in "$SCRIPT_DIR/../../git-issue-workflow/scripts" \
+           "$home"/skills/git-issue-workflow/scripts \
+           "$home"/plugins/*/skills/git-issue-workflow/scripts; do
+    if [ -f "$d/lib.sh" ]; then
+      (cd "$d" && pwd -P)
+      return 0
+    fi
+  done
+  return 1
+}
+
+# Hand-rolled, because `die_fix` is defined in the very file that is missing.
+# Still the three-line shape everything else here prints: what stopped it, and
+# one command that fixes it.
+if ! GIW_SCRIPTS="$(_giw_scripts)"; then
+  printf 'error: git-issue-workflow'\''s scripts/ could not be resolved — `wt` is the front door, but new-change.sh, close-change.sh and lib.sh are the lifecycle, and they are not beside it\n' >&2
+  printf 'fix: GIT_ISSUE_WORKFLOW_SCRIPTS=/path/to/git-issue-workflow/scripts %s\n' "$0" >&2
+  exit 1
+fi
+
+# SCRIPT_DIR stays THIS file's directory across the source, which is what keeps
+# every `$SCRIPT_DIR/wt` below meaning this same file. lib.sh only DEFAULTS it
+# (`: "${SCRIPT_DIR:=$LIB_DIR}"`), so setting it above is what decides it.
+. "$GIW_SCRIPTS/lib.sh"
 
 usage() {
   cat >&2 <<'EOF'
@@ -136,9 +199,9 @@ VERB="${1:-}"; [ $# -gt 0 ] && shift || true
 # them would be the second opinion issue #50 is about.
 INFO_FLAG=""
 case "$VERB" in
-  new)   TARGET_SCRIPT="$SCRIPT_DIR/new-change.sh" ;;
-  close) TARGET_SCRIPT="$SCRIPT_DIR/close-change.sh" ;;
-  info)  TARGET_SCRIPT="$SCRIPT_DIR/new-change.sh"; INFO_FLAG="--info" ;;
+  new)   TARGET_SCRIPT="$GIW_SCRIPTS/new-change.sh" ;;
+  close) TARGET_SCRIPT="$GIW_SCRIPTS/close-change.sh" ;;
+  info)  TARGET_SCRIPT="$GIW_SCRIPTS/new-change.sh"; INFO_FLAG="--info" ;;
   ""|-h|--help|help) usage; [ -n "$VERB" ] && exit 0 || exit 1 ;;
   *)     usage; die_fix 1 "$SCRIPT_DIR/wt help" "unknown verb: $VERB (expected 'new', 'close' or 'info')" ;;
 esac
@@ -390,7 +453,11 @@ if [ "$RC" != 0 ] && [ "$VERBOSE" = 1 ]; then
     *FAILED*) : ;;
     *) VREASON="$(child_reason)"
        [ -n "$VREASON" ] || VREASON="exit $RC"
-       contract_fail "$SCRIPT_DIR/$(basename "$TARGET_SCRIPT") ${ARGS[*]}" "$VREASON" ;;
+       # $TARGET_SCRIPT whole, not a path recomposed from $SCRIPT_DIR and a
+       # basename: the delegate lives in git-issue-workflow now, and rebuilding
+       # its path from THIS file's directory would name a script that is not
+       # there — a FIX line that cannot run, which is worse than none.
+       contract_fail "$TARGET_SCRIPT ${ARGS[*]}" "$VREASON" ;;
   esac
   exit "$RC"
 fi

@@ -7,17 +7,18 @@
 # ///
 """skt.ticket-roundtrip — a worktree created and torn down for real.
 
-`skt ticket new|info|close` is the lifecycle skt puts its name on. It
-does not reimplement `wt`: it imports git-issue-workflow's typed Python
-surface and adds skt's framing. Two things follow, and only an
-end-to-end run reaches either:
+`skt ticket new|info|close` is the lifecycle skt puts its name on. Since
+SI-17 it SHIPS `wt` and the typed Python surface over it; what it still
+imports across units is the lifecycle `wt` delegates to, which is
+git-issue-workflow's `lib.sh` / `new-change.sh` / `close-change.sh`.
+Two things follow, and only an end-to-end run reaches either:
 
   * the ROUND TRIP. `new` must produce a real linked worktree on a real
     branch, `info` must answer about that same worktree, and `close`
     must remove the directory while KEEPING the branch. Every one of
     those is a fact about a filesystem and a git object store.
 
-  * the REFUSALS. When the git-issue-workflow surface is not importable,
+  * the REFUSALS. When the git-issue-workflow lifecycle is unreachable,
     skt names the remedy that fits THIS home — and telling the four
     cases apart was itself a merged fix (`fix(ticket): tell
     not-installed from not-synced, and name a remedy that runs`, #25),
@@ -85,8 +86,12 @@ def _resolve_giw(workdir: Path) -> tuple[Path, str]:
         if not base:
             continue
         candidate = Path(base) / "skills" / "git-issue-workflow"
-        if (candidate / "src" / "git_issue_workflow").is_dir() and (
-            candidate / "scripts" / "wt"
+        # SI-17: `wt` and `wt.py` are skt's now, so neither is evidence that
+        # THIS unit is usable. What makes it usable is the lifecycle `wt`
+        # delegates to, and lib.sh is the file every one of those scripts
+        # sources first — so it is the honest probe.
+        if (candidate / "scripts" / "lib.sh").is_file() and (
+            candidate / "scripts" / "new-change.sh"
         ).is_file():
             return candidate, f"installed:{candidate}"
     target = workdir / "git-issue-workflow"
@@ -134,11 +139,19 @@ def main(ctx):
     except RuntimeError as exc:
         return NodeResult.fail(ctx.node_id, str(exc))
     result.log(f"git-issue-workflow from {source}")
+    # What this unit must supply AFTER SI-17: the lifecycle, not the door.
+    # Asserting `scripts/wt` here would now be asserting something about skt
+    # through a git-issue-workflow checkout, which is exactly the confusion
+    # the move exists to remove.
     result.assertion(
-        "the git-issue-workflow python surface is present",
-        (giw / "src" / "git_issue_workflow" / "wt.py").is_file(),
+        "git-issue-workflow supplies the shared lifecycle helpers",
+        (giw / "scripts" / "lib.sh").is_file(),
     )
-    result.assertion("its `wt` front door is present", (giw / "scripts" / "wt").is_file())
+    result.assertion(
+        "and the scripts `wt` delegates to",
+        (giw / "scripts" / "new-change.sh").is_file()
+        and (giw / "scripts" / "close-change.sh").is_file(),
+    )
 
     # ------------------------------------------------------------ round trip
     home = build_home(work / "home", units=[unit_record("skt", version="0.3.1", kind="PLUGIN")])
@@ -241,7 +254,7 @@ def main(ctx):
             "installed but no importable surface",
             {**bare_env, "SKILL_MANAGER_HOME": str(installed_no_surface)},
             repo,
-            ["carries no importable python surface", "sync git-issue-workflow --git-latest"],
+            ["carries no worktree lifecycle scripts", "sync git-issue-workflow --git-latest"],
             ["is neither installed", "project resolve"],
         )
     )

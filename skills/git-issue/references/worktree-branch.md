@@ -34,15 +34,15 @@ Embed that form first — it is how implementers who never read this skill still
 find the front door — and keep the resolved path as the fallback for a checkout
 without skt.
 
-**Spell the fallback resolved.** The script is shipped by the
-`git-issue-workflow` unit, and an installed unit's files live at
-`$SKILL_MANAGER_HOME/skills/<unit>/`. Write that path out; never write
-`<git-issue-workflow-skill>/…` or any other placeholder the implementer has to
-resolve. That placeholder is the measured cause of two field failures: one agent
+**Spell the fallback resolved.** The script is shipped by the `skt` unit
+(SI-17 moved it there, beside the CLI that wraps it), and an installed unit's
+files live at `$SKILL_MANAGER_HOME/skills/<unit>/` — with the `plugins/` rung
+for a contained one. Write that path out; never write `<skt>/…` or any other
+placeholder the implementer has to resolve. That placeholder is the measured cause of two field failures: one agent
 ran the wrong script, another concluded it had to write its own (git-issue#4).
 
 ```bash
-WT="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/wt"
+WT="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/skt "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/skt; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/wt"
 ```
 
 `SKILL_MANAGER_HOME` is exported by the launch shims every agent starts through;
@@ -62,7 +62,7 @@ the `:-` fallback is what makes the same line work from a bare shell.
 ## The instruction to embed in the issue
 
 ```bash
-WT="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/wt"
+WT="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/skt "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/skt; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/wt"
 
 # from anywhere inside the repo
 "$WT" new <issue-number>-<slug>
@@ -99,7 +99,7 @@ The other is exit **7**: the base branch is BEHIND its remote counterpart.
 
 ```
 error creating worktree: base epic/subtract-to-measure is 21 commit(s) behind origin/epic/subtract-to-measure — branching it would start from a superseded tree (--stale-base-ok to do it anyway)
-fix: /path/to/home/skills/git-issue-workflow/scripts/wt new <ticket> origin/epic/subtract-to-measure
+fix: /path/to/home/skills/skt/scripts/wt new <ticket> origin/epic/subtract-to-measure
 log: /tmp/wt-XXXXXX-run.log
 ```
 
@@ -141,7 +141,7 @@ State it concretely rather than in the abstract, e.g.:
 ## Worktree & branch
 Create the worktree AND its own Skill Manager home with ONE command, from the
 repo root. Same command for a plain repo and an integration repo:
-`WT="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/wt"`
+`WT="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/skt "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/skt; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/wt"`
 `"$WT" new <issue-number>-<slug>`
 
 It prints `created worktree <path>` — cd to that path (it is
@@ -180,7 +180,7 @@ worktree — but **the home is checked first**, because the removal is what dest
 it:
 
 ```bash
-WT="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/wt"
+WT="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/skt "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/skt; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/wt"
 "$WT" close <issue-number>-<slug>
 ```
 

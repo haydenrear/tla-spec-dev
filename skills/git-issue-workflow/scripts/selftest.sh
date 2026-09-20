@@ -5,8 +5,8 @@
 #
 # WHY THIS SUITE IS HERE AND NOT IN git-integration-repo
 # ------------------------------------------------------
-# It follows its subjects. `wt`, new-change.sh, close-change.sh,
-# bootstrap-home.sh, agent-home.sh and lib.sh moved to this skill because a
+# It follows its subjects. new-change.sh, close-change.sh, bootstrap-home.sh,
+# agent-home.sh and lib.sh moved to this skill because a
 # ticket and a worktree exist for EVERY repo, while an integration repository is
 # a specialization that exists only when a repo has constituents — and an agent
 # selects a skill by its description, so the machinery has to live in the skill a
@@ -44,6 +44,14 @@
 # Nothing outside the scratch directory is read or written: HOME is redirected
 # into the fixture, so the "global home" these scripts fall back to IS the decoy.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"; . "$SCRIPT_DIR/lib.sh"
+
+# SI-17: `wt` ships with skt now, so this suite cannot spell it
+# "$SCRIPT_DIR/wt" any more. lib.sh's wt_bin() resolves it -- the checkout
+# sibling first, then both home rungs. Asserted ONCE, here, rather than left to
+# fail 25 times over with "No such file or directory", which names the symptom
+# and not the cause.
+WT_SCRIPT="$(wt_bin)"
+[ -x "$WT_SCRIPT" ] || { printf 'error: this suite drives the wt front door, and wt_bin() resolved to %s, which is not executable\n' "$WT_SCRIPT" >&2; exit 1; }
 
 KEEP=0
 while [ $# -gt 0 ]; do
@@ -409,7 +417,7 @@ check "$(yesno command grep -q 'sync --force-scripts$' "$FS_CONTROL")" \
   "the_deleted_remedy_pattern_matches_the_line_that_shipped" \
   "the pattern does not match the text it is meant to keep out, so the next check proves nothing"
 FS_OFFERS=""
-for f in "$SCRIPT_DIR"/*.sh "$SCRIPT_DIR/wt"; do
+for f in "$SCRIPT_DIR"/*.sh "$WT_SCRIPT"; do
   [ -f "$f" ] || continue
   case "$(basename "$f")" in selftest.sh) continue ;; esac
   # Offered as a COMMAND — a line ending in the option — rather than merely
@@ -1103,10 +1111,10 @@ check "$(yesno command grep -q '^verified: ' "${NCD_LOG:-/nonexistent}")" \
 check "$(yesno command grep -q 'Teardown note' "${NCD_LOG:-/nonexistent}")" \
   "and_so_does_new_changes_own_closing_prose" \
   "the closing notes were deleted rather than moved; they are the explanation of the contract"
-( cd "$CHEAP" && bare bash "$SCRIPT_DIR/wt" close WD1 --force ) >/dev/null 2>&1 || true
+( cd "$CHEAP" && bare bash "$WT_SCRIPT" close WD1 --force ) >/dev/null 2>&1 || true
 
 NEW_RC=0
-( cd "$CHEAP" && bare bash "$SCRIPT_DIR/wt" new W1 ) \
+( cd "$CHEAP" && bare bash "$WT_SCRIPT" new W1 ) \
   > "$SCRATCH/wt-new.out" 2> "$SCRATCH/wt-new.err" || NEW_RC=$?
 
 # Non-vacuity before anything else: a run that failed would have an empty or
@@ -1148,7 +1156,7 @@ $(command sed 's/^/        /' "$SCRATCH/wt-new.out")"
 # every one of them is still a runnable path, one command away, and that command
 # creates and removes nothing.
 INFO_RC=0
-( cd "$CHEAP" && bare bash "$SCRIPT_DIR/wt" info W1 ) \
+( cd "$CHEAP" && bare bash "$WT_SCRIPT" info W1 ) \
   > "$SCRATCH/wt-info.out" 2> "$SCRATCH/wt-info.err" || INFO_RC=$?
 check "$(yesno test "$INFO_RC" = 0)" \
   "wt_info_answers_for_a_worktree_that_exists" \
@@ -1193,7 +1201,7 @@ check "$(yesno executable "${DRIFT_V%% *}")" \
 # to take: `wt` dumped the whole of the child's stderr to the console on every
 # failure, and the reason it went wrong is not the answer to "what do I run".
 DUP_RC=0
-( cd "$CHEAP" && bare bash "$SCRIPT_DIR/wt" new W1 ) \
+( cd "$CHEAP" && bare bash "$WT_SCRIPT" new W1 ) \
   > "$SCRATCH/wt-dup.out" 2> "$SCRATCH/wt-dup.err" || DUP_RC=$?
 check "$(yesno test "$DUP_RC" != 0)" \
   "a_second_wt_new_for_the_same_ticket_fails" \
@@ -1243,7 +1251,7 @@ check "$(yesno dup_named_a_log_that_holds_the_narration)" \
 # clause on the one line rather than as a third keyed line, because
 # `feature/<TICKET>` is only the DEFAULT spelling and the path does not carry it.
 CLOSE_RC2=0
-( cd "$CHEAP" && bare bash "$SCRIPT_DIR/wt" close W1 ) \
+( cd "$CHEAP" && bare bash "$WT_SCRIPT" close W1 ) \
   > "$SCRATCH/wt-close.out" 2> "$SCRATCH/wt-close.err" || CLOSE_RC2=$?
 check "$(yesno test "$CLOSE_RC2" = 0)" \
   "wt_close_tears_the_worktree_down_in_one_command" \
@@ -1277,7 +1285,7 @@ check "$(yesno close_is_one_line_naming_the_worktree_and_the_branch)" \
 step "wt close --force reports one outcome, not both"
 
 FORCED_WT=""
-( cd "$CHEAP" && bare bash "$SCRIPT_DIR/wt" new W2 ) \
+( cd "$CHEAP" && bare bash "$WT_SCRIPT" new W2 ) \
   > "$SCRATCH/wt-new2.out" 2> "$SCRATCH/wt-new2.err" || true
 FORCED_WT="$(created_path "$SCRATCH/wt-new2.out")"
 
@@ -1289,7 +1297,7 @@ if [ -n "$FORCED_WT" ] && [ -d "$FORCED_WT/.skill-manager" ]; then
 fi
 
 BLOCK_RC=0
-( cd "$CHEAP" && bare bash "$SCRIPT_DIR/wt" close W2 ) \
+( cd "$CHEAP" && bare bash "$WT_SCRIPT" close W2 ) \
   > "$SCRATCH/wt-block.out" 2> "$SCRATCH/wt-block.err" || BLOCK_RC=$?
 
 # Anchored on `^KEY` followed by whitespace, always: `CLOSE` is a substring of
@@ -1344,7 +1352,7 @@ check "$(yesno test "$(yesno has_key CLOSED "$SCRATCH/wt-block.out")" = 0)" \
   "CLOSED and a refusal on the same run; see $SCRATCH/wt-block.out"
 
 FORCE_RC2=0
-( cd "$CHEAP" && bare bash "$SCRIPT_DIR/wt" close W2 --force ) \
+( cd "$CHEAP" && bare bash "$WT_SCRIPT" close W2 --force ) \
   > "$SCRATCH/wt-force.out" 2> "$SCRATCH/wt-force.err" || FORCE_RC2=$?
 
 check "$(yesno test "$FORCE_RC2" = 0)" \
@@ -1739,7 +1747,7 @@ check "$(yesno command grep -q 'NOTES.md' "$SCRATCH/clean-after.txt")" \
 git -C "$CLEANP" add NOTES.md
 git -C "$CLEANP" -c commit.gpgsign=false commit -qm "the operator's work"
 WTNEW_RC=0
-( cd "$CLEANP" && bare bash "$SCRIPT_DIR/wt" new C1 ) \
+( cd "$CLEANP" && bare bash "$WT_SCRIPT" new C1 ) \
   > "$SCRATCH/clean-wtnew.out" 2> "$SCRATCH/clean-wtnew.err" || WTNEW_RC=$?
 check "$(yesno test "$WTNEW_RC" = 0)" \
   "wt_new_is_not_refused_by_a_tree_the_bootstrap_left_behind" \
@@ -2422,7 +2430,7 @@ HELP_NOUSAGE=""
 HELP_WRONGNAME=""
 HELP_SWEEP_BEFORE="$SCRATCH/help-sweep-before.txt"
 listing "$HELPP/sweep" > "$HELP_SWEEP_BEFORE"
-for f in "$SCRIPT_DIR"/*.sh "$SCRIPT_DIR/wt"; do
+for f in "$SCRIPT_DIR"/*.sh "$WT_SCRIPT"; do
   [ -f "$f" ] || continue
   n="$(basename "$f")"
   # lib.sh is SOURCED, never run: it defines helpers and has no main, so it has
@@ -2499,7 +2507,7 @@ check "$(yesno command grep -q 'nothing was$' "$CLAIM_DECOY")" \
   "the pattern does not match the text it is meant to keep out, so the next check proves nothing"
 
 CLAIMERS=""
-for f in "$SCRIPT_DIR"/*.sh "$SCRIPT_DIR/wt"; do
+for f in "$SCRIPT_DIR"/*.sh "$WT_SCRIPT"; do
   [ -f "$f" ] || continue
   case "$(basename "$f")" in selftest.sh) continue ;; esac
   # `if`, not `grep … && …`: under `set -e` a trailing `&&` list whose condition
@@ -2682,7 +2690,7 @@ check "$(yesno command grep -q '^[^#]*--help 2>&1 |[[:space:]]*grep' "$PIPE_DECO
   "the_discarded_status_pattern_matches_the_probe_that_shipped" \
   "the pattern does not match the defective line, so the next check proves nothing"
 PIPED=""
-for f in "$SCRIPT_DIR"/*.sh "$SCRIPT_DIR/wt"; do
+for f in "$SCRIPT_DIR"/*.sh "$WT_SCRIPT"; do
   [ -f "$f" ] || continue
   case "$(basename "$f")" in selftest.sh) continue ;; esac
   if command grep -q '^[^#]*--help 2>&1 |[[:space:]]*grep' "$f"; then
@@ -2826,7 +2834,7 @@ $(printf '%s\n' "$REL_HITS" | command sed 's/^/        /')"
 REL_ROOT="$SCRATCH/relcheck"
 REL_SCRIPTS="$REL_ROOT/skill/scripts"
 mkdir -p "$REL_SCRIPTS" "$REL_ROOT/skill-manager"
-cp "$SCRIPT_DIR"/*.sh "$SCRIPT_DIR/wt" "$REL_SCRIPTS/" 2>/dev/null || true
+cp "$SCRIPT_DIR"/*.sh "$WT_SCRIPT" "$REL_SCRIPTS/" 2>/dev/null || true
 DECOY="$REL_ROOT/skill-manager/skill-manager"
 DECOY_LOG="$REL_ROOT/decoy.log"
 cat > "$DECOY" <<EOF
@@ -2908,7 +2916,7 @@ $(command sed 's/^/        /' "$NAMED_RUN" 2>/dev/null | command tail -5)"
 # and HOLDS THE NARRATION, because a `wt` that printed a plausible sentence
 # about a path it never wrote would pass a grep for the sentence.
 PROG_RC=0
-( cd "$CHEAP" && bare env WT_PROGRESS_AFTER=1 bash "$SCRIPT_DIR/wt" new WL2 ) \
+( cd "$CHEAP" && bare env WT_PROGRESS_AFTER=1 bash "$WT_SCRIPT" new WL2 ) \
   > "$SCRATCH/wt-prog.out" 2> "$SCRATCH/wt-prog.err" || PROG_RC=$?
 PROG_LOG="$(command sed -n 's/.*watch: tail -f //p' "$SCRATCH/wt-prog.err" | command sed -n 1p)"
 PROG_WT="$(created_path "$SCRATCH/wt-prog.out")"
@@ -2937,7 +2945,7 @@ $(command sed 's/^/        /' "$SCRATCH/wt-prog.err")"
 # $SCRATCH/proj-WL2, that does not exist, and the old code refused there —
 # reporting a missing ticket when what was wrong was the directory.
 XCLOSE_RC=0
-( cd "$PROJ" && bare bash "$SCRIPT_DIR/wt" close WL2 ) \
+( cd "$PROJ" && bare bash "$WT_SCRIPT" close WL2 ) \
   > "$SCRATCH/wt-xclose.out" 2> "$SCRATCH/wt-xclose.err" || XCLOSE_RC=$?
 XCLOSE_LINE="$(command sed -n 1p "$SCRATCH/wt-xclose.out")"
 closed_from_an_unrelated_repo() {
@@ -3022,7 +3030,7 @@ mkdir -p "$SCRATCH/aaa-WL9" "$SCRATCH/bbb-WL9"
 printf 'gitdir: /nonexistent\n' > "$SCRATCH/aaa-WL9/.git"
 printf 'gitdir: /nonexistent\n' > "$SCRATCH/bbb-WL9/.git"
 AMBIG_RC=0
-( cd "$CHEAP" && bare bash "$SCRIPT_DIR/wt" close WL9 ) \
+( cd "$CHEAP" && bare bash "$WT_SCRIPT" close WL9 ) \
   > "$SCRATCH/wt-ambig.out" 2> "$SCRATCH/wt-ambig.err" || AMBIG_RC=$?
 AMBIG_REASON="$(command sed -n 's/^error closing worktree: //p' "$SCRATCH/wt-ambig.out" | command sed -n 1p)"
 ambiguity_is_refused_and_named() {
@@ -3062,8 +3070,8 @@ $(printf '%s\n' "$BARE_WT" | command sed 's/^/        /')"
 # verbs now resolve through the same helper, so they cannot answer about
 # different worktrees.
 INFO2_RC=0
-( cd "$CHEAP" && bare bash "$SCRIPT_DIR/wt" new WL6 --no-home ) >/dev/null 2>&1 || true
-( cd "$PROJ" && bare bash "$SCRIPT_DIR/wt" info WL6 ) \
+( cd "$CHEAP" && bare bash "$WT_SCRIPT" new WL6 --no-home ) >/dev/null 2>&1 || true
+( cd "$PROJ" && bare bash "$WT_SCRIPT" info WL6 ) \
   > "$SCRATCH/wt-info2.out" 2> "$SCRATCH/wt-info2.err" || INFO2_RC=$?
 CLOSE2_V="$(command sed -n 's/^CLOSE  *//p' "$SCRATCH/wt-info2.out" | command sed -n 1p)"
 INFO2_WT="$(command sed -n 's/^WORKTREE  *//p' "$SCRATCH/wt-info2.out" | command sed -n 1p)"
@@ -3186,7 +3194,7 @@ check "$(yesno fixture_is_stale_the_way_the_real_one_was)" \
 # been superseded, so the run proceeds and branches 3 commits behind. This is the
 # honest statement of the gate's limit, and it is also the offline escape.
 SB0_RC=0
-( cd "$STALE" && bare env WT_FETCH=0 bash "$SCRIPT_DIR/wt" new SB0 epic/demo --no-home ) \
+( cd "$STALE" && bare env WT_FETCH=0 bash "$WT_SCRIPT" new SB0 epic/demo --no-home ) \
   > "$SCRATCH/sb-nofetch.out" 2> "$SCRATCH/sb-nofetch.err" || SB0_RC=$?
 SB0_WT="$(created_path "$SCRATCH/sb-nofetch.out")"
 nofetch_cannot_see_a_staleness_no_local_ref_records() {
@@ -3203,7 +3211,7 @@ check "$(yesno nofetch_cannot_see_a_staleness_no_local_ref_records)" \
 
 # ---- and the refusal, with the fetch that makes it possible.
 SB1_RC=0
-( cd "$STALE" && bare bash "$SCRIPT_DIR/wt" new SB1 epic/demo --no-home ) \
+( cd "$STALE" && bare bash "$WT_SCRIPT" new SB1 epic/demo --no-home ) \
   > "$SCRATCH/sb-stale.out" 2> "$SCRATCH/sb-stale.err" || SB1_RC=$?
 SB1_REASON="$(command sed -n 's/^error creating worktree: //p' "$SCRATCH/sb-stale.out" | command sed -n 1p)"
 SB1_FIX="$(command sed -n 's/^fix: //p' "$SCRATCH/sb-stale.out" | command sed -n 1p)"
@@ -3215,7 +3223,7 @@ check "$(yesno test "$SB1_RC" != 0)" \
       gate it exited 0 and the ticket worked on a superseded tree"
 
 # THE NUMBER, not just "nonzero". The exit codes are an interface:
-# src/git_issue_workflow/wt.py maps 3 -> BootstrapFailed and 4 ->
+# skt's src/skt/wt.py maps 3 -> BootstrapFailed and 4 ->
 # close-change.sh's REFUSED_EXIT -> CloseRefused, and this gate first shipped
 # reusing 4 — so a refused `wt new` raised "the close-out gate refused", naming
 # the wrong gate on the wrong verb. Asserted here as well as in the Python
@@ -3311,7 +3319,7 @@ check "$(yesno fetch_moved_only_the_ref_it_was_asked_for)" \
 # useless, and a flag that silently proceeds makes the deliberate case
 # indistinguishable from the accident the gate exists to catch.
 SB2_RC=0
-( cd "$STALE" && bare bash "$SCRIPT_DIR/wt" new SB2 epic/demo --stale-base-ok --no-home ) \
+( cd "$STALE" && bare bash "$WT_SCRIPT" new SB2 epic/demo --stale-base-ok --no-home ) \
   > "$SCRATCH/sb-ok.out" 2> "$SCRATCH/sb-ok.err" || SB2_RC=$?
 SB2_WT="$(created_path "$SCRATCH/sb-ok.out")"
 SB2_LINE="$(command sed -n 1p "$SCRATCH/sb-ok.out")"
@@ -3361,7 +3369,7 @@ check "$(yesno test "$STEADY_AHEAD" = 1 -a "$STEADY_BEHIND" = 0)" \
 SB_OK=""
 sb_proceeds() { # $1 = ticket, $2 = base, $3 = why
   local rc=0
-  ( cd "$STALE" && bare bash "$SCRIPT_DIR/wt" new "$1" "$2" --no-home ) \
+  ( cd "$STALE" && bare bash "$WT_SCRIPT" new "$1" "$2" --no-home ) \
     > "$SCRATCH/sb-$1.out" 2> "$SCRATCH/sb-$1.err" || rc=$?
   local p; p="$(created_path "$SCRATCH/sb-$1.out")"
   if [ "$rc" != 0 ] || [ "$(lines_of "$SCRATCH/sb-$1.out")" != 1 ] \
@@ -3454,7 +3462,7 @@ $(command sed 's/^/        /' "$SCRATCH/sb-key.out")"
 # ...and NOT on --info, which is answering about a worktree some other run
 # created and knows nothing about what that run branched from. A BASE key there
 # would be the `verified`-over-an-empty-home defect in another costume.
-( cd "$STALE" && bare bash "$SCRIPT_DIR/wt" info SB6 ) \
+( cd "$STALE" && bare bash "$WT_SCRIPT" info SB6 ) \
   > "$SCRATCH/sb-info.out" 2> "$SCRATCH/sb-info.err" || true
 info_claims_no_base_it_did_not_measure() {
   command grep -q '^WORKTREE ' "$SCRATCH/sb-info.out" || return 1
@@ -3481,7 +3489,7 @@ LCB1="$SCRATCH/proj-LCB1"
 LCB2="$SCRATCH/proj-LCB2"
 LCB3="$SCRATCH/proj-LCB3"
 for ticket in LCB1 LCB2 LCB3; do
-  ( cd "$PROJ" && bare bash "$SCRIPT_DIR/wt" new "$ticket" main ) \
+  ( cd "$PROJ" && bare bash "$WT_SCRIPT" new "$ticket" main ) \
     > "$SCRATCH/$ticket-new.out" 2> "$SCRATCH/$ticket-new.err" || true
 done
 

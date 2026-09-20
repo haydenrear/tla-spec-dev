@@ -7,10 +7,9 @@ the `skt` surface above it. This is the ONE place that parses them, so
 `skt build`, `skt check` and `skt status` cannot come to disagree about the
 same home through three parsing implementations.
 
-The shape mirrors git-issue-workflow's `wt.py`, which `skt.ticket` already
-imports rather than parsing stdout: frozen dataclasses, and a typed
-exception hierarchy whose subclasses are exactly the cases a caller acts on
-differently.
+The shape mirrors `skt.wt`, which `skt.ticket` imports rather than parsing
+stdout: frozen dataclasses, and a typed exception hierarchy whose subclasses
+are exactly the cases a caller acts on differently.
 
 ## Stdlib only
 

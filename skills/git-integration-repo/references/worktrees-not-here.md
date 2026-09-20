@@ -11,10 +11,12 @@ still makes to a ticket.
 skt ticket new   TICKET-123   # preferred: on PATH in skt-carrying homes
 skt ticket close TICKET-123
 
-# fallback for a checkout without skt — same lifecycle underneath.
-# Two rungs: git-issue-workflow is a CONTAINED SKILL of the tla-spec-dev plugin,
-# so its bytes are under plugins/<plugin>/skills/, not skills/.
-WT="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/wt"
+# fallback for a checkout without the skt COMMAND — same lifecycle underneath.
+# `wt` ships with skt since SI-17; the scripts it delegates to are still
+# git-issue-workflow's and it resolves them itself. Two rungs: skt is a
+# CONTAINED SKILL of the tla-spec-dev plugin, so its bytes are under
+# plugins/<plugin>/skills/, not skills/.
+WT="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/skt "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/skt; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/wt"
 "$WT" new   TICKET-123     # worktree + its own Skill Manager home, launchable
 "$WT" close TICKET-123     # teardown, through the close-out gate
 ```

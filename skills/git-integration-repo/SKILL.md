@@ -102,8 +102,9 @@ constituent would clobber it.
 
 ## Worktrees are not here: `git-issue-workflow` owns them
 
-**`wt`, `new-change.sh`, `close-change.sh`, `bootstrap-home.sh`, `agent-home.sh`
-and the shared `lib.sh` are shipped by `git-issue-workflow`, not by this skill.**
+**`new-change.sh`, `close-change.sh`, `bootstrap-home.sh`, `agent-home.sh` and
+the shared `lib.sh` are shipped by `git-issue-workflow`, and `wt` by `skt` —
+none of them by this skill.**
 Nothing on this page creates or removes a worktree, and you do not need to read
 this page to make one:
 

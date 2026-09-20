@@ -1,5 +1,23 @@
 # Contained skill of the skt plugin. The CLI dependency is declared at
 # plugin level (skill-manager-plugin.toml), so this stays empty.
+#
+# SI-17 gave this unit `scripts/wt`, the worktree front door, and the typed
+# Python surface over it (`src/skt/wt.py`). That does NOT add a reference to
+# git-issue-workflow, and the omission is deliberate rather than an oversight:
+#
+#   * `wt` resolves that unit's scripts/ AT RUN TIME, across three rungs, and
+#     refuses with a named fix when it cannot. A hard reference would turn a
+#     legible runtime refusal into an install-time dependency for every home
+#     that installs this plugin for `skt status` and will never run a ticket.
+#   * both units are contained skills of THIS SAME bundle, so installing the
+#     plugin already guarantees the files. `plugin-repository`'s
+#     references/layout.md is explicit that a reference to a fellow bundle
+#     member is "redundant at best and an install-time cycle at worst".
+#
+# The honest consequence, stated because it is a real gap and not a hypothetical
+# one: a home can carry skt WITHOUT git-issue-workflow, and then `wt` resolves
+# and its delegates do not. That is the case `wt`'s own three-line refusal and
+# `skt.ticket`'s four remedies exist to name.
 
 skill_references = [
 ]

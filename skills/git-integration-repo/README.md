@@ -22,7 +22,7 @@ skill-manager sync git-integration-repo
   `add-constituent.sh`, `finalize-constituents.sh`, `verify.sh`)
 - **Ticketed changes** — a parent worktree whose constituent files are pure
   files. The worktree itself, and its Skill Manager home, come from
-  `git-issue-workflow`'s `wt`, which is the same command for every repo shape;
+  `skt`'s `wt`, which is the same command for every repo shape;
   this skill contributes the fan-out at the end.
 - **Propagation** — per-constituent branch/commit/push, MRs, one tracking issue.
   (`scripts/propagate.sh`)
