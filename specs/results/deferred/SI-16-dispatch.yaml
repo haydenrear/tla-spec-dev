@@ -1,0 +1,25 @@
+# Epic-agent finding recorded AT DISPATCH, not discovered by the ticket agent.
+- id: SI-16-DF-00
+  title: "The front door is broken in the ROOT home at SI-16 dispatch time"
+  target: skt
+  recorded_by: epic-agent
+  recorded_at: "2026-09-20"
+  detail: >-
+    The dispatch command every assignment names resolves
+    ${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/bin/cli/skt, which with the env
+    unset is the ROOT home. Measured at dispatch: that home's
+    plugins/skt/src/skt/ticket.py has ZERO matches for the plugins/*/skills rung,
+    so _bootstrap_script() resolves only <home>/skills/git-issue-workflow/... and
+    `skt ticket new` exits 3 with "bootstrap-home.sh not found; worktree rolled
+    back". This is the ninth-plus occurrence and the root cause is known.
+  why_not_fixed_here: >-
+    The fix exists as open PR haydenrear/skt#54 (b7ea313a) but is installed only
+    in the PROJECT home. Installing it into the ROOT home is a root-home mutation
+    that needs owner say-so, and SI-24 rebuilds that home from a manifest anyway,
+    which supersedes a one-off repair.
+  mitigation: >-
+    SI-16 is dispatched with the by-hand `git worktree add` route named
+    explicitly in its brief, so the agent does not burn turns rediscovering a
+    filed defect.
+  skill_change: "proposed(skt, https://github.com/haydenrear/skt/pull/54)"
+  disposition: mitigated
