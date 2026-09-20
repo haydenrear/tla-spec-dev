@@ -69,6 +69,26 @@ description = "Generate and maintain Python spec doubles from constrained, annot
 
 [plugins.skt]
 source = "github:haydenrear/skt"
+# SI-14: THE VERSION AN EVAL RUNS AGAINST IS NOT DECLARED HERE, AND CANNOT BE.
+#
+# This coord names the repo, and resolution takes whatever `main` points at on
+# the day it runs. That is how the project home came to hold `gitRef main,
+# gitHash 286a3694, installed 2026-09-14` while `main` itself had moved on to
+# `0f380781` by 2026-09-19 -- five days, two different toolchains, one name.
+#
+# There is no `ref`/`rev`/`commit` key to add: `references/projects.md` documents
+# `source` alone for a `[plugins.*]` block, and `claude plugin eval` has no
+# version pinning for plugin dependencies either (`plugins:` takes relative
+# filesystem paths only -- no git ref, no marketplace constraint, no lockfile).
+#
+# So the pin for EVAL USE lives where it can be honoured, in
+# `evals/lib/toolchain.lock.toml`, and `evals/lib/toolchain.py` materialises it:
+# it fetches the pinned commit, verifies the checkout IS that commit, and records
+# it next to the score. This line still governs what `project resolve` installs
+# into a home for ordinary interactive work; it does not govern what an eval
+# measures. Keeping the two apart is deliberate -- an eval pin that silently
+# changed the operator's installed toolchain would be a worse bug than the one
+# it fixes.
 
 # --- vendored: DELETED by SI-11, and the deletion is the finding ---
 #

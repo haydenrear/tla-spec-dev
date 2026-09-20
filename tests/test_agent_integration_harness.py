@@ -784,13 +784,23 @@ def _eval_case_text(case=None) -> str:
 
 
 def test_the_fixture_is_placed_by_a_hook_and_not_by_scaffold_script() -> None:
-    """`scaffold_script:` is accepted by the case loader and never executed.
+    """The fixture is placed by a hook, and that is still the right mechanism.
 
-    Measured in 2.1.261 at every placement -- top level, `execution:`,
-    `setup:`, `workspace:`, `sandbox:`, `scaffold.script` -- and in both forms,
-    a file name and inline bash. The decisive probe was an inline body of
-    `exit 3`: the case still scored 1.00, so the script was not failing
-    quietly, it was never invoked. The case scored 0 on an EMPTY repository and
+    The reason was RE-MEASURED in SI-14 on 2.1.276 and the old wording here --
+    "accepted by the case loader and never executed" -- is now only half true.
+    Corrected, with the probes in `references/plugin_evals.md`:
+
+      * top-level `scaffold_script:` with an inline body: accepted and silently
+        ignored, exactly as measured on 2.1.261 (a body of `exit 3` scored 1.00);
+      * `context.scaffold_script:` with an inline body: refused at load, because
+        the value is read as a PATH;
+      * `context.scaffold_script: ./scaffold.sh` under `--scaffold`: RUNS, as
+        the operator, outside the sandbox, with network.
+
+    The hook is still what places fixtures here, because `--scaffold` is OFF BY
+    DEFAULT -- a suite depending on it runs unscaffolded, and scores, for anyone
+    who forgets the flag -- and because one hook dispatching on `EVAL_CASE`
+    serves every case. A case scored 0 on an EMPTY repository once already, and
     that read as "the agent could not build a spec".
     """
     hooks = EVAL_SUITE / "hooks" / "hooks.json"

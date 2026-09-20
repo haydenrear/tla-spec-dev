@@ -1,0 +1,79 @@
+# THE PIN. What an eval run's toolchain IS, written down, in the repository.
+#
+# Why this file exists
+# --------------------
+# Before it, every eval this loop ran resolved its toolchain from the
+# OPERATOR'S LIVE HOME, at whatever `main` happened to point to that day. The
+# project home's install record for `skt` read `gitRef main`, `gitHash
+# 286a3694`, installed 2026-09-14. Nothing pinned it, nothing asked for it, and
+# nothing wrote it next to a score -- so no two runs a week apart were known to
+# be comparable, and a score that moved could not be attributed to the change
+# that was supposed to move it.
+#
+# THAT `main` HAS ALREADY MOVED. Measured 2026-09-19:
+#   git ls-remote https://github.com/haydenrear/skt main
+#     -> 0f3807811e1dd8aca4ef34f502669849cb367fdd
+# against the 286a3694 the home installed five days earlier. The moving target
+# is not a worry about the future; it is a fact about the past week.
+#
+# Why the pin is MATERIALISED and not DECLARED
+# --------------------------------------------
+# `claude plugin eval` has no version pinning for plugin dependencies. A case's
+# `plugins:` field takes relative filesystem PATHS only -- no git ref, no
+# marketplace constraint, no lockfile, no manifest-level "this plugin depends on
+# that one". There is no field for the pin to live in, so the pin lives HERE and
+# `evals/lib/toolchain.py` MATERIALISES it: it fetches each commit below into a
+# cache, verifies the checked-out HEAD IS that commit, and `run.sh` stages the
+# result where a case's `plugins:` entry can reach it.
+#
+# PIN A COMMIT, NEVER A BRANCH. A branch is the thing this file exists to stop
+# depending on. `toolchain.py` refuses anything that is not 40 hex characters.
+schema_version = 1
+
+[units.skt]
+origin = "https://github.com/haydenrear/skt.git"
+commit = "286a3694a815c6f6a9e76bffcb03a1fd8100cce3"
+# WHY THIS COMMIT AND NOT THE CURRENT TIP: it is the one the project home has
+# actually been resolving since 2026-09-14, so pinning it changes nothing about
+# what runs and only makes what runs explicit. Moving the pin is then a separate,
+# reviewable, one-line change with a score on each side of it -- which is the
+# whole point. To move it: update this commit, run
+# `python3 evals/lib/toolchain.py materialise --check-drift`, and say in the PR
+# what moved and what it was measured against.
+ref_when_pinned = "main"
+installed_in_project_home_at = "2026-09-14T23:56:23Z"
+role = """
+The skill-lifecycle plugin the workflow skills tell an agent to run: `skt ticket
+new`, `skt status`, `skt publish`. A case that asks "what is the first move"
+(evals/git-issue-workflow/use-the-front-door) is asking about THIS unit, so the
+case loads it through `plugins:` and the loaded copy is the pinned one.
+"""
+# Staged into the view at this path, so a case reaches it as
+# `../../../toolchain/skt` from `evals/<skill>/<case>/`. It is staged OUTSIDE
+# `evals/` deliberately: case discovery is a recursive glob over the eval dir,
+# and a unit staged inside it would contribute its own case.yaml files to this
+# suite's run, where they would score and bill as ours.
+stage_into_view = "toolchain/skt"
+
+[units.skill-manager]
+origin = "git@github.com:haydenrear/skill-manager.git"
+commit = "6ffacb88ff968aafadaa464811a77be7f3ddffd1"
+ref_when_pinned = "epic/self-improvement-substrate"
+role = """
+The CLI itself. Evals must run against the skill-manager from its
+`epic/self-improvement-substrate` branch, NOT the operator's brew install at
+/opt/homebrew/Cellar/skill-manager/0.28.1. The mechanism is small and it is not
+a rebuild and not an install: the repo root carries `./skill-manager`, a 346-byte
+bash wrapper that exports SKILL_MANAGER_INSTALL_DIR and execs
+`jbang SkillManager.java`. `evals/bin/skill-manager` is a shim pointing at that
+wrapper in the materialised checkout, and `run.sh` already puts `evals/bin`
+first on PATH. Nothing is installed over the operator's copy.
+"""
+# NOT staged into the view. It is 11,481 entries, and the view has a hard
+# 20,000-entry ceiling that this repository already spends 6,264 of. It lives in
+# the cache and is reached by PATH through the shim, never by `plugins:`.
+stage_into_view = ""
+# The wrapper self-reports the commit -- `./skill-manager --version` prints
+# `0.28.1+g6ffacb88ff96` and `build: 6ffacb88ff96 (detached)` -- so the run
+# record captures the CLI's OWN account of which code ran, not just ours.
+self_report_command = "--version"

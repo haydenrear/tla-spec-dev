@@ -23,6 +23,79 @@ score attached to something that happened — is
 `skills/spec-double-2/references/plugin_evals.md`. This page is how to run
 *these*.
 
+## Which toolchain the score belongs to
+
+Every run resolves a toolchain, and until SI-14 **no run recorded which one**.
+`skt` came from the operator's live home at whatever `main` pointed to that day:
+the project home's record said `gitRef main, gitHash 286a3694, installed
+2026-09-14`, and by 2026-09-19 `main` was `0f380781`. Five days, two different
+toolchains, one name — so no two runs a week apart were known to be comparable,
+and a score that moved could not be attributed to the change meant to move it.
+
+**The pin is `evals/lib/toolchain.lock.toml`**, under change control, naming a
+**commit** for each unit. It cannot be declared to the CLI — `claude plugin
+eval` has no version pinning for plugin dependencies, and `plugins:` takes
+relative filesystem paths only — so `evals/lib/toolchain.py` **materialises**
+it: fetches each pinned commit, verifies the checkout *is* that commit, stages
+it beside the view, and writes a run record that the `SessionStart` hook prints
+into the run's own trace.
+
+```bash
+evals/run.sh                                   # asks which skt, at a terminal
+evals/run.sh --toolchain-ref <commit>          # answer it up front
+SI14_TOOLCHAIN_REF=<commit> evals/run.sh       # same, from the environment
+python3 evals/lib/toolchain.py print-ref       # what is pinned, no network
+python3 evals/lib/toolchain.py materialise --check-drift   # and has it moved?
+```
+
+* **A full-suite run ASKS**, because a silent default is the defect this closes.
+  Pressing Enter takes the pin; asking is not refusing.
+* **With no terminal** (CI) it takes the pin and *says so*. Refusing there would
+  block a run on a question nobody can answer, which is a gate.
+* **A single-case run defaults** to the pin and **says what it defaulted to**.
+* Anything you answer other than the pin is recorded as an `OVERRIDE`.
+
+Each run writes `evals/results/toolchain/<timestamp>.json` — origin, pinned
+commit, the verified `HEAD`, whether the branch has drifted since, and what the
+operator's ambient home *would* have used instead.
+
+### The CLI under test is the epic branch's, not the brew install
+
+`evals/bin/skill-manager` is a shim, the sibling of `evals/bin/tla-spec-dev` and
+for the same measured reason. It execs `./skill-manager` — the 346-byte wrapper
+in the materialised checkout — so reaching the epic branch's CLI is a PATH entry,
+**not a rebuild and not an install**, and nothing is written over
+`/opt/homebrew/Cellar/skill-manager`. Like its sibling it exits 127 rather than
+falling through to the installed copy. The wrapper names its own commit, so the
+record quotes the CLI's own account of what ran:
+
+```
+skill-manager 0.28.1+g6ffacb88ff96
+build:  6ffacb88ff96 (detached)
+```
+
+The materialised checkouts live in `.toolchain/` at the repository root
+(gitignored) — **not** under `evals/`, because case discovery is a recursive
+glob over the eval dir and the skill-manager checkout ships 56 `case.yaml` files
+of its own, which would otherwise be discovered, scored and billed as ours.
+
+### What is not yet wired, and why
+
+The pinned unit is materialised, verified, staged and recorded — but **no case
+loads it through `plugins:`**, and that is deliberate. Measured over 4 runs on
+2.1.276: a case declaring `plugins:` **silently loses the target plugin's
+hooks**, scoring 1.00 either way.
+
+```
+si14-target-noplug     hook fired 2 of 2 runs    score 1.00
+si14-target-withplug   hook fired 0 of 2 runs    score 1.00
+```
+
+Every fixture in this suite is placed by `lib/place.sh`, a `SessionStart` hook.
+A `plugins:` entry added to any case here would hand the agent an **empty
+workspace** and score it 0 — reported as a skill failure. `tests/test_eval_toolchain_pin.py`
+holds that line until the defect is resolved upstream.
+
 ## Why there is a script and not a command to copy
 
 The command underneath is this, and every part of it is load-bearing:

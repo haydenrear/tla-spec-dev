@@ -4141,3 +4141,223 @@ findings:
     skill_change: "declined(no unit change: the path is written by this repository's case generation, not by a skill)"
     disposition: pending
     disposition_ticket: null
+  - id: SI-14-DF-01
+    found_by: "SI-14"
+    found_at_commit: "cc3941d4"
+    schedule_revision: 4
+    severity: major
+    surface:
+      production: ["evals/**/case.yaml"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      A `claude plugin eval` case that declares `plugins:` SILENTLY LOSES THE
+      TARGET PLUGIN'S HOOKS, and scores 1.00 either way. Measured on 2.1.276
+      over four runs ($0.26): two cases identical but for that one key, in a
+      probe plugin whose SessionStart hook appended a line to a file. The
+      `noplug` case fired the hook 2 of 2 runs; the `withplug` case fired it 0
+      of 2. Both printed `Plugin under test` lines for the target AND the
+      entry, so the target resolves -- its hooks simply do not run. This
+      repository's eval suite places EVERY fixture from `evals/lib/place.sh`, a
+      SessionStart hook, so a `plugins:` entry added to any case here would
+      hand the agent an empty workspace and score it 0, reported as a skill
+      failure. It is the reason SI-14 pins, materialises, stages and records
+      the skt commit but does NOT load it through `plugins:`.
+    reproduction: >-
+      Build a plugin with `hooks/hooks.json` registering a SessionStart command
+      that appends to a file outside the workspace, and two cases identical
+      except that one declares `plugins: ["../../<a unit inside the root>"]`.
+      Run `claude plugin eval . --ablation none --runs 2 --trust-plugin`. The
+      marker file holds only the no-plugins case's lines.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-14/probe-plugins-disable-hooks.txt"
+    why_out_of_scope: >-
+      The defect is in `claude plugin eval` itself, which is not a unit this
+      epic can change. SI-14's slice is the pin; what it can do here is refuse
+      to build on the broken mechanism and say why, which it does in
+      evals/README.md, references/plugin_evals.md and a test that fails if a
+      committed case ever gains the key.
+    suggested_fix: >-
+      Upstream: load the target plugin's hooks whether or not a case declares
+      `plugins:`. Here: keep `tests/test_eval_toolchain_pin.py`'s sweep, and
+      revisit wiring the pinned unit into a case once the CLI is fixed.
+    blast_radius: >-
+      Any suite that both places fixtures from a hook and wants a case to load
+      more than one unit -- which is the shape references/plugin_evals.md §3.5
+      recommends for evaluating several skills at once.
+    skill_change: "applied(this PR: references/plugin_evals.md gains the corrected row and the measurement; evals/README.md gains 'What is not yet wired')"
+    disposition: pending
+    disposition_ticket: null
+  - id: SI-14-DF-02
+    found_by: "SI-14"
+    found_at_commit: "cc3941d4"
+    schedule_revision: 4
+    severity: minor
+    surface:
+      production: ["skill-project.toml"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      `skill-project.toml`'s `[plugins.<name>]` block accepts `source` and
+      nothing else -- there is no `ref`, `rev` or `commit` key -- so `project
+      resolve` always installs whatever the branch tip points at on the day it
+      runs. This is the mechanism behind the fact SI-14 was filed for: the
+      project home recorded `skt` at `gitRef main, gitHash 286a3694, installed
+      2026-09-14`, and by 2026-09-19 `main` was `0f3807811e1d`. The manifest
+      cannot express "this commit", so a repository cannot pin the toolchain it
+      declares.
+    reproduction: >-
+      Read `references/projects.md` in the skt plugin: the documented form is
+      `source = "github:haydenrear/<repo>"` alone. `git ls-remote
+      https://github.com/haydenrear/skt main` on 2026-09-19 returns
+      0f3807811e1dd8aca4ef34f502669849cb367fdd against the home's recorded
+      286a3694a815c6f6a9e76bffcb03a1fd8100cce3.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-14/toolchain-record.json"
+    why_out_of_scope: >-
+      The fix is a schema change in skill-manager's project manifest plus
+      resolver support, which is that repository's work and not this ticket's
+      conflict keys. SI-14 works around it for EVAL USE only, in
+      evals/lib/toolchain.lock.toml, deliberately leaving the manifest to
+      govern ordinary interactive installs.
+    suggested_fix: >-
+      Add an optional pinned ref to `[plugins.*]` and `[skills.*]` (`rev =
+      "<sha>"`), have `project resolve` honour it, and have `skt status` report
+      a home whose installed gitHash differs from the declared rev.
+    blast_radius: >-
+      Every repository that declares units and expects reproducible resolution;
+      every eval or benchmark whose score is quoted across weeks.
+    skill_change: "proposed(skill-manager: add `rev` to [plugins.*]/[skills.*] and honour it in project resolve; no diff written, the resolver is Java and outside this worktree)"
+    disposition: pending
+    disposition_ticket: null
+  - id: SI-14-DF-03
+    found_by: "SI-14"
+    found_at_commit: "cc3941d4"
+    schedule_revision: 4
+    severity: minor
+    surface:
+      production: ["evals/run.sh"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      The staged eval view is at 17,370 entries against the CLI's hard 20,000
+      ceiling -- 87% of the budget, with 2,630 left. `evals/run.sh`'s own
+      header still documents it as 6,264, measured at 994f650c, so the number a
+      reader trusts is stale by roughly 11,000 entries. Nothing warns until the
+      run is refused outright, and the CLI's refusal names plugin directory size
+      rather than what grew.
+    reproduction: >-
+      `bash evals/run.sh --case 'zzz-no-such-case'` prints `the view holds 17231
+      entries` before staging and `17370 entries after staging the toolchain`.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-14/local-signal-single-case-default.txt"
+    why_out_of_scope: >-
+      Bringing the view back down means deciding what else is excluded from it,
+      which is a question about what the cases need to see -- SI-15's territory,
+      not this ticket's pin.
+    suggested_fix: >-
+      Either exclude more from the staged view (examples/ trees no case reads
+      are the obvious candidate) or have run.sh warn at a threshold rather than
+      only at the ceiling. SI-14 adds the post-staging count so the number is at
+      least printed on every run.
+    blast_radius: >-
+      Every eval run. When the ceiling is crossed, every case is refused at once
+      and the suite reports nothing.
+    skill_change: "applied(this PR: run.sh recomputes and prints the entry count after staging, so the stale 6,264 is no longer the only number a reader sees)"
+    disposition: pending
+    disposition_ticket: null
+  - id: SI-14-DF-04
+    found_by: "SI-14"
+    found_at_commit: "cc3941d4"
+    schedule_revision: 4
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      GOAL-one-unit clause 1 ("one installed unit for this substrate and zero
+      standalone copies of the five migrated skills in root or project home") is
+      NOT met in the project home. Five skills are contained in this bundle AND
+      installed standalone, separately versioned, in
+      `<repo>/.skill-manager/installed`: spec-double-compiler, test-graph,
+      git-issue-workflow, git-integration-repo, plugin-repository. Each is a
+      GIT install at `gitRef main` with its own gitHash, so the home holds two
+      copies of the same skill that can drift apart.
+    reproduction: >-
+      Compare `ls <repo>/.skill-manager/installed/*.json` against `ls skills/`.
+      The five names appear in both.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-14/home-audit.txt"
+      - "evals/TOOLCHAIN.md"
+    why_out_of_scope: >-
+      Removing an installed unit edits the project home, which this ticket must
+      not do: worktree homes are reconciled into the project home by the epic
+      agent at wave close, and a ticket that removes units behind that process
+      would race it. It is also a decision about what the home is FOR, not a
+      defect in the eval pin.
+    suggested_fix: >-
+      At wave close, remove-then-install (never install-over, per SI-12-DF-06)
+      or simply remove the five standalone copies, then confirm the nested
+      skills still resolve for the graphs and the cases. Note that no eval run
+      reads either home -- the staged view excludes `.skill-manager` entirely --
+      so this is about interactive sessions, not about scores.
+    blast_radius: >-
+      Any agent working in this checkout: a skill edit may reach the contained
+      copy while the session loads the standalone one, or the reverse.
+    skill_change: "declined(no unit change: the duplication is in an installed home, not in a unit's files)"
+    disposition: pending
+    disposition_ticket: null
+  - id: SI-14-DF-05
+    found_by: "SI-14"
+    found_at_commit: "cc3941d4"
+    schedule_revision: 4
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      Sixteen of the project home's 25 installed units are not required by
+      anything in this repository. A sweep over 3,206 declaring files (of 25,230
+      tracked, excluding run evidence and the append-only record) with explicit
+      non-vacuity assertions on both populations found: FIVE named by nothing at
+      all -- andrej-karpathy-skills, cdc-agent-substrate-plugin, doc-repo-devops,
+      llm-wiki, vision-toolbelt-skill; SEVEN named only by a harness descriptor
+      in the home and never by this repository -- code-reviewer, repo-coder,
+      repo-tester, run-tracer, live-swarm-agent, tracer-agent, slm-agent; and
+      FOUR named only incidentally, in a comment or a pytest.skip message --
+      acp-cdc-ai-python, tracing-observability, hyper-experiments,
+      hyper-experiments-finance. No eval case loads any of the sixteen.
+    reproduction: >-
+      See `evals/TOOLCHAIN.md` for the audit and the method. The sweep excludes
+      `specs/results/**` and the agent-integration evidence trees, because a
+      record of what a past run loaded is the accident being separated from
+      intent.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-14/home-audit.txt"
+      - "evals/TOOLCHAIN.md"
+    why_out_of_scope: >-
+      A unit nobody can name is a finding, not a deletion a ticket makes
+      quietly, and the project home is the epic agent's to reconcile. The five
+      named by nothing are also plausibly the operator's own working set, which
+      a ticket agent is not positioned to judge.
+    suggested_fix: >-
+      Decide per group: the five unnamed are candidates for removal from the
+      PROJECT home (the root home is the operator's and out of scope); the seven
+      harness units should be declared somewhere if this repository wants them,
+      or removed if it does not; the four incidental mentions should not be
+      keeping installs alive. Note that eval runs are unaffected either way --
+      the staged view excludes `.skill-manager`, so the curated set an eval
+      actually uses is the two units in evals/lib/toolchain.lock.toml.
+    blast_radius: >-
+      Home size and sync time, and the reviewer's ability to answer "what is
+      this home for". Not scores.
+    skill_change: "declined(no unit change: this is home composition, not a unit's files)"
+    disposition: pending
+    disposition_ticket: null
