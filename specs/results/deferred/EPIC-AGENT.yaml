@@ -1,0 +1,51 @@
+# Findings filed by the EPIC AGENT, under deferment_policy.per_ticket_backlog.
+# Concatenated onto the cumulative backlog at wave close like any ticket's file.
+- id: EA-DF-01
+  found_by: "epic agent"
+  found_at_commit: "c8dc064a"
+  schedule_revision: 4
+  severity: minor
+  surface:
+    production:
+      - "evals/git-issue-workflow/w-giw-exit6-is-unreadable-frontmatter/fixture/demo-skill/SKILL.md"
+      - "evals/skt/w-skt-migration-no-import-edits/fixture/my-skill/SKILL.md"
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: >-
+    `skt sync` now exits 11 on this project home, repeatably, because its
+    markdown skill-import validator scans EVAL FIXTURES that are DELIBERATELY
+    MALFORMED. Both flagged files are the subject of their own case, not
+    defects: w-giw-exit6-is-unreadable-frontmatter's fixture carries
+    `description: Use when tidying demo docs: the README, ...` -- an unquoted
+    colon, which is exactly the unreadable frontmatter that case exists to
+    exercise -- and w-skt-migration-no-import-edits's fixture omits the
+    required `reason` on a skill-import on purpose. SI-15 moved 61 cases into
+    evals/, which brought intentional test data inside the validator's scan
+    scope for the first time. Four fixture SKILL.md files now live under
+    evals/; the two from plugin-repository are well-formed and do not trip it.
+  reproduction: >-
+    In the project home: `./.skill-manager/bin/cli/skt sync tla-spec-dev; echo $?`
+    -> 11, with "markdown skill-import violations (2)". Repeats with nothing
+    changed between runs.
+  evidence: []
+  why_out_of_scope: >-
+    Filed rather than fixed because the fix is a judgement call the owner should
+    make, and both candidate fixes have a cost: excluding `**/fixture/**` from
+    the validator's scan narrows a check that exists to catch real broken
+    imports, while "fixing" the fixtures would falsify the very cases they
+    belong to -- w-giw-exit6 asserts behaviour ON unreadable frontmatter, so
+    making it readable deletes the test.
+  suggested_fix: >-
+    Exclude fixture trees from the markdown skill-import scan (a path predicate
+    on `*/fixture/*`), and say so in the validator's own message so the next
+    reader knows the scope is deliberate.
+  blast_radius: >-
+    Every future `skt sync` of this home exits nonzero. MEASURED NOT TO BLOCK
+    AGENTS: the sync still wrote units.lock.toml (21 units), merged the unit,
+    moved the plugin to the epic tip c27e40b5, and afterwards the front door
+    creates worktrees, `skt status` reads, all four CLIs resolve, and
+    GOAL-one-unit clause 1 still holds. The risk is a reader treating exit 11
+    as "the home is broken" and re-installing over a working home.
+  disposition: pending
+  disposition_ticket: null
