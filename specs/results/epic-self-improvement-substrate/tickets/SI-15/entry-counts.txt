@@ -1,0 +1,28 @@
+SI-15 -- the staged view's entry count, measured against the 20,000 ceiling.
+
+Method: replicate evals/run.sh's own tar-exclude list into a temp dir and
+`find | wc -l`. That is exactly the quantity run.sh prints and the quantity
+`claude plugin eval` refuses on.
+
+  BEFORE the move, no toolchain staged        6712
+  BEFORE the move, toolchain materialised     6848      (+136: .toolchain/skt)
+  AFTER  54 cases moved in                    7288      (+440)
+
+  ceiling                                    20000
+  headroom after the move                    12712
+
+The whole checkout at this base is 30129 entries, which is why the view is
+staged at all.
+
+WHY THIS CONTRADICTS THE BRIEF (SI-15-DF-03). The ticket briefed the view as
+"already at 17,370". Not reproducible here. The likely cause: the pinned
+`skill-manager` checkout is 11,522 entries and declares `stage_into_view = ""`
+in evals/lib/toolchain.lock.toml -- it is reached by PATH shim and deliberately
+NEVER staged. Only `skt` stages, at 183 entries. A count taken over
+`.toolchain/` rather than over the view would read ~17-18k and match the brief.
+
+run.sh's own header still claims 6,264. That is also stale; it is prose, not a
+computed value, and the script computes the real number at run time.
+
+  FINAL, including this ticket's own evidence files   8099
+  headroom                                          11901

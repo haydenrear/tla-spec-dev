@@ -72,6 +72,68 @@ log="$WORK/verify.log"
 say() { echo "$@" >> "$log" 2>/dev/null; }
 verdict() { echo "$2" > "$WORK/v/$1" 2>/dev/null; }
 
+# ------------------------------------------- the moved cases' verdicts (SI-15)
+# 45 of the cases SI-15 moved here ask "which command did the agent reach for",
+# and `plugin eval` has no grader that can answer it: `tool_used` matches a tool
+# NAME, never a command. The other side answered it with `expect.py`, which
+# reads the transcript's tool_use INPUTS after the run and writes one verdict
+# file per rule; graders are then plain `file_exists` checks on those files.
+# That module is vendored at `checks/expect.py`. The wide lane that carried it
+# is retired -- it was the second harness this ticket exists to remove.
+#
+# NOTHING FROM THE TRANSCRIPT IS EXECUTED. expect.py only matches text. This
+# hook runs unsandboxed AS THE OPERATOR, so replaying an eval subject's command
+# here would hand it a shell on the real machine.
+#
+# VERDICTS GO TO "$WORK/v", NEVER STRAIGHT TO .eval: the publish step at the
+# bottom clears .eval and copies them in only after every line of
+# agent-authored code has already run. Writing here directly would restore the
+# forgery window that ordering exists to close.
+verify_from_expect() {
+    # STDIN IS READ LAZILY, AND DELIBERATELY SO. A Stop hook receives its
+    # context as JSON on stdin, and `transcript_path` is the only route to what
+    # the agent actually ran -- but reading stdin at the top of this script
+    # would block any invocation whose stdin is an open pipe, and the
+    # repository's own forged-workspace control runs `sh verify.sh` directly.
+    # Only this path needs the transcript, so only this path reads it.
+    if [ -t 0 ]; then
+        say "stdin is a terminal, so there is no hook context to read"
+        verdict UNDECIDED-notranscript "verify.sh was run without a Stop-hook stdin, so no command verdict could be derived"
+        return 0
+    fi
+    stdin_json=$(cat 2>/dev/null || true)
+    transcript=$(printf '%s' "$stdin_json" | python3 -c 'import json,sys
+try: print(json.load(sys.stdin).get("transcript_path") or "")
+except Exception: print("")' 2>/dev/null)
+    if [ -z "$transcript" ]; then
+        # AN ABSENT TRANSCRIPT IS UNDECIDED, NOT FAILED. Every expect-based
+        # grader below would otherwise go red on work that may have been
+        # perfect, and read as a finding about the skill.
+        say "no transcript_path on stdin; no command verdicts for $case_name"
+        verdict UNDECIDED-notranscript "the Stop hook received no transcript_path, so no command verdict could be derived"
+        return 0
+    fi
+    say "expect.py over $transcript"
+    python3 "$here/checks/expect.py" "$transcript" "$here/.." "$WORK/v" >>"$log" 2>&1 \
+        || say "expect.py failed for $case_name (see above)"
+}
+
+# The six cases whose fixture is a real branched Skill Manager home. place.sh
+# says why they cannot run in a plugin view; this writes the matching verdict so
+# the REASON travels next to the score instead of living in a report.
+undecided_needs_home_verify() {
+    say "$case_name needs a branched Skill Manager home, which the view cannot carry"
+    verdict UNDECIDED-needs-home "this case needs a real branched Skill Manager home (~41,000 entries) in its workspace; the plugin view's ceiling is 20,000, so the case is UNDECIDED rather than failed"
+}
+
+# Three moved cases ship no expect.json: they are graded entirely from the final
+# response by `llm` and `regex` graders. Saying so keeps "nothing to verify by
+# design" apart from "the verifier silently did nothing", which look identical
+# in a score.
+verify_response_only() {
+    say "$case_name is graded from the final response only; this hook writes no verdict"
+}
+
 # RUN AGENT-AUTHORED CODE WITH NO WRITE ANYWHERE, AND WRITE ITS VERDICT HERE.
 #
 # A Stop hook is outside the sandbox that constrains the agent's Bash tool, so
@@ -313,6 +375,221 @@ case "$case_name" in
     fi
     ;;
 
+  bootstraps-a-home-for-a-repo)
+    undecided_needs_home_verify
+    ;;
+
+  epic-provisions-a-ticket-worktree)
+    undecided_needs_home_verify
+    ;;
+
+  reconciles-a-worktree-into-the-project-home)
+    undecided_needs_home_verify
+    ;;
+
+  syncs-a-stale-home-from-root)
+    undecided_needs_home_verify
+    ;;
+
+  ticket-agent-closes-a-ticket)
+    undecided_needs_home_verify
+    ;;
+
+  ticket-agent-opens-a-ticket)
+    undecided_needs_home_verify
+    ;;
+
+  w-epic-assignment-no-force-on-blocking)
+    verify_from_expect
+    ;;
+
+  w-epic-force-when-owner-decided)
+    verify_from_expect
+    ;;
+
+  w-epic-merged-by-is-epic-owner)
+    verify_from_expect
+    ;;
+
+  w-epic-plan-free-form-lane)
+    verify_from_expect
+    ;;
+
+  w-epic-retire-part-of-goal-warns-only)
+    verify_from_expect
+    ;;
+
+  w-giw-bootstrap-cross-home-is-not-old-cli)
+    verify_from_expect
+    ;;
+
+  w-giw-epic-ticket-plan-values-win)
+    verify_from_expect
+    ;;
+
+  w-giw-epic-ticket-stops-on-wrong-pr-base)
+    verify_from_expect
+    ;;
+
+  w-giw-exit6-is-unreadable-frontmatter)
+    verify_from_expect
+    ;;
+
+  w-giw-wt-close-no-force-on-unpublished)
+    verify_from_expect
+    ;;
+
+  w-giw-wt-new-dirty-ok)
+    verify_from_expect
+    ;;
+
+  w-giw-wt-refusal-quotes-subject)
+    verify_from_expect
+    ;;
+
+  w-giw-wt-stale-branch-point)
+    verify_from_expect
+    ;;
+
+  w-harness-smoke)
+    verify_from_expect
+    ;;
+
+  w-misc-debug-bounded-wait)
+    verify_response_only
+    ;;
+
+  w-misc-issue-body-names-home-closeout)
+    verify_from_expect
+    ;;
+
+  w-misc-issue-names-rubric-not-copies)
+    verify_response_only
+    ;;
+
+  w-misc-otlp-endpoint-native-runner)
+    verify_response_only
+    ;;
+
+  w-misc-plugin-repo-finalize-sh)
+    verify_from_expect
+    ;;
+
+  w-misc-plugin-repo-home-does-not-sandbox-install)
+    verify_from_expect
+    ;;
+
+  w-sdc-attribution-before-close)
+    verify_from_expect
+    ;;
+
+  w-sdc-close-ticket-delivered-status)
+    verify_from_expect
+    ;;
+
+  w-sdc-close-workflow-is-close-tickets)
+    verify_from_expect
+    ;;
+
+  w-sdc-complexity-ledger-is-advisory)
+    verify_from_expect
+    ;;
+
+  w-sdc-eval-run-has-case-glob)
+    verify_from_expect
+    ;;
+
+  w-sdc-forced-close-names-guard-weakening)
+    verify_from_expect
+    ;;
+
+  w-sdc-no-deferred-findings-at-root)
+    verify_from_expect
+    ;;
+
+  w-sdc-open-closed-ticket-adds-new-entry)
+    verify_from_expect
+    ;;
+
+  w-sdc-out-path-is-absolute)
+    verify_from_expect
+    ;;
+
+  w-sdc-ticket-binding-bare-adapter-module)
+    verify_from_expect
+    ;;
+
+  w-skt-check-pinned-is-not-stale)
+    verify_from_expect
+    ;;
+
+  w-skt-check-record-disagrees-with-checkout)
+    verify_from_expect
+    ;;
+
+  w-skt-check-unknown-is-not-current)
+    verify_from_expect
+    ;;
+
+  w-skt-is-a-plugin-not-a-skill)
+    verify_from_expect
+    ;;
+
+  w-skt-migration-delete-project-block)
+    verify_from_expect
+    ;;
+
+  w-skt-migration-no-import-edits)
+    verify_from_expect
+    ;;
+
+  w-skt-not-installed-is-not-not-synced)
+    verify_from_expect
+    ;;
+
+  w-skt-remedy-without-origin)
+    verify_from_expect
+    ;;
+
+  w-skt-stale-artifacts-are-not-stale-home)
+    verify_from_expect
+    ;;
+
+  w-skt-sweep-requires-epic)
+    verify_from_expect
+    ;;
+
+  w-skt-ticket-path-must-be-sibling)
+    verify_from_expect
+    ;;
+
+  w-skt-ticket-verb-help-is-scoped)
+    verify_from_expect
+    ;;
+
+  w-sm-closeout-ahead-is-publish-not-sync)
+    verify_from_expect
+    ;;
+
+  w-sm-cold-shim-means-build)
+    verify_from_expect
+    ;;
+
+  w-sm-drift-ack-once)
+    verify_from_expect
+    ;;
+
+  w-sm-sync-retired-name-redirects)
+    verify_from_expect
+    ;;
+
+  w-sm-sync-skt-when-absent)
+    verify_from_expect
+    ;;
+
+  w-sm-verify-is-not-currency)
+    verify_from_expect
+    ;;
   "")
     say "EVAL_CASE unset; nothing verified"
     verdict UNDECIDED-nocase "EVAL_CASE was not set, so no case arm ran and nothing was checked"

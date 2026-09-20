@@ -1,0 +1,40 @@
+SI-15 -- the worktree front door, and which case I was in.
+
+The issue says to reach the front door and to TEST THE PATH, NOT THE EXIT CODE
+(SI-11-DF-04). I did, and the path was absent.
+
+  $ SKT="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/bin/cli/skt"
+  $ test -x "$SKT" && echo present          -> present
+  $ "$SKT" ticket new SI-15 --base 06df2b7098354517d6a60a8419b807b0d82abd3d \
+        --path ../wt-362-evals-one-place
+  error: bootstrap-home.sh not found in this home; worktree rolled back
+         git-issue-workflow is neither installed in
+         /Users/hayde/IdeaProjects/tla-spec-dev/.skill-manager nor declared in
+         .../skill-project.toml -- `sync` cannot install it
+  $ echo "EXIT=$?"                          -> EXIT=0
+  $ test -e ../wt-362-evals-one-place       -> absent
+
+So: skt RESOLVED (it is on PATH and executable) and its precondition failed.
+That is the case I was in -- not "skt was absent". It exited 0 having rolled
+back, which is the eighth occurrence of SI-11-DF-04 in this epic and is filed
+again as SI-15-DF-04 with a specific cause: skt looks for bootstrap-home.sh in
+the PROJECT home, which carries 10 skills and not git-issue-workflow, while the
+ROOT home has it at skills/git-issue-workflow/scripts/bootstrap-home.sh.
+
+FALLBACK, AND WHAT I DID NOT DO:
+
+  $ git worktree add ../wt-362-evals-one-place -b feature/362-evals-one-place \
+        06df2b7098354517d6a60a8419b807b0d82abd3d
+  $ git rev-parse HEAD        -> 06df2b7098354517d6a60a8419b807b0d82abd3d
+  $ git rev-parse --abbrev-ref HEAD -> feature/362-evals-one-place
+
+The branch name is the declared one, so the SI-09-DF-02 rename was not needed.
+
+NO SKILL MANAGER HOME WAS CREATED for this worktree, because the by-hand route
+creates none and bootstrapping one is a ~5 GB clone this ticket's work (file
+edits and measurements) does not need. CONSEQUENCE, STATED PLAINLY: there is no
+<worktree>/.skill-manager to run `skill-manager home close-out` against, so that
+step reports nothing rather than a verdict. Nothing in this ticket ran a
+home-mutating command: no `skt publish`, no `home sync`, no write to
+/Users/hayde/.skill-manager (mtime unchanged at Sep 17 21:33, days before this
+ticket started).

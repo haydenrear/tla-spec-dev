@@ -76,6 +76,54 @@ place_ecommerce() {
     rm -rf ./specs/program_model/__pycache__ ./ecommerce_backend/__pycache__
 }
 
+# ------------------------------------------------------- the moved cases
+# SI-15 moved 54 cases here from skill-manager's own harness. On that side each
+# one was placed by a `fixture` PLUGIN whose SessionStart hook copied a prebuilt
+# `fixture-workspace` in. That plugin cannot come with them: it was delivered
+# through a case's `plugins:` key, and a case declaring `plugins:` silently
+# loses THIS plugin's hooks -- the ones that place every fixture here
+# (SI-14-DF-01: four runs, hook fired 2/2 without the key and 0/2 with it,
+# both arms scoring 1.00, so the score is blind to it).
+#
+# So placement moves into this hook. The convention is the one the moved
+# prompts already use: 35 of them name `cases/<case>/`, and not one names
+# another case's directory, so a case's own `fixture/` lands at `cases/<name>/`
+# and nothing is shared between cases.
+place_moved_fixture() {
+    src="$here/../$1/$case_name/fixture"
+    mkdir -p "cases/$case_name"
+    if [ -d "$src" ]; then
+        cp -R "$src/." "cases/$case_name/"
+        echo "place: the fixture for $case_name is at cases/$case_name/"
+    else
+        # NOT A FAILURE, AND SAYING SO IS THE POINT. 20 of the moved cases ship
+        # no fixture: they ask which command the agent reaches for, which is
+        # decided from the transcript. This keeps "no fixture by design" apart
+        # from "the fixture was lost in the move" -- the second is exactly the
+        # silent failure this ticket is designed against.
+        echo "place: $case_name ships no fixture/ -- by design; it is graded from the transcript"
+    fi
+    git_init "$case_name: the case fixture"
+}
+
+# A case whose fixture is a REAL branched Skill Manager home. That home is
+# ~41,000 entries and `claude plugin eval` refuses a plugin directory over
+# 20,000, so it cannot be staged into this view and these six cases cannot run
+# here yet.
+#
+# THEY ARE DECLARED UNDECIDED, NOT SILENTLY BROKEN. An empty workspace would
+# score 0 and read as "the agent could not provision a home" -- an instrument
+# failing in the one direction this project says it may not. verify.sh writes a
+# matching UNDECIDED verdict so the reason travels with the score.
+undecided_needs_home() {
+    echo "place: $case_name NEEDS A BRANCHED SKILL MANAGER HOME, which this"
+    echo "place:   plugin view cannot carry: a home is ~41,000 entries and the"
+    echo "place:   view's ceiling is 20,000. This case is UNDECIDED, not failed,"
+    echo "place:   and its graders below are red for that reason and no other."
+    echo "place:   See evals/README.md, 'The six that need a home'."
+    git_init "$case_name: no Skill Manager home -- UNDECIDED"
+}
+
 case "$case_name" in
 
   scaffold-a-program-model)
@@ -227,6 +275,221 @@ EOF
     echo "place: a link shortener with unit tests and no behavioural validation"
     ;;
 
+  bootstraps-a-home-for-a-repo)
+    undecided_needs_home
+    ;;
+
+  epic-provisions-a-ticket-worktree)
+    undecided_needs_home
+    ;;
+
+  reconciles-a-worktree-into-the-project-home)
+    undecided_needs_home
+    ;;
+
+  syncs-a-stale-home-from-root)
+    undecided_needs_home
+    ;;
+
+  ticket-agent-closes-a-ticket)
+    undecided_needs_home
+    ;;
+
+  ticket-agent-opens-a-ticket)
+    undecided_needs_home
+    ;;
+
+  w-epic-assignment-no-force-on-blocking)
+    place_moved_fixture git-epic-workflow
+    ;;
+
+  w-epic-force-when-owner-decided)
+    place_moved_fixture git-epic-workflow
+    ;;
+
+  w-epic-merged-by-is-epic-owner)
+    place_moved_fixture git-epic-workflow
+    ;;
+
+  w-epic-plan-free-form-lane)
+    place_moved_fixture git-epic-workflow
+    ;;
+
+  w-epic-retire-part-of-goal-warns-only)
+    place_moved_fixture git-epic-workflow
+    ;;
+
+  w-giw-bootstrap-cross-home-is-not-old-cli)
+    place_moved_fixture git-issue-workflow
+    ;;
+
+  w-giw-epic-ticket-plan-values-win)
+    place_moved_fixture git-issue-workflow
+    ;;
+
+  w-giw-epic-ticket-stops-on-wrong-pr-base)
+    place_moved_fixture git-issue-workflow
+    ;;
+
+  w-giw-exit6-is-unreadable-frontmatter)
+    place_moved_fixture git-issue-workflow
+    ;;
+
+  w-giw-wt-close-no-force-on-unpublished)
+    place_moved_fixture git-issue-workflow
+    ;;
+
+  w-giw-wt-new-dirty-ok)
+    place_moved_fixture git-issue-workflow
+    ;;
+
+  w-giw-wt-refusal-quotes-subject)
+    place_moved_fixture git-issue-workflow
+    ;;
+
+  w-giw-wt-stale-branch-point)
+    place_moved_fixture git-issue-workflow
+    ;;
+
+  w-harness-smoke)
+    place_moved_fixture harness
+    ;;
+
+  w-misc-debug-bounded-wait)
+    place_moved_fixture unnested
+    ;;
+
+  w-misc-issue-body-names-home-closeout)
+    place_moved_fixture git-issue
+    ;;
+
+  w-misc-issue-names-rubric-not-copies)
+    place_moved_fixture git-issue
+    ;;
+
+  w-misc-otlp-endpoint-native-runner)
+    place_moved_fixture unnested
+    ;;
+
+  w-misc-plugin-repo-finalize-sh)
+    place_moved_fixture plugin-repository
+    ;;
+
+  w-misc-plugin-repo-home-does-not-sandbox-install)
+    place_moved_fixture plugin-repository
+    ;;
+
+  w-sdc-attribution-before-close)
+    place_moved_fixture spec-double-2
+    ;;
+
+  w-sdc-close-ticket-delivered-status)
+    place_moved_fixture spec-double-2
+    ;;
+
+  w-sdc-close-workflow-is-close-tickets)
+    place_moved_fixture spec-double-2
+    ;;
+
+  w-sdc-complexity-ledger-is-advisory)
+    place_moved_fixture spec-double-2
+    ;;
+
+  w-sdc-eval-run-has-case-glob)
+    place_moved_fixture spec-double-2
+    ;;
+
+  w-sdc-forced-close-names-guard-weakening)
+    place_moved_fixture spec-double-2
+    ;;
+
+  w-sdc-no-deferred-findings-at-root)
+    place_moved_fixture spec-double-2
+    ;;
+
+  w-sdc-open-closed-ticket-adds-new-entry)
+    place_moved_fixture spec-double-2
+    ;;
+
+  w-sdc-out-path-is-absolute)
+    place_moved_fixture spec-double-2
+    ;;
+
+  w-sdc-ticket-binding-bare-adapter-module)
+    place_moved_fixture spec-double-2
+    ;;
+
+  w-skt-check-pinned-is-not-stale)
+    place_moved_fixture skt
+    ;;
+
+  w-skt-check-record-disagrees-with-checkout)
+    place_moved_fixture skt
+    ;;
+
+  w-skt-check-unknown-is-not-current)
+    place_moved_fixture skt
+    ;;
+
+  w-skt-is-a-plugin-not-a-skill)
+    place_moved_fixture skt
+    ;;
+
+  w-skt-migration-delete-project-block)
+    place_moved_fixture skt
+    ;;
+
+  w-skt-migration-no-import-edits)
+    place_moved_fixture skt
+    ;;
+
+  w-skt-not-installed-is-not-not-synced)
+    place_moved_fixture skt
+    ;;
+
+  w-skt-remedy-without-origin)
+    place_moved_fixture skt
+    ;;
+
+  w-skt-stale-artifacts-are-not-stale-home)
+    place_moved_fixture skt
+    ;;
+
+  w-skt-sweep-requires-epic)
+    place_moved_fixture skt
+    ;;
+
+  w-skt-ticket-path-must-be-sibling)
+    place_moved_fixture skt
+    ;;
+
+  w-skt-ticket-verb-help-is-scoped)
+    place_moved_fixture skt
+    ;;
+
+  w-sm-closeout-ahead-is-publish-not-sync)
+    place_moved_fixture skill-manager
+    ;;
+
+  w-sm-cold-shim-means-build)
+    place_moved_fixture skill-manager
+    ;;
+
+  w-sm-drift-ack-once)
+    place_moved_fixture skill-manager
+    ;;
+
+  w-sm-sync-retired-name-redirects)
+    place_moved_fixture skill-manager
+    ;;
+
+  w-sm-sync-skt-when-absent)
+    place_moved_fixture skill-manager
+    ;;
+
+  w-sm-verify-is-not-currency)
+    place_moved_fixture skill-manager
+    ;;
   "")
     fail "EVAL_CASE is unset. Every case must set it under execution.env, or this hook cannot tell which fixture to place"
     ;;

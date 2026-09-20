@@ -1,0 +1,22 @@
+SI-15 local signal: "one command runs every case; no units-override file
+remains; no case is reachable only from the other repository."
+
+1. ONE COMMAND RUNS EVERY CASE
+   `evals/run.sh` selects 61 cases (grant.py, the runner's own
+   case selector, enumerates all 61). Before SI-15 it selected 7
+   and the other 55 needed skill-manager's eval_run_case() in a separate
+   repository with a separate 43,330-byte lib.sh.
+
+2. NO units-override FILE REMAINS
+   `rglob('units-override.txt')` over the whole checkout: 0 hits []
+   0 of the 55 source cases carried one, and the machinery that consumed
+   them (skill-manager's wide/setup.sh) is not moved -- so the override
+   route is gone rather than merely unused.
+
+3. NO CASE IS REACHABLE ONLY FROM THE OTHER REPOSITORY
+   source names: 55   names here now: 61
+   source names NOT present here: ['sandbox-probe']
+   `sandbox-probe` is the single intended omission (SI-15-DF-02); every
+   other source name is present. Compared by NAME, never by count.
+
+   ASSERTED: own 7 present; exactly one intended omission; no override file.

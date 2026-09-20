@@ -1,0 +1,200 @@
+# SI-15's per-ticket deferment backlog.
+#
+# `deferment_policy.per_ticket_backlog` was adopted at wave 9 precisely because
+# this is the first wave where a shared file would collide. The cumulative
+# `specs/results/deferred_findings_final.yaml` (79 rows) stays canonical and is
+# read-only to this ticket; the epic agent concatenates at wave close.
+findings:
+  - id: SI-15-DF-01
+    found_by: SI-15
+    found_at_commit: 06df2b70
+    schedule_revision: 4
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      The ticket, the issue body and the epic schedule all say skill-manager's
+      harness holds "63 cases" and instruct the implementer to "count 63
+      sources, not build output". 63 IS the build-output number. Measured:
+      `find specs/evals/harness/evals -name case.yaml` returns 63; the same
+      find excluding `*/build/*` returns 55, and `-path '*/build/*'` returns
+      exactly 8. So the source population is 55 and the instruction to exclude
+      build output contradicts the count it is attached to. 54 moved
+      (sandbox-probe stayed, SI-15-DF-02); the suite now holds 61, not 70.
+    reproduction: >-
+      cd skill-manager && find specs/evals/harness/evals -name case.yaml | wc -l
+      (63); add -not -path '*/build/*' (55); add -path '*/build/*' (8).
+    evidence:
+      - specs/results/epic-self-improvement-substrate/tickets/SI-15/names-before.txt
+      - specs/results/epic-self-improvement-substrate/tickets/SI-15/names-after.txt
+    why_out_of_scope: >-
+      The number is wrong in the issue body and the epic plan, which are the
+      epic agent's to correct, not a ticket's. Recorded so the next reader of
+      "70 cases" knows the real figure is 62 sources across both sides.
+    suggested_fix: >-
+      Correct the epic plan and any successor issue to 55 skill-manager sources
+      plus 7 here. A count taken with `find ... -name case.yaml` over that tree
+      must exclude `build/`, which vendors copies of THIS repository's own
+      example cases.
+    blast_radius: Planning arithmetic and any goal baseline quoting 70 cases.
+
+  - id: SI-15-DF-02
+    found_by: SI-15
+    found_at_commit: 06df2b70
+    schedule_revision: 4
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      `sandbox-probe` was NOT moved. It is a diagnostic of the other harness's
+      sandbox rather than a skill test, and its `the-workspace-is-writable`
+      grader is a DELIBERATE standing red declaring `path: probe-write` -- a
+      path the agent writes. This repository's
+      `test_no_grader_reads_a_path_the_agent_can_simply_write` requires every
+      `file_exists` grader to read `.eval/`, so moving the case as written
+      would turn a repository test red, and rewriting the grader would destroy
+      the property the probe exists to measure ("if this ever turns GREEN,
+      plugin eval has changed"). `tests/**` is outside this ticket's conflict
+      keys (`production: [evals/**]`), so neither was mine to do.
+    reproduction: >-
+      Read skill-manager specs/evals/harness/evals/sandbox-probe/graders/
+      the-workspace-is-writable.md against tests/test_agent_integration_harness.py
+      ::test_no_grader_reads_a_path_the_agent_can_simply_write.
+    evidence:
+      - evals/README.md
+    why_out_of_scope: >-
+      Resolving it means either an exemption in a test outside my conflict keys
+      or deleting a deliberate control. Both are decisions above a ticket.
+    suggested_fix: >-
+      Either exempt a grader that declares itself an expected-red harness probe
+      (an explicit `expected: red` key would make the intent machine-readable),
+      or accept that harness self-probes live outside the skill suite.
+    blast_radius: One case; the suite is 61 rather than 62.
+
+  - id: SI-15-DF-03
+    found_by: SI-15
+    found_at_commit: 06df2b70
+    schedule_revision: 4
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      The 20,000-entry ceiling was briefed as "the likeliest thing to bite you",
+      with the staged view "already at 17,370 (SI-14-DF-03)". That figure is not
+      reproducible at this base. Measured on the staged view built by run.sh's
+      own tar-exclude list at 06df2b70: 6,712 entries before the toolchain,
+      6,848 after materialising and staging it, and 7,288 after all 54 cases
+      moved in. The ceiling was never within 12,000 entries of binding. The
+      probable cause of the discrepancy is that `.toolchain/skt` stages at 183
+      entries while `.toolchain/skill-manager` (11,522) declares
+      `stage_into_view = ""` and is deliberately NOT staged -- so a count taken
+      over the cache rather than the view would read ~17-18k.
+    reproduction: >-
+      Replicate run.sh's tar excludes into a temp dir and `find | wc -l`, then
+      `python3 evals/lib/toolchain.py materialise --stage-into <view>` and count
+      again. Both numbers are in entry-counts.txt.
+    evidence:
+      - specs/results/epic-self-improvement-substrate/tickets/SI-15/entry-counts.txt
+    why_out_of_scope: >-
+      It is a correction to an earlier ticket's recorded measurement, not a
+      defect in this slice. run.sh's own header still claims 6,264, which is
+      also stale; I left the header prose alone rather than widen scope.
+    suggested_fix: >-
+      Re-measure and correct SI-14-DF-03, and replace run.sh's hardcoded 6,264
+      with the number the script already computes at run time.
+    blast_radius: >-
+      Planning only -- but it cost this ticket a staging-less design it did not
+      need, and a future ticket may cut cases to fit a ceiling that is not near.
+
+  - id: SI-15-DF-04
+    found_by: SI-15
+    found_at_commit: 06df2b70
+    schedule_revision: 4
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      `skt ticket new` ROLLED THE WORKTREE BACK AND STILL EXITED 0 -- the eighth
+      agent this epic to hit SI-11-DF-04. It printed "error: bootstrap-home.sh
+      not found in this home; worktree rolled back" and `echo $?` was 0. The
+      cause here is specific and fixable: `skt` resolved `bootstrap-home.sh`
+      from the PROJECT home (`tla-spec-dev/.skill-manager`), which carries 10
+      skills and not `git-issue-workflow`, while the ROOT home does carry it at
+      skills/git-issue-workflow/scripts/bootstrap-home.sh. So the front door
+      failed on a file that exists one tier up.
+    reproduction: >-
+      SKT="$HOME/.skill-manager/bin/cli/skt"; "$SKT" ticket new SI-15 --base
+      06df2b70 --path ../wt-362-evals-one-place; echo "EXIT=$?"  -> prints the
+      rollback error and EXIT=0; `test -e ../wt-362-evals-one-place` is false.
+    evidence:
+      - specs/results/epic-self-improvement-substrate/tickets/SI-15/worktree-front-door.txt
+    why_out_of_scope: >-
+      Fixing skt's exit status is an upstream change to the skt plugin, and
+      installing git-issue-workflow into the project home mutates a home the
+      epic agent owns and reconciles. I fell back to the by-hand pair
+      (`git worktree add`) and say so plainly.
+    suggested_fix: >-
+      Two independent repairs. (1) `skt ticket new` must exit non-zero when it
+      rolls back -- eight agents have now tested the path instead of the exit
+      code because of this. (2) Either declare git-issue-workflow in
+      `skill-project.toml` so `project resolve` can rebuild the project home
+      with it, or have skt fall back to the root home's copy of
+      bootstrap-home.sh rather than failing.
+    blast_radius: >-
+      Every ticket agent in this epic. An agent that trusts the exit code
+      proceeds inside the primary checkout and writes the operator's home.
+
+  - id: SI-15-DF-05
+    found_by: SI-15
+    found_at_commit: 06df2b70
+    schedule_revision: 4
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      Six moved cases cannot run in a plugin view and are declared UNDECIDED
+      rather than silently red: bootstraps-a-home-for-a-repo,
+      reconciles-a-worktree-into-the-project-home, syncs-a-stale-home-from-root,
+      ticket-agent-opens-a-ticket, ticket-agent-closes-a-ticket,
+      epic-provisions-a-ticket-worktree. Their fixture IS a real branched Skill
+      Manager home (~41,000 entries, ~5 GB), which is above the 20,000-entry
+      plugin ceiling by itself, and their graders depend on a replay verifier
+      that re-issues the agent's front-door command against a throwaway clone.
+      This is the honest half of the split: the staged view and the branched
+      home exist for different reasons and one does not subsume the other.
+    reproduction: >-
+      evals/run.sh --case 'ticket-agent-*' -- place.sh prints the UNDECIDED
+      notice and verify.sh writes .eval/UNDECIDED-needs-home.
+    evidence:
+      - evals/lib/place.sh
+      - evals/lib/verify.sh
+      - evals/README.md
+    why_out_of_scope: >-
+      Carrying a Skill Manager home into an eval run needs a mechanism neither
+      harness has: the view is capped at 20,000 entries and the sandbox's
+      allowRead is the plugin dirs only. That is a design question for the epic,
+      not a ticket-sized fix.
+    suggested_fix: >-
+      Either give `claude plugin eval` a case-scoped scaffold that runs outside
+      the entry count (`context.scaffold_script` under `--scaffold` DOES run --
+      re-measured in SI-14), or build the home into the workspace from a
+      SessionStart hook, which runs unsandboxed and is not counted against the
+      plugin directory. The second is the cheaper experiment.
+    blast_radius: >-
+      Six of 61 cases. The home/worktree lifecycle -- the substrate's own front
+      door -- is the part of the loop now measured least.

@@ -1,0 +1,42 @@
+SI-15 spec-unit tests. WHICH FORM I RAN, AND THE REAL EXIT STATUS.
+
+The first version of this file captured $? AFTER A PIPE TO tail, so both
+'EXIT=0' lines were the PIPE's status, not the command's. Re-run below
+with the status taken directly. (That is the trap the work order names;
+I sprang it once and am recording it rather than quietly fixing it.)
+
+=== FORM 1: --ticket SI-15 (the form validation.spec_unit names) ===
+REAL EXIT=1
+FAILED specs/current/tests/test_tla_spec_dev_budgets_adapter.py::test_record_budgets_adapter_emits_defaults_and_prompt
+FAILED specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py::test_close_records_delta_jointly_with_retention_and_refinement
+FAILED specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py::test_unfilled_ledger_template_refuses_the_close
+FAILED specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py::test_decrease_with_degraded_validated_refactor_evidence_is_rejected
+FAILED specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py::test_validated_decrease_with_not_run_fuzzing_members_is_recorded
+FAILED specs/current/tests/test_tla_spec_dev_ticket_adapter.py::test_open_ticket_adapter_drives_cli_ticket_workspace
+FAILED specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py::test_update_ticket_current_executes_case_end_to_end
+7 failed, 49 passed in 13.72s
+spec-unit target: /Users/hayde/IdeaProjects/wt-362-evals-one-place/specs/current
+spec-unit target: /Users/hayde/IdeaProjects/wt-362-evals-one-place/specs/tickets/SI-15/desired
+
+=== FORM 2: --target <path> (SIS-KICKOFF-F-04 says --ticket is weak) ===
+--- 2a: --target SI-15 (a bare ticket id) ---
+REAL EXIT=2
+ERROR: spec-unit target does not exist: /Users/hayde/IdeaProjects/wt-362-evals-one-place/SI-15
+  -> --target takes a PATH, not a ticket id; it resolved against cwd.
+
+--- 2b: --target specs/tickets/SI-15/desired (the path form) ---
+REAL EXIT=1
+FAILED specs/tickets/SI-15/desired/tests/test_tla_spec_dev_budgets_adapter.py::test_record_budgets_adapter_emits_defaults_and_prompt
+FAILED specs/tickets/SI-15/desired/tests/test_tla_spec_dev_complexity_ledger_adapter.py::test_close_records_delta_jointly_with_retention_and_refinement
+FAILED specs/tickets/SI-15/desired/tests/test_tla_spec_dev_complexity_ledger_adapter.py::test_unfilled_ledger_template_refuses_the_close
+FAILED specs/tickets/SI-15/desired/tests/test_tla_spec_dev_complexity_ledger_adapter.py::test_decrease_with_degraded_validated_refactor_evidence_is_rejected
+FAILED specs/tickets/SI-15/desired/tests/test_tla_spec_dev_complexity_ledger_adapter.py::test_validated_decrease_with_not_run_fuzzing_members_is_recorded
+FAILED specs/tickets/SI-15/desired/tests/test_tla_spec_dev_ticket_adapter.py::test_open_ticket_adapter_drives_cli_ticket_workspace
+FAILED specs/tickets/SI-15/desired/tests/test_tla_spec_dev_update_ticket_adapter.py::test_update_ticket_current_executes_case_end_to_end
+7 failed, 46 passed in 13.57s
+spec-unit target: /Users/hayde/IdeaProjects/wt-362-evals-one-place/specs/tickets/SI-15/desired
+
+=== READING ===
+The 7 failures are all under specs/current/tests, which this ticket never
+touches -- its slice is evals/**. The issue states the repository carries
+7 known spec-unit failures that are not the ticket's; this is that set.

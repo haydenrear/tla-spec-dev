@@ -1,12 +1,70 @@
 # The eval suite
 
-Seven cases, one per nested skill, run against **this checkout** in one command.
+**61 cases, one place, one command**, run against **this checkout**.
 
 ```bash
 evals/run.sh                                  # all of them
 evals/run.sh --case use-the-front-door        # one
-evals/run.sh --case 'git-*'                   # a glob
+evals/run.sh --case 'w-sdc-*'                 # a glob
 ```
+
+## One place (SI-15)
+
+The development loop's evals used to be split across two repositories and two
+harnesses that shared no runner: 7 cases here, and 54 in `skill-manager` under
+`specs/evals/harness/`, run by `eval_run_case()` in a 43,330-byte `lib.sh`
+against a branched Skill Manager home built per case. Nothing ran them
+together, so nothing could say whether a change to the substrate moved the
+whole picture or only the half somebody happened to run.
+
+`claude plugin eval` runs on a **plugin**. This repository is one;
+`skill-manager` has no `.claude-plugin/` and is not. That asymmetry decided the
+direction: **the cases moved here.**
+
+| where | cases |
+|---|---|
+| `spec-double-2` | 12 |
+| `git-issue-workflow` | 9 |
+| `git-epic-workflow` | 7 |
+| `skt` | 14 |
+| `skill-manager` | 9 |
+| `git-issue` | 3 |
+| `plugin-repository` | 2 |
+| `test-graph`, `discovery` | 1 each |
+| `harness`, `unnested` | 3 |
+
+**No moved case declares `plugins:`, and that is not a style rule.** Measured
+over four runs (SI-14-DF-01): a case declaring `plugins:` **silently loses the
+target plugin's hooks**, and *both arms score 1.00* — the score is completely
+blind to it. Every fixture here is placed by a `SessionStart` hook, so such a
+case would be handed an empty workspace and scored 0 as a skill failure. The
+unit a moved case is *about* is delivered instead by the view itself:
+`run.sh` stages the **pinned** `skt`'s skills into it, so those cases load
+their subject at the commit `lib/toolchain.lock.toml` names rather than
+whatever the operator's home holds today.
+
+### The six that need a home
+
+Six moved cases — `bootstraps-a-home-for-a-repo`,
+`reconciles-a-worktree-into-the-project-home`, `syncs-a-stale-home-from-root`,
+`ticket-agent-opens-a-ticket`, `ticket-agent-closes-a-ticket` and
+`epic-provisions-a-ticket-worktree` — have a **real branched Skill Manager
+home** as their fixture. A home is ~41,000 entries and `claude plugin eval`
+refuses a plugin directory over 20,000, so it cannot be staged into the view.
+
+They move, and they are declared **UNDECIDED**: `lib/place.sh` says so in the
+run's own trace and `lib/verify.sh` writes `.eval/UNDECIDED-needs-home`. They
+are **not** handed an empty workspace and scored 0 — that would read as "the
+agent could not provision a home", an instrument failing in the one direction
+this project says it may not.
+
+`sandbox-probe` did **not** move. It is a diagnostic of the *other* harness's
+sandbox rather than a skill test, and its `the-workspace-is-writable` grader is
+a deliberate standing red reading `path: probe-write` — a path the agent
+writes, which `test_no_grader_reads_a_path_the_agent_can_simply_write` forbids
+here. Filed as `SI-15-DF-02`.
+
+## The seven this plugin started with
 
 | skill | case | the question |
 |---|---|---|
