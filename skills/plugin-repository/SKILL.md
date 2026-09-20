@@ -21,12 +21,12 @@ skill-imports:
   - unit: tla-spec-dev
     path: skills/git-integration-repo/references/propagation.md
     reason: Fan-out of a merged parent change back to each skill repo.
-  - unit: skt
-    path: references/plugins.md
+  - unit: tla-spec-dev
+    path: skills/unit-authoring/references/plugins.md
     reason: >-
       Authority on plugin layout, .claude-plugin/plugin.json,
       skill-manager-plugin.toml, contained-skill semantics and plugin install.
-  - unit: skt
+  - unit: tla-spec-dev
     path: skills/unit-authoring/SKILL.md
     reason: Authoring and shipping edits to any installable unit.
   - unit: tla-spec-dev

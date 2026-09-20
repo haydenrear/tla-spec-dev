@@ -2,12 +2,12 @@
 name: spec-double-2
 description: 'Use when a repository keeps a TLA+ program model under specs/ and a ticket must read, extend, check, or close it through the tla-spec-dev CLI: scaffold a baseline, open or close a spec ticket, run TLC, read the complexity descriptor, render an implementation brief, or attribute a bug to the action it happened inside. Also the home of the organizational standards for evals, bug attribution, and blind dispatch — see the reference map.'
 skill-imports:
-  - unit: skt
+  - unit: tla-spec-dev
     path: skills/skill-manager/references/cli.md
     reason: Explains how skill-manager exposes declared CLI tools such as tlc2, pytest, and jinja2.
     section: runtime
-  - unit: skt
-    path: references/skills.md
+  - unit: tla-spec-dev
+    path: skills/unit-authoring/references/skills.md
     reason: Explains installable skill layout and skill-manager.toml validation.
     section: schema
 ---

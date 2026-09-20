@@ -1014,7 +1014,7 @@ skill_count() {
 # `bin/cli/fixture-dangling -> ../../venvs/fixture-missing/bin/tool` -> "1
 # reference(s) ... do not resolve", exit 1. So the report below is not stale --
 # its PREMISE was. The contract this sits inside is stated once, in
-# ${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/plugins/skt/skills/skt/references/derived-artifacts.md
+# ${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/plugins/tla-spec-dev/skills/skt/references/derived-artifacts.md
 # (absent in a home without skt).
 dangling_home_links() {
   command find "$STORE/bin" -type l 2>/dev/null | while IFS= read -r link; do

@@ -358,7 +358,7 @@ Two consequences worth stating:
   run `uv` cannot rebuild anything. What the clone does with the
   artifacts under those roots — and what you should do about it, which is
   usually nothing — **is stated once and is not repeated here:**
-  `${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/plugins/skt/skills/skt/references/derived-artifacts.md` (absent in a home that does not have the skt plugin installed). Read it before concluding a fresh worktree home is damaged.
+  `${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/plugins/tla-spec-dev/skills/skt/references/derived-artifacts.md` (absent in a home that does not have the tla-spec-dev plugin installed). Read it before concluding a fresh worktree home is damaged.
 
   Two things this page still owns, both measured:
   - Run any `sync` with the **agent-home variables set**, not with

@@ -1,0 +1,271 @@
+---
+name: skt
+description: 'Skill-lifecycle orientation and change management for skill-manager homes, via the `skt` CLI. Use at SESSION START to learn what is loaded and where you are standing — which skill-manager skills and plugins are installed, which support change management, which have a NEW VERSION AVAILABLE and how to pull/sync them, which home tier this session writes (root ~/.skill-manager, project <repo>/.skill-manager, or a ticket worktree home), and whether you are inside an epic, a ticket, or an active spec workflow. Use whenever you edited a skill in your home and need it to survive — sync it up a tier, publish it to its own repo — or see "please sync with root to publish changes globally". Use for the worktree ticket lifecycle: `skt ticket new/close` creates and tears down a ticket worktree WITH its own Skill Manager home, and `skt ticket list/sweep` enumerates the ticket worktrees of an epic and retires them in one safety-gated pass instead of a hand-rolled `git worktree remove --force` loop. Trigger on: "what skills are loaded", "am I in a ticket/epic", "update this skill", "new version", "sync skills", "publish my skill edit", "start/finish a ticket", "clean up/retire/sweep worktrees", "reclaim disk space from worktrees", session startup orientation.'
+---
+
+# skt
+
+One CLI for the questions every session has and nobody used to answer:
+*what is loaded, where am I standing, is anything stale, and how does my
+skill edit survive this worktree?*
+
+> **Orienting yourself? Run `skt status` and stop reading.** It answers all
+> four of the questions a session starts with — which home tier you are in,
+> what is above it, the exact command that carries an edit out of this home,
+> and which homes you must never write — in about 360 tokens. **Everything
+> below this line is reference, and reading it to orient yourself costs
+> roughly forty times more than running the command.**
+>
+> That number is measured, not asserted. Fresh agents inheriting nothing were
+> asked those four questions against a real home: they answered the tier from
+> `skt status` and then went hunting for the other three, spending 10,879
+> tokens at the worktree tier and 21,186 at the root tier — reading a
+> 13,000-token reference page and, at root, skt's own Python source. The
+> command already knew every answer. It just did not say the last three out
+> loud, and this page did not tell anyone to stop.
+
+```bash
+skt status            # startup report: units, plugins, home tier, epic/ticket state, CLI version
+skt check             # new-version-available, unit errors, stale artifacts, a stale skill-manager
+skt sync <unit>       # pull a unit to its latest pushed source
+skt ticket new <T>    # ticket worktree + its own Skill Manager home, one command
+skt ticket close <T>  # teardown through the close-out gate
+skt ticket list       # every ticket worktree here, and what blocks retiring it
+skt ticket sweep      # retire many at once — dry run unless you pass --yes
+skt publish [<unit>]  # a home-edited skill -> up one tier -> its own git repo
+skt build [<id>]      # rebuild a derived artifact whose inputs you changed
+skill-manager home drift --ack --home=<home>   # clear the launch gate a sync warns about; the home is a flag, never positional
+```
+
+`skt` is on `PATH` in every home **that installed this plugin**
+(`<home>/bin/cli/skt`). `skt --help` is authoritative for syntax.
+
+- `skt check` reporting `unverifiable (remote unreachable)` means currency could
+  NOT be established for those units — say so; do not rebuild the check from
+  `git ls-remote` or the lockfile.
+- A unit absent from `skill-manager list` is not installed, so it cannot be
+  synced — install it: `skill-manager install github:<owner>/<repo>` (the coord
+  names the repo, e.g. `github:haydenrear/git-issue-workflow-skill`). `sync`
+  only refreshes a unit that is already installed.
+
+**A home does not inherit it.** Project and worktree homes are copies of the
+home above them, so a home cloned from one that never installed `skt` has no
+`bin/cli/skt` and no `plugins/tla-spec-dev/` — and then none of this page is loaded in
+that session either, which is why you are unlikely to be reading this when it
+matters.
+
+That is not hypothetical, and the fix is one command. **As measured on
+2026-08-24**, the skill-manager repository's project home and a ticket worktree
+cloned from it each held four skills, no plugins and no `skt` — while the
+`skill-project.toml` that home is meant to realize declared the plugin. A single
+`skill-manager project resolve` against the worktree home installed `skt` and
+`skill-manager` into it and the gap closed. **So if you are reading this from a
+home that has `skt`, that measurement is history and not a description of where
+you are standing** — which is the whole shape of the problem: a home is a copy
+taken at an instant, and a sentence about one home is not a sentence about
+another.
+
+If `skt` is not there, nothing is broken and nothing is lost — you are simply
+one tier down from where it was installed. Every `skt` verb is a wrapper:
+
+| instead of | run |
+| --- | --- |
+| `skt status` / `skt check` | `skill-manager list`, `skill-manager home describe --json` |
+| `skt sync <unit>` | `skill-manager sync <unit> --git-latest` |
+| `skt publish <unit>` | `skill-manager home sync` then `skill-manager unit publish` (the two legs below) |
+| `skt ticket new/close` | `<home>/skills/git-issue-workflow/scripts/wt new\|close <TICKET>` — for a home that installed that unit; the same caveat applies to it |
+
+To get the plugin itself into this checkout's home, declare it in the
+checkout's `skill-project.toml` and run `skill-manager project resolve`
+against **that** home.
+
+## Derived artifacts — read this before deciding a home is broken
+
+`skt status` and `skt check` report artifact state into your opening context, so
+every session is told artifacts exist. **What they are, what a clone inherits
+versus merely declares, and when to rebuild is in
+`references/derived-artifacts.md`.**
+
+Go there if you are asking any of:
+
+- what is a derived artifact, and what names them?
+- what did my worktree home inherit from its parent, and what did it only
+  declare?
+- **a command on my `PATH` refused instead of running — `exit 86`** — or is
+  simply not there at all;
+- is this home broken, or is this what a healthy clone looks like?
+- should I rebuild something, and with what command?
+
+Read it rather than the source. The last two agents who read the source instead
+got the root cause wrong, in opposite directions, and the page names both.
+
+## When `skt check` says a unit is NOT stale
+
+**A project or worktree home tracks the repository's pin, not the unit's
+trunk.** When the checkout's `skill-project.toml` gives a unit a
+`revision`, `skt check` in that home compares against the pin, never the
+remote tip: at the pin it lists the unit under `pinned by
+skill-project.toml (nothing to pull)`; off the pin it emits `pin-drift`
+with `restore the pin with: … project resolve --project-dir <repo>`. Do
+not `skt sync` a pinned unit there — that pulls trunk and breaks the
+repository that pinned it. The root home ignores pins and tracks trunk.
+
+A unit whose installed hash disagrees with its remote tip is usually
+behind it. Sometimes the home already knows better: the installer
+records `errors[*].kind` when it leaves a store in a state it could not
+finish, and for `MERGE_CONFLICT`, `NO_GIT_REMOTE` and
+`NEEDS_GIT_MIGRATION` that record *is* the explanation for the
+disagreement. `skt check` reads it first and emits a `unit-error`
+notification in place of the pull prompt:
+
+```
+deploy-helm is not stale — its store is mid-merge (MERGE_CONFLICT):
+unmerged paths remain. Local work is preserved at stash@{0}.
+Syncing re-runs the merge that made them.
+  resolve with: git -C <home>/skills/deploy-helm status
+```
+
+**Do not answer this with `skt sync` or `skill-manager sync --merge`.**
+`--merge` is documented as the flag that *sets* `MERGE_CONFLICT`, and
+the state clears only when the store has no unmerged files left. The
+stash the message names is somebody's uncommitted work and any reset of
+the store destroys it. Resolve in the store directory, `git add` +
+`git commit`, and the next command clears the error by itself.
+
+## When a skt command relays a failure
+
+`skt ticket new`, `skt publish` and `skt sync` all shell out — to
+`bootstrap-home.sh`, or to this home's own `bin/cli/skill-manager` — and
+when one of those fails you get the child's own words, not a summary of
+them:
+
+```
+error: home bootstrap failed (exit 1); worktree and branch rolled back
+cause: skill-manager: refusing to run against a home you did not name.
+         you named:  /repo/wt-3/.skill-manager
+         this shim would have edited: /Users/x/.skill-manager
+fix:   skill-manager home shims --root /repo/wt-3/.skill-manager   # ...
+log:   /tmp/bootstrap-home-A3Uj8x.log
+--- bootstrap-home.sh said ---
+  <the whole output, or its head and tail with the elision counted>
+```
+
+Read it in this order and believe the `cause:` block over everything
+else — it is the child's text, lifted out so a long log cannot bury it.
+
+**Exit 79 is a cross-home refusal and is never a version problem.** A
+`bin/cli` shim binds the home it LIVES in and refuses when
+`SKILL_MANAGER_HOME` names a different one, rather than editing the
+other home silently. Upgrading anything changes nothing. Either the pin
+serves a home that is not the one it lives in — regenerate it with
+`skill-manager home shims --root <home>` — or the environment names a
+home this pin does not serve, and the environment is what moves. The
+refusal names both homes; the `fix:` line picks the right one of the two.
+
+Before skt 0.8.0 this printed only the child's LAST line, so a
+provisioning failure read as a dangling sentence fragment
+(skill-manager#264) and the diagnosis was only reachable by re-running
+the bootstrap by hand.
+
+## Startup disclosure
+
+In Claude Code this plugin's `SessionStart` hook injects `skt status`
+into every session automatically and performs the one bounded live
+refresh of the check cache; the `PostToolUse` hook is cache-only — it
+surfaces "new version available" notifications from that cached result
+and never runs a check itself (every hook injection appends a line to
+`<home>/logs/skt/hook.log`).
+Harnesses without a hook runtime (codex, gemini) get the projected skt
+skill plus an instruction snippet instead — the honest per-harness
+matrix is `../unit-authoring/references/harness-capabilities.md`.
+
+`skt ticket new/close` wraps git-issue-workflow's `wt`; the raw path
+form still works everywhere and is the fallback when skt is not
+installed:
+
+```bash
+"${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts/wt" new <TICKET>
+```
+
+## Retiring an epic's worktrees at the end: `list` and `sweep`
+
+An epic keeps every ticket worktree standing until integration is done
+and then retires them all at once. **Do not hand-loop
+`git worktree remove --force`** — that is `rm -rf` with extra steps: it
+deletes each worktree's Skill Manager home, which is gitignored, so the
+loss appears in no diff, no PR and no fan-out.
+
+```bash
+skt ticket list                       # read-only: what is standing, and what blocks it
+skt ticket sweep                      # the plan. Changes NOTHING without --yes
+skt ticket sweep --target origin/main --yes  # retire every worktree that passes its own gate
+skt ticket sweep --epic <slug> --yes  # one epic's worktrees only
+```
+
+Run it **from the primary checkout**. `sweep` refuses the worktree it is
+running in and never touches the primary.
+
+`--epic <slug>` resolves `epic/<slug>` (local or remote) and refuses if it
+cannot. A worktree is one of its tickets when its ticket id is in the epic's
+`ticket_plan.yaml`, or its tip is contained in the epic branch. The epic's
+own worktree is never swept by `--epic`; remove it on its own once the
+epic is finalized.
+
+`--yes` needs a containment target. With no `--epic`, no `--target` and no
+single discoverable `epic/*` branch, the dry run still lists every worktree
+(noting that containment was not checked), but `--yes` refuses and removes
+nothing: pass `--epic <slug>` or `--target <ref>` (e.g. `--target origin/main`).
+
+Each worktree is measured *again* immediately before it is removed, and
+any one of these makes it **skipped, not removed** — reported, with the
+pass carrying on:
+
+- uncommitted changes, or a stash entry made on that worktree's branch;
+- commits not pushed, or not contained in the epic/target branch;
+- a non-clean `skill-manager home close-out --home <worktree-home>
+  --into <primary-home>` verdict — the same gate `skt ticket close` runs.
+
+Removal is `git worktree remove`; `--force` is never passed. Exit `0`
+means the pass completed (skips included — a skip is the gate working),
+`1` means something failed, `9` means the destination home is `frozen`
+and the pass was abandoned.
+
+The summary reports a **free-space delta**, measured with `statvfs`
+before and after, and no per-worktree size. These homes are cloned
+copy-on-write, so `du` bills every shared block to every copy and
+over-reports by roughly 30x — a home `du` called 1.1 GB cost 33.7 MB of
+real space.
+
+## The three-tier home model, in one table
+
+| Tier | Path | Updated by | Your obligation |
+| --- | --- | --- | --- |
+| root | `~/.skill-manager` | operator installs; `skt sync` | publish local edits globally (`skt check` prompts here) |
+| project | `<repo>/.skill-manager` | cloned from root; refreshed via `wt`/`skt ticket` imports | pull-side by default — but an edit made *here* owes the same two legs as any other |
+| worktree | `<worktree>/.skill-manager` | cloned from project at `ticket new` | get edits OUT before teardown (`skt publish`; the close gate refuses otherwise) |
+
+Homes are real copies, never symlinks. An edit inside one is **in no git
+diff** — `skt publish` is how it survives: `home sync` moves it one tier
+up (and no further), `unit publish` is the only route to the skill's own
+repository and to other machines.
+
+A copy of a home is not a copy of everything the home can *do*: the derived
+artifacts it holds are inherited or declared rather than rebuilt, which is
+`references/derived-artifacts.md`.
+
+## This skill's reference pages
+
+| Question | Page |
+| --- | --- |
+| What is an artifact, what does a clone inherit versus declare, when do I rebuild? | `references/derived-artifacts.md` |
+| Which harnesses get hooks, and which get a projected skill instead? | `../unit-authoring/references/harness-capabilities.md` |
+| The deep unit-authoring schemas | `../unit-authoring/references/` (see the `unit-authoring` skill) |
+
+## Related skills in this plugin
+
+- `unit-authoring` (sibling skill): authoring installable units —
+  SKILL.md frontmatter, `skill-manager.toml`, `plugin.json`,
+  dependencies, distribution. The deep schemas live in this plugin's
+  `../unit-authoring/references/` pages.
+- `skill-manager` (separate unit): install/bind/project/home plumbing;
+  its CLI help is authoritative for those.

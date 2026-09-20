@@ -111,3 +111,25 @@ name = "plugin-repository"
 path = "skills/plugin-repository"
 remote = "https://github.com/haydenrear/plugin-repository-skill.git"
 default_branch = "main"
+
+# --- added by SI-16 (wave 11) -----------------------------------------------
+# skt, and it is NOT like the seven above. Those were SKILLS: one directory in,
+# one directory out, and `git subtree pull --prefix=skills/<name>` stays open.
+# skt was a PLUGIN. Demoting it scattered its tree ACROSS this repository on
+# purpose -- hooks to hooks/, install-skt.sh to skill-scripts/, its two sibling
+# contained skills to skills/skill-manager and skills/unit-authoring, its graph
+# sources into test_graph/ -- because a plugin's surface has nowhere to live
+# inside a single skills/<name>/ directory.
+#
+# CONSEQUENCE, STATED PLAINLY: `git subtree pull --prefix=skills/skt` is NOT a
+# working integration path for this constituent, because most of what the
+# upstream prefix contains no longer lives under that prefix here. It is
+# recorded as a constituent so refresh/verify can see it and so the provenance
+# of the subtree commit is legible; it is not a promise that the pull round
+# trips. Upstream skt work has to be applied by hand, to whichever of the five
+# destinations above owns the file.
+[[constituent]]
+name = "skt"
+path = "skills/skt"
+remote = "https://github.com/haydenrear/skt.git"
+default_branch = "main"

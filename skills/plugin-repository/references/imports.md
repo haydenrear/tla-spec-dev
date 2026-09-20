@@ -79,7 +79,7 @@ to the plugin root.
 
 ```yaml
 skill-imports:
-  - unit: skt
+  - unit: tla-spec-dev
     path: skills/unit-authoring/SKILL.md
     reason: …
 ```
