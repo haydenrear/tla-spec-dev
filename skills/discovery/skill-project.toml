@@ -67,18 +67,9 @@ description = "Spec-first repository discovery: start tickets and issue planning
 #     left to reference-following, because a `skill-imports` target that is not
 #     an installed unit fails the resolve ---
 
-[skills.spec-double-compiler]
-source = "github:haydenrear/tla-spec-dev"
-
-[skills.test-graph]
-source = "github:haydenrear/test_graph_skill"
-
 # --- authoring: every tracked file here is unit content — SKILL.md, its frontmatter and description, and skill-manager.toml.
 #     skill-publisher is the authority on all of it, and on the
 #     install/bind/sync round trip that ships an edit into a store ---
-
-[skills.unit-authoring]
-source = "github:haydenrear/skt"
 
 # --- required BY skill-publisher, not chosen here: its SKILL.md `skill-imports`
 #     names `skill-manager` (references/skill-imports.md), and `project resolve`
@@ -87,10 +78,22 @@ source = "github:haydenrear/skt"
 #     markdown `skill-imports` are not. It is also the CLI surface used to prove
 #     an edit to this unit actually reaches a store ---
 
-[skills.skill-manager]
-source = "github:haydenrear/skt"
-
 # --- no [[vendored]] block: this repo tracks no symlinks and has no test_graph,
 #     so no path in the working tree holds content owned by another unit.
 #     Verified with `git ls-files -s | grep ^120000` -> 0 entries, before and
 #     after onboarding. Nothing to migrate, nothing to validate.
+
+# --- SI-16/SI-17 SWEEP: the entries that used to sit here are GONE, not
+#     repointed. Every unit they named -- skt, unit-authoring, skill-manager,
+#     spec-double-compiler, test-graph -- is now a CONTAINED SKILL of the
+#     tla-spec-dev plugin, and so is this one. They arrive together from one
+#     coord. A `source = "github:haydenrear/..."` here would still RESOLVE,
+#     and resolving it installs a SECOND, standalone copy of a sibling in
+#     this bundle -- the silent-duplicate class in
+#     skills/plugin-repository/references/imports.md section 3, and the same
+#     duplication SI-02 deleted from the root manifest.
+#
+#     A checkout of THIS skill is now a checkout of the bundle, so an agent
+#     editing it already has every sibling on disk at skills/<unit>/.
+#     Nothing needs to be installed to reach them. The rationale each
+#     deleted block carried is preserved in git history.

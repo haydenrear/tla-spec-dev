@@ -50,9 +50,6 @@ description = "Create and operate plugin repositories: skill repos bundled as th
 #     repo name and changing its unit identity — and it is why every table in
 #     references/migration.md distinguishes the coord from the unit name ---
 
-[skills.skt]
-source = "github:haydenrear/skt"
-
 # --- required BY skt's unit-authoring (its SKILL.md `skill-imports` names
 #     skill-manager), and substantive here on its own: `home clone/policy/
 #     describe/drift`, `install`, `sync`, `bind` and `project resolve` are the
@@ -61,9 +58,6 @@ source = "github:haydenrear/skt"
 #     markdown `skill-imports` are not, and `project resolve` refuses the whole
 #     resolve with "references missing unit" until the imported unit is
 #     declared ---
-
-[skills.skill-manager]
-source = "github:haydenrear/skt"
 
 # --- REPO-SPECIFIC DECISION: nothing else is declared. The tracked content is
 #     markdown plus POSIX shell and stdlib Python — no specs/ tree, no
@@ -75,3 +69,18 @@ source = "github:haydenrear/skt"
 
 # --- no [[vendored]] block: this repo tracks no symlinks and no content owned
 #     by another unit. Verify with `git ls-files -s | grep ^120000` -> 0 entries.
+
+# --- SI-16/SI-17 SWEEP: the entries that used to sit here are GONE, not
+#     repointed. Every unit they named -- skt, unit-authoring, skill-manager,
+#     spec-double-compiler, test-graph -- is now a CONTAINED SKILL of the
+#     tla-spec-dev plugin, and so is this one. They arrive together from one
+#     coord. A `source = "github:haydenrear/..."` here would still RESOLVE,
+#     and resolving it installs a SECOND, standalone copy of a sibling in
+#     this bundle -- the silent-duplicate class in
+#     skills/plugin-repository/references/imports.md section 3, and the same
+#     duplication SI-02 deleted from the root manifest.
+#
+#     A checkout of THIS skill is now a checkout of the bundle, so an agent
+#     editing it already has every sibling on disk at skills/<unit>/.
+#     Nothing needs to be installed to reach them. The rationale each
+#     deleted block carried is preserved in git history.

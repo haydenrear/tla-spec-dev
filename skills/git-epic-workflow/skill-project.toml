@@ -61,9 +61,6 @@ description = "Plan, schedule, resume and finalize multi-ticket Git epics on an 
 #
 #     so the table it is declared in is load-bearing, not cosmetic. ---
 
-[plugins.skt]
-source = "github:haydenrear/skt"
-
 # --- required BY the authoring unit, not chosen here: its SKILL.md `skill-imports`
 #     names `skill-manager` (references/skill-imports.md), and `project resolve`
 #     refuses the whole resolve with "references missing unit" until the
@@ -74,9 +71,6 @@ source = "github:haydenrear/skt"
 #     home syncs back up a tier and what epic close-out requires of the tickets'
 #     homes, and `skill-manager` is the authority on `home sync` and
 #     `home close-out` ---
-
-[skills.skill-manager]
-source = "github:haydenrear/skt"
 
 # --- REPO-SPECIFIC DECISION: git-issue, git-issue-workflow,
 #     spec-double-compiler and test-graph are deliberately NOT declared, though
@@ -105,3 +99,18 @@ source = "github:haydenrear/skt"
 # --- no [[vendored]] block: this repo tracks no symlinks and has no test_graph,
 #     so no path in the working tree holds content owned by another unit.
 #     Verified with `git ls-files -s | grep ^120000` -> 0 entries.
+
+# --- SI-16/SI-17 SWEEP: the entries that used to sit here are GONE, not
+#     repointed. Every unit they named -- skt, unit-authoring, skill-manager,
+#     spec-double-compiler, test-graph -- is now a CONTAINED SKILL of the
+#     tla-spec-dev plugin, and so is this one. They arrive together from one
+#     coord. A `source = "github:haydenrear/..."` here would still RESOLVE,
+#     and resolving it installs a SECOND, standalone copy of a sibling in
+#     this bundle -- the silent-duplicate class in
+#     skills/plugin-repository/references/imports.md section 3, and the same
+#     duplication SI-02 deleted from the root manifest.
+#
+#     A checkout of THIS skill is now a checkout of the bundle, so an agent
+#     editing it already has every sibling on disk at skills/<unit>/.
+#     Nothing needs to be installed to reach them. The rationale each
+#     deleted block carried is preserved in git history.
