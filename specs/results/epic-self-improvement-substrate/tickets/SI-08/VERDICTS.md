@@ -54,6 +54,14 @@ test_verdict_schema::test_the_corpus_gate_states_its_verdict_as_data
 
 Full output: `baseline-pytest.txt`.
 
+`tests/test_score_tools.py`, run once separately as the work order requires
+(this ticket reads the scorecards): **127 passed in 831.80s (0:13:51)** — all
+green. It holds a 13-minute lock on the card files and nothing edited a card
+file in that window. The four improvement cards this ticket produced were
+written under the goal evidence root, **not** sealed into
+`specs/results/scorecards/<round>/`, so no card this suite validates was added
+behind its back — sealing a round is the epic agent's act at close.
+
 Running the graphs dirtied four committed `case_coverage.json` files under
 `examples/effect_providers/` — which is the behaviour
 `test_example_drivers_write_inside_spec_tree` exists to catch. They were
@@ -119,7 +127,9 @@ not run. Nothing in this PR touches any home.
 7. **Citation resolvability inside the judge cells.** By construction the cells
    cannot open the subjects' paths, so citations were checked as present and
    well-formed, not as resolving.
-8. **`tests/test_score_tools.py`** — see the note below.
+8. **Whether the four improvement cards would survive `test_card_has_one_home`
+   and the scorecard schema checks**, since they were deliberately not sealed
+   into `specs/results/scorecards/<round>/` where those checks would read them.
 
 ## Bug attribution
 
