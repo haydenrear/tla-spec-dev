@@ -1,10 +1,34 @@
 # Skill project manifest for the skt CONTAINED SKILL.
 #
-# SI-16 resolved two identity snags this file carried into the bundle:
-#   * `[project] name` said "skill-publisher" -- a THIRD identity, neither
-#     `skt` nor `tla-spec-dev`, left over from when this repository was the
-#     standalone skill-publisher skill. It now names the unit it describes.
-#   * `# --- no [[vendored]] block: this repo tracks no symlinks and has no test_graph,
-#     so no path in the working tree holds content owned by another unit.
-#     Verified with `git ls-files -s | grep ^120000` -> 0 entries, before and
-#     after onboarding. Nothing to migrate, nothing to validate.
+# RESTORED 2026-09-20 by the epic agent (SI-17-DF-02). SI-16 nested skt into
+# this plugin and, while rewriting this header, commented the `[project]` table
+# out along with the prose it was editing -- note the orphaned "# --- no
+# [[vendored]] block" fragment that used to sit BELOW the table and ended up
+# inside a comment bullet. The file still PARSED, because comments are valid
+# TOML, so every syntax check stayed green while it declared nothing at all.
+# `check_units.py` is what caught it:
+#
+#   FAIL  skills/skt/skill-project.toml: declares no [project] table
+#
+# 4,352 bytes became 659, and a manifest that asserts nothing is the exact
+# failure shape this epic keeps producing: a valid artifact with no content.
+#
+# SI-16 did resolve a real identity snag here, and that part stands. The
+# `[project] name` used to say "skill-publisher" -- a THIRD identity, neither
+# `skt` nor `tla-spec-dev`, left from when this repository was the standalone
+# skill-publisher skill. It now names the unit it describes.
+#
+# No [[vendored]] block: this skill tracks no symlinks and carries no
+# test_graph of its own, so no path here holds content owned by another unit.
+# Verified with `git ls-files -s | grep ^120000` -> 0 entries.
+#
+# No [skills.*] or [plugins.*] declarations: skill-manager, skt and
+# unit-authoring are all CONTAINED SKILLS of the carrier plugin now, and a unit
+# the bundle contains is never declared -- the coord still resolves, and
+# resolving it installs a second standalone copy. That is the duplication SI-02
+# deleted at the root manifest and SI-16 deleted here.
+
+[project]
+name = "skt"
+version = "0.8.2"
+description = "Skill-lifecycle CLI and worktree change management: startup disclosure of loaded skills and plugins, home tier and epic/ticket state, new-version and sync notifications, and the worktree lifecycle — a contained skill of the tla-spec-dev plugin."

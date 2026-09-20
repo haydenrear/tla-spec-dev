@@ -390,13 +390,22 @@ def _parse_folded_scalar(
         return "", index
 
     content_indent = rows[index][0]
+    literal = indicator.startswith("|")
     lines: list[str] = []
     while index < len(rows) and rows[index][0] >= content_indent:
-        lines.append(rows[index][1])
+        row_indent, text = rows[index]
+        if literal and row_indent > content_indent:
+            # A LITERAL block keeps relative indentation; a folded one does not.
+            # SI-17's findings file indents a TOML snippet four spaces inside a
+            # `|` scalar, and flattening it would change the value it documents.
+            text = " " * (row_indent - content_indent) + text
+        lines.append(text)
         index += 1
 
-    value = " ".join(lines)
-    if indicator != ">-" and lines:
+    # `|` joins with newlines, `>` folds to spaces. The chomping suffix decides
+    # the trailing newline for BOTH forms: `-` strips it, bare and `+` keep one.
+    value = ("\n" if literal else " ").join(lines)
+    if not indicator.endswith("-") and lines:
         value += "\n"
     return value, index
 
@@ -521,7 +530,7 @@ def _parse_dict(rows: list[tuple[int, str]], index: int, indent: int) -> tuple[d
 
         key, value = _split_key_value(content)
         index += 1
-        if value in {">", ">-", ">+"}:
+        if value in _BLOCK_INDICATORS:
             result[key], index = _parse_folded_scalar(rows, index, row_indent, value)
             continue
         if value:
@@ -577,7 +586,7 @@ def _parse_list(rows: list[tuple[int, str]], index: int, indent: int) -> tuple[l
             continue
         if _key_split_pos(item) is not None and not item.startswith(("'", '"')):
             key, value_text = _split_key_value(item)
-            if value_text in {">", ">-", ">+"}:
+            if value_text in _BLOCK_INDICATORS:
                 folded, index = _parse_folded_scalar(rows, index, row_indent, value_text)
                 value = {key: folded}
                 if index < len(rows) and rows[index][0] > row_indent:
