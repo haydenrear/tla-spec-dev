@@ -95,6 +95,31 @@ deferment_policy:
   # Append this epic's findings; never truncate, re-template or reorder it —
   # sealed close-history records point into it by ID.
   backlog: "specs/results/deferred_findings_final.yaml"
+  # ADOPTED 2026-09-20 AT THE WAVE-8/9 BOUNDARY, on the owner's "accept
+  # defaults". SI-07's validator has recommended this since wave 3 and it was
+  # deferred five times because every wave since has run a single ticket, so a
+  # shared file cost nothing. That stops being true at SI-23, which files
+  # against SIX goals into one 79-row ledger -- the exact shape the validator
+  # named: "a shared mutable namespace with no per-agent partition, where
+  # collision is CERTAIN rather than careless."
+  #
+  # Adopted at a BOUNDARY, never mid-flight: a live assignment names the
+  # cumulative file, so changing the convention under a running agent would
+  # invalidate its instructions. Waves 1-8 are merged and wave 9 is not yet
+  # dispatched, which is the only safe moment.
+  #
+  # How it works: each ticket appends ONLY to its own rendered path. The
+  # cumulative `backlog` above stays canonical -- readers and sealed `filed_as`
+  # references point into it -- and the EPIC AGENT concatenates the wave's
+  # per-ticket files onto it at wave close. That is an append nobody contends,
+  # not a resolution.
+  #
+  # Deliberately NOT a union merge driver (references/deferment.md): a union
+  # driver silently produces a valid-looking file when it is wrong, which is
+  # the same defect class it would be papering over -- a check whose negative
+  # result is indistinguishable from not having looked. It would trade four
+  # visible reconciles for one invisible corruption.
+  per_ticket_backlog: "specs/results/deferred/{ticket}.yaml"
 
 # Owner decision 2026-09-17, after the kickoff review: gate three boundaries
 # rather than six -- after the migration (2), after the epic-agent rules land
