@@ -223,6 +223,52 @@ if python3 "$here/lib/toolchain.py" materialise \
         ${ref_args[@]+"${ref_args[@]}"} --check-drift --stage-into "$view" --record "$record"; then
     cp "$record" "$view/toolchain/RECORD.json"
     echo "eval: the run record is $record (and staged for the hook to print)"
+
+    # ---------------------------------------------------- the unit under test
+    # THE MOVED CASES' UNIT, DELIVERED WITHOUT `plugins:`. (SI-15.)
+    #
+    # 54 cases moved here from skill-manager, and 18 of them ask about `skt` or
+    # the `skill-manager` CLI -- units this plugin does not nest. On the other
+    # side each case reached its unit through a `plugins:` entry. That route is
+    # closed here, and the reason is measured rather than stylistic: a case
+    # declaring `plugins:` SILENTLY LOSES the target plugin's hooks, and both
+    # arms still score 1.00 (SI-14-DF-01, four runs, hook fired 2/2 without and
+    # 0/2 with). Every fixture in this suite is placed by a SessionStart hook,
+    # so such a case would be handed an empty workspace and scored 0 as a skill
+    # failure.
+    #
+    # The view IS the plugin, so its `skills/` is what loads. Staging the
+    # pinned skt's skills into it delivers the unit through the plugin itself
+    # -- no `plugins:` entry -- and AT THE PINNED COMMIT rather than whatever
+    # the operator's home holds today, which is what SI-14 bought.
+    #
+    # STAGED, NEVER COMMITTED, exactly like hooks.json above: the shipped
+    # plugin gains no skills it does not own. And it is cheap -- the pinned skt
+    # is 183 entries and ships NO case.yaml of its own, so it cannot contribute
+    # cases to this suite's discovery the way the 11,481-entry skill-manager
+    # checkout would (which is why that one is reached by a PATH shim instead).
+    if [ -d "$view/toolchain/skt/skills" ]; then
+        staged_units=""
+        for unit_dir in "$view/toolchain/skt/skills"/*/; do
+            [ -d "$unit_dir" ] || continue
+            unit_name=$(basename "$unit_dir")
+            # NEVER OVER ONE OF OUR OWN. A nested skill of this plugin is the
+            # thing under review; a pinned copy silently replacing it would
+            # grade the pin instead of the branch.
+            if [ -d "$view/skills/$unit_name" ]; then
+                echo "eval: NOTE -- not staging skt's '$unit_name' over this plugin's own"
+                continue
+            fi
+            cp -R "$unit_dir" "$view/skills/$unit_name"
+            staged_units="$staged_units $unit_name"
+        done
+        [ -n "$staged_units" ] && \
+            echo "eval: staged the pinned skt's skills into the view:$staged_units"
+    else
+        echo "eval: WARNING -- no skt skills were staged, so the w-skt and w-sm"
+        echo "eval:            cases will run WITHOUT the unit they are about and"
+        echo "eval:            score as skill failures. Do not quote their scores."
+    fi
 else
     # WARN, NEVER REFUSE -- but be explicit about what the run now cannot say.
     echo "eval: WARNING -- the toolchain could not be materialised."
