@@ -76,10 +76,34 @@ RUN: dict[str, str] = {
     "effectProviderExamples": "the committed effect-provider examples execute",
 }
 
-# Graphs deliberately not run by default. Empty here, and that is a fact about
-# this repository rather than an oversight: none of its three graphs reaches a
-# third-party service. skill-manager's surface is the one with opt-ins.
-OPT_IN: dict[str, str] = {}
+# Graphs deliberately not run by default.
+#
+# SI-16 MADE THIS NON-EMPTY, and the sentence it replaces is retired. It used
+# to read "none of its three graphs reaches a third-party service", which was
+# true of the three. Absorbing skt added two more, and they do: the skt nodes
+# run on a PINNED interpreter matrix (3.11 and 3.13) that
+# `test_graph/support/skt_fixture.py` provisions with `uv python find` and,
+# failing that, `uv python install` -- a download. `skt.wrapper-installed`
+# declares `side_effects("fs:tmp", "net:external")` for exactly that reason.
+#
+# They are OPT-IN rather than RUN so the default front door stays offline and
+# cannot hang on a network fetch; they are NOT dead, and they are not silently
+# dropped -- the reason below is printed on every run, which is what keeps
+# "did not run" distinguishable from "is not run here" (SI-13's rule).
+OPT_IN: dict[str, str] = {
+    "sktSurface": (
+        "provisions a pinned CPython 3.11/3.13 matrix through uv "
+        "(net:external) to execute install-skt.sh, the wrapper it writes, the "
+        "two shipped hooks and the ticket round trip; run it with "
+        "`python3 test_graph/run-graphs.py --only sktSurface` once uv can "
+        "reach its interpreter downloads"
+    ),
+    "sktHooks": (
+        "the hook-change subset of sktSurface (wrapper + cached-cost + hook "
+        "contract); same pinned-interpreter provisioning, same opt-in "
+        "command with --only sktHooks"
+    ),
+}
 
 # Graphs registered but known not to work. Empty; see --list output.
 DEAD: dict[str, str] = {}

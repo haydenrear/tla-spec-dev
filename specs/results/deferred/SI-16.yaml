@@ -1,0 +1,163 @@
+# SI-16's per-ticket deferment backlog (deferment_policy.per_ticket_backlog).
+# The cumulative specs/results/deferred_findings_final.yaml stays canonical and
+# is read-only to this ticket; the epic agent concatenates at wave close.
+#
+# Budget: 5. Used: 5.
+findings:
+  - id: SI-16-DF-01
+    found_by: SI-16
+    found_at_commit: 4caab479
+    schedule_revision: 5
+    severity: minor
+    target: tla-spec-dev (issue #365 body / epic plan)
+    surface: {production: [], tla: [], adapters: [], test_graph: [], workflow: []}
+    summary: >-
+      The issue's "exactly 10 CLAUDE_PLUGIN_ROOT references must be rewritten"
+      is wrong in BOTH directions. (a) It lists "2 in hooks/hooks.json
+      (${CLAUDE_PLUGIN_ROOT}/hooks/skt-*.sh)". Those two must NOT be rewritten:
+      the hooks lift to the CARRIER's plugin root, so ${CLAUDE_PLUGIN_ROOT}/hooks/
+      is still exactly right, and adding a skills/skt/ segment would have broken
+      them. (b) The count misses a real one. tests/test_artifact_notify.py:491
+      resolved parents[1]/"hooks"/"skt-post-tool.sh" -- a hook path that never
+      spells CLAUDE_PLUGIN_ROOT, so it is invisible to the grep the count came
+      from, and it broke on the move.
+    reproduction: >-
+      grep -rn CLAUDE_PLUGIN_ROOT over skt at b7ea313a returns 10, of which the
+      2 in hooks.json need no change; the genuine rewrites are 4 in the two hook
+      scripts plus 4 test/fixture anchors plus the 1 the grep cannot see.
+      `pytest skills/skt/tests` caught the missed one as FileNotFoundError on
+      skills/skt/hooks/skt-post-tool.sh.
+    why_out_of_scope: >-
+      The issue body and the epic plan are the epic agent's to correct, not a
+      ticket's. Both halves were handled correctly in the implementation.
+    suggested_fix: >-
+      Correct the successor issue to "4 in the hook scripts, 5 in tests and
+      fixtures; the 2 in hooks.json stay", and note that counting a path
+      migration by one env var's name undercounts it.
+    skill_change: "declined(the defect is in the issue body and the epic plan, which this ticket may not edit; corrected here in the PR body and this finding)"
+    blast_radius: Any successor ticket that trusts the count instead of re-deriving it.
+
+  - id: SI-16-DF-02
+    found_by: SI-16
+    found_at_commit: 4caab479
+    schedule_revision: 5
+    severity: major
+    target: tla-spec-dev (evals/run.sh)
+    surface: {production: [], tla: [], adapters: [], test_graph: [], workflow: []}
+    summary: >-
+      This ticket makes the plugin ship hooks for the first time, and
+      evals/run.sh:127 does `cp "$here/hooks/hooks.json" "$view/hooks/hooks.json"`
+      -- which now OVERWRITES a committed file rather than creating one. The
+      consequence is that an eval run does not exercise the shipped hooks at
+      all, so this suite is not evidence about them, and run.sh's own comment
+      ("Staging keeps the shipped plugin hookless") became false the moment the
+      subtree landed.
+    reproduction: >-
+      test -f hooks/hooks.json (now tracked) and read evals/run.sh:127. Before
+      SI-16 the destination did not exist in the view; now it does.
+    why_out_of_scope: >-
+      Changing the cp into a MERGE would add skt's SessionStart (`skt status`)
+      to every eval case and move scores in a ticket that is not about evals.
+      SI-14/SI-15 own that surface. The overwrite is therefore left in place
+      deliberately.
+    suggested_fix: >-
+      Either compose the view's hooks.json from both sources (hooks.json
+      supports multiple entries per event, and skt's two hooks never exit
+      non-zero so they cannot refuse a case), or keep the overwrite and state
+      in evals/README.md that the shipped hooks are out of the suite's scope.
+    skill_change: "applied(4caab479 -- the false comment at evals/run.sh:34 is replaced with one that says the file is now committed, that the cp overwrites it, why it stays an overwrite, and that hook evidence is <home>/logs/skt/hook.log plus the sktHooks graph)"
+    blast_radius: Anyone quoting an eval score as evidence about the SessionStart/PostToolUse hooks.
+
+  - id: SI-16-DF-03
+    found_by: SI-16
+    found_at_commit: 4caab479
+    schedule_revision: 5
+    severity: major
+    target: tla-spec-dev (evals/lib/toolchain.lock.toml, evals/run.sh)
+    surface: {production: [], tla: [], adapters: [], test_graph: [], workflow: []}
+    summary: >-
+      Nesting silently retires the skt eval pin that SI-08/SI-14 built.
+      run.sh stages the PINNED skt's contained skills into the view but skips
+      any whose name the plugin already owns ("NEVER OVER ONE OF OUR OWN"). After
+      this ticket the plugin owns all three -- skt, skill-manager, unit-authoring
+      -- so the loop stages NOTHING and `staged_units` is empty. The w-skt and
+      w-sm cases therefore grade the BRANCH's skt, not the pinned
+      286a3694, and neither the "staged" message nor the "WARNING -- no skt
+      skills were staged" branch fires to say so (the warning is guarded on the
+      toolchain dir existing, which it still does).
+    reproduction: >-
+      Read evals/run.sh:250-266 against `ls skills/` after this commit: the
+      intersection that used to be empty is now all three names.
+    why_out_of_scope: >-
+      The pin and its materialiser are SI-08's and SI-14's deliverable and are
+      outside this ticket's conflict keys. Changing what the suite grades is
+      also exactly the kind of silent score movement this epic keeps punishing.
+    suggested_fix: >-
+      Decide explicitly which skt an eval grades now that the plugin contains
+      one, and make the answer loud: either drop [units.skt] from the lock and
+      say the suite grades the branch, or keep the pin and stage it somewhere a
+      case can reach without colliding with the plugin's own skills/.
+    skill_change: "proposed(tla-spec-dev, evals/run.sh: make the skip branch print `eval: NOTE -- the plugin now contains skt; this run grades the BRANCH, not pinned <sha>` instead of staying silent -- one echo, no behaviour change)"
+    blast_radius: Every w-skt and w-sm score compared across the SI-16 boundary.
+
+  - id: SI-16-DF-04
+    found_by: SI-16
+    found_at_commit: 4caab479
+    schedule_revision: 5
+    severity: minor
+    target: tla-spec-dev (nested constituents' skill-project.toml)
+    surface: {production: [], tla: [], adapters: [], test_graph: [], workflow: []}
+    summary: >-
+      Four nested constituents still declare skt's units as EXTERNAL coords, so
+      a `project resolve` run from inside one re-materialises standalone copies
+      of three skills this bundle now contains -- the same duplication SI-02
+      deleted from the root manifest, one tier down. Measured: eight blocks
+      across skills/{plugin-repository,test-graph,git-issue,git-epic-workflow}/skill-project.toml,
+      naming [skills.skt], [skills.unit-authoring], [skills.skill-manager] and
+      [plugins.skt], all sourced github:haydenrear/skt. plugin-repository's
+      [skills.skt] is the worst shape: it declares a PLUGIN as a SKILL, which
+      skt's own status.py flags as _CARRIER_AS_SKILL and which resolve refuses
+      outright.
+    reproduction: >-
+      grep -rn -B2 'github:haydenrear/skt' skills/*/skill-project.toml
+    why_out_of_scope: >-
+      This ticket's production conflict keys are skills/skt/**, integration.toml
+      and the ROOT skill-project.toml. These are other constituents' own
+      manifests, carried in by subtree, and editing them is how two tickets
+      collide on the same file.
+    suggested_fix: >-
+      Delete all eight blocks in one sweep, as SI-02 did at the root: a unit the
+      bundle contains is never declared, because the coord still resolves and
+      resolving it installs a second copy.
+    skill_change: "proposed(tla-spec-dev, delete the eight [skills.skt]/[skills.unit-authoring]/[skills.skill-manager]/[plugins.skt] blocks from the four nested skill-project.toml files; mechanical, and the root manifest's SI-02/SI-16 comments already carry the rationale to copy)"
+    blast_radius: Any home resolving from inside a constituent checkout.
+
+  - id: SI-16-DF-05
+    found_by: SI-16
+    found_at_commit: 4caab479
+    schedule_revision: 5
+    severity: minor
+    target: skill-manager
+    surface: {production: [], tla: [], adapters: [], test_graph: [], workflow: []}
+    summary: >-
+      skill-manager's home-safety refusal prints a remedy that does not exist.
+      The shim at <home>/bin/cli/skill-manager refuses when SKILL_MANAGER_HOME
+      names a different home and says to disambiguate with `--home <path>`,
+      offering two spellings. No parser accepts it: `skill-manager --home X list`
+      fails with "Unknown options: '--home'", and neither `install --help` nor
+      `list --help` lists a --home option. The refusal is correct and valuable;
+      only its fix line is unreachable, which cost this ticket two failed
+      fresh-home installs before falling back to the brew entrypoint with
+      SKILL_MANAGER_HOME exported.
+    reproduction: >-
+      SKILL_MANAGER_HOME=/tmp/h <home>/bin/cli/skill-manager list   -> refusal naming --home
+      <home>/bin/cli/skill-manager --home /tmp/h list               -> Unknown options: '--home'
+      <home>/bin/cli/skill-manager install --help | grep -- --home  -> no match
+    why_out_of_scope: >-
+      SI-18 owns the skill-manager repository and rule 2 forbids editing it here.
+    suggested_fix: >-
+      Either implement --home on the shim (it is the shim that refuses, so it is
+      the shim that can honour it), or change the message to name the entrypoint
+      that DOES honour SKILL_MANAGER_HOME -- the brew binary -- instead of a flag.
+    skill_change: "proposed(skill-manager, correct the refusal's remedy line in the home-binding shim; a message-only change, no behaviour)"
+    blast_radius: Every agent or operator told to target a non-default home.

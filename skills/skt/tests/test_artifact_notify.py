@@ -488,7 +488,9 @@ def test_the_dedup_marker_stays_unconditional(tmp_path):
     that tempts a caller to gate the block that surfaces it. The hook's
     marker must still key on (session, checked_at) with no env condition.
     """
-    hook = (Path(__file__).resolve().parents[1] / "hooks" / "skt-post-tool.sh").read_text()
+    # SI-16: the hooks lifted to the CARRIER plugin root when skt was demoted
+    # to a contained skill; src/ stayed beside these tests.
+    hook = (Path(__file__).resolve().parents[3] / "hooks" / "skt-post-tool.sh").read_text()
     marker = hook.split("HOME_DIR=", 1)[1]
     assert 'MARKER="$HOME_DIR/logs/skt/.notified-' in marker
     assert "${TMPDIR:-/tmp}/skt-notified-" in marker
