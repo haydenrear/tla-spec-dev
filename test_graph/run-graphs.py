@@ -198,7 +198,10 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--list", action="store_true", help="classification only; run nothing")
     parser.add_argument("--only", action="append", default=[], metavar="GRAPH",
-                        help="run just this graph (repeatable); must be in the RUN set")
+                        help="run just this graph (repeatable). May name an OPT-IN graph: "
+                             "naming it IS the opt-in, which is what the OPT_IN entries "
+                             "below tell you to do. Some provision interpreters over the "
+                             "network, so they stay out of the default set.")
     args = parser.parse_args()
 
     registered = registered_graphs()
@@ -242,11 +245,21 @@ def main() -> int:
         return 0
     print(f"  runner: {runner}")
 
+    # An explicit --only may name an OPT-IN graph. It used to be filtered to RUN,
+    # which made every printed opt-in command ("run it with --only sktSurface") a
+    # no-op that exited 0 having run nothing -- a silent skip, inside the script
+    # written to make silent skips impossible (SI-13). Only a name that is
+    # registered nowhere is dropped now, and that is still announced.
+    selectable = set(RUN) | set(OPT_IN)
     wanted = args.only or list(RUN)
-    unknown = [g for g in wanted if g not in RUN]
+    unknown = [g for g in wanted if g not in selectable]
     if unknown:
-        print(f"\nnot in the RUN set, skipping: {', '.join(unknown)}")
-        wanted = [g for g in wanted if g in RUN]
+        print(f"\nnot a registered graph, skipping: {', '.join(unknown)}")
+        wanted = [g for g in wanted if g in selectable]
+    opted_in = [g for g in wanted if g in OPT_IN]
+    if opted_in:
+        print(f"\nopted in to {', '.join(opted_in)} -- these are OPT-IN because they "
+              f"reach the network; you asked for them explicitly.")
 
     results: list[tuple[str, str, int, str]] = []
     for graph in wanted:
