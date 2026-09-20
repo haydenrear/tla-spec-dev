@@ -4029,7 +4029,38 @@ findings:
       SI-14 and SI-15, which move the eval toolchain and 63 cases across both
       repositories and will want one way to run graphs in both.
     skill_change: "proposed(test-graph, sync the plugin-contained copy up to the sweep-capable runner; no diff attempted from this ticket)"
+    # CORRECTED BY THE EPIC AGENT, 2026-09-19. The summary above says the two
+    # products carry "DIFFERENT VERSIONS of the test-graph skill". THAT WORDING
+    # IS WRONG and would mislead SI-14 and SI-15, which both cross this
+    # boundary. Measured:
+    #
+    #   plugin skills/test-graph/      nargs="?"  no sweep.py  v0.2.1  3b36039
+    #   skill-manager home copy        nargs="?"  no sweep.py  v0.2.1  3b36039
+    #   test_graph_skill upstream main nargs="?"  no sweep.py  v0.2.1  3b36039
+    #   skill-manager skills/test_graph  nargs="*"  sweep.py   (1105 tracked files)
+    #
+    # Three of the four are the SAME BYTES at the same version. The fourth is a
+    # VENDORED FORK committed into the skill-manager repository itself in
+    # fbac388b (2026-04-22), which later gained sweep.py (83bfee3e, 2026-08-24)
+    # and the multi-graph sweep (c27bd018, 2026-09-13). Neither went upstream.
+    #
+    # So `skt sync` CANNOT fix this: every INSTALLED copy is already current.
+    # Sync makes a copy match its upstream; it cannot reach source files
+    # committed into a different repository. The plugin's contained copy is not
+    # stale -- it is upstream. The fork is AHEAD, by work that exists nowhere
+    # else.
+    #
+    # Filed upstream as haydenrear/skill-manager#396: resolve and pin
+    # test-graph through `project resolve` instead of vendoring it, move
+    # repo-specific helpers to specs/ or scripts/, and delete skills/ once the
+    # sweep work is upstream. DO NOT delete the fork first -- sweep.py and the
+    # nargs="*" runner would be lost.
+    #
+    # For SI-14 and SI-15: do not write a cross-product instruction that
+    # assumes a sweep, and do not "sync to fix it". Until #396 lands, each
+    # product's command matches the runner that product actually has.
     disposition: pending
+    corrected_by: "epic agent, 2026-09-19; see haydenrear/skill-manager#396"
     disposition_ticket: null
   - id: SI-13-DF-04
     found_by: "SI-13"

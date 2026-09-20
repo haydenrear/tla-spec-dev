@@ -1023,6 +1023,28 @@ tickets:
       - "the runner asks which skt version a full-suite run is to use, and refuses to guess silently; a single-case run may default, and says what it defaulted to"
       - "the Claude plugin home curated: skt plugin present, plus whichever other plugins and skills the loop's cases require, each one named and justified"
       - "the skt / skill-manager code-repository migration this implies, carried rather than deferred -- skill-manager has no .claude-plugin/ and is not a plugin"
+      - >-
+        OWNER ADDITION 2026-09-19 -- THE EVALS RUN AGAINST THE EPIC BRANCH'S
+        skill-manager CLI, NOT THE BREW ONE. Validations execute from
+        tla-spec-dev-plugin, but the skill-manager CLI they reach must be the
+        one carried on skill-manager's `epic/self-improvement-substrate` branch
+        (created 2026-09-19 at 6ffacb88; PR #395 retargeted onto it), because
+        that is the CLI this epic is changing and therefore the one the evals
+        must judge. Shim or alias it for the eval environment only.
+      - >-
+        The mechanism is available and small: skill-manager's repo root carries
+        `./skill-manager`, a 346-byte bash wrapper that exports
+        SKILL_MANAGER_INSTALL_DIR and runs `exec jbang "$DIR/SkillManager.java"`.
+        So the shim is a PATH entry or an alias pointing at that wrapper in an
+        epic-branch checkout -- not a rebuild, and not a brew install. Record
+        which commit of that branch each eval run used, exactly as the skt ref
+        is recorded: GOAL-pinned-eval-toolchain covers the whole toolchain, and
+        an eval that judges a different CLI than the one under change is
+        measuring the wrong program.
+      - >-
+        Do NOT install the epic-branch CLI over the operator's brew copy. The
+        shim is scoped to the eval environment; the brew CLI at
+        /opt/homebrew/Cellar stays as it is.
     current_increment:
       model_state: []
       model_actions: []
