@@ -85,7 +85,7 @@ and a routed doc satisfies the rule only with both:
 
    The doc says where the line goes (the PR body, or to the user where
    there is no PR) and which skill owns the door — `skt` for the plugin,
-   `git-issue-workflow` for `wt`, `git-epic-workflow` for the
+   `skt` for `wt`, `git-epic-workflow` for the
    declared-path epic route.
 
 Adding a fallback without part 2 is how this issue gets refiled. Landed

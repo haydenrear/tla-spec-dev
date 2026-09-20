@@ -2,7 +2,7 @@
 
 (The file is `build_cmd.py` and not `build.py`: `skt/__init__.py`
 re-exports `skt.artifacts.build` as `skt.build`, the way
-`git_issue_workflow` re-exports `wt_new`, and a sibling MODULE named
+`skt.wt` exports `wt_new`, and a sibling MODULE named
 `build` would shadow that function on the package depending on import
 order. The other five subcommand modules keep their verb names because
 none of them collides with an exported symbol.)

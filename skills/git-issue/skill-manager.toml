@@ -17,14 +17,17 @@
 #
 # git-integration-skill used to be a hard reference, for one file: `scripts/wt`,
 # which every issue body names by resolved path. But this skill never RUNS it.
-# It writes that path into an issue for somebody else to run, and the somebody
-# else is `git-issue-workflow` — which is where `wt` now lives and which
-# therefore guarantees the file exactly where it is needed. An author does not
+# It writes that path into an issue for somebody else to run, so the file only
+# has to exist in the IMPLEMENTER's home, not the author's. An author does not
 # need the implementer's tools on disk, and referencing them cost every
 # issue-authoring install a whole integration-repo unit it would never open.
 #
+# SI-17 moved `wt` again, from git-issue-workflow to skt. That changes the path
+# this skill writes into an issue body and nothing else — still no reference,
+# for the same reason: the author writes the path, the implementer runs it.
+#
 # The path written into issue bodies is
-# $SKILL_MANAGER_HOME/{skills,plugins/*/skills}/git-issue-workflow/scripts/wt — resolved, never a
+# $SKILL_MANAGER_HOME/{skills,plugins/*/skills}/skt/scripts/wt — resolved, never a
 # placeholder. See references/worktree-branch.md and git-issue#4.
 skill_references = [
   "github:haydenrear/deploy-cdc",

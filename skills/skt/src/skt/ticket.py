@@ -1,9 +1,15 @@
-"""`skt ticket` — the worktree lifecycle, imported from git-issue-workflow.
+"""`skt ticket` — the worktree lifecycle, over this plugin's own `wt`.
 
 skt does not reimplement or shell out to the `wt` path by hand: it
-imports the typed Python surface that git-issue-workflow registers
-(SKT-2) and adds skt's framing — orientation after `new`, guided
-remedies on a refused `close`.
+imports the typed Python surface (`skt.wt`) and adds skt's framing —
+orientation after `new`, guided remedies on a refused `close`.
+
+SI-17 moved that surface HERE, from git-issue-workflow, together with
+the `scripts/wt` it drives. What stayed there is the lifecycle `wt`
+delegates to — `lib.sh`, `new-change.sh`, `close-change.sh` — which is
+why `UNIT` below still names that unit and why the remedies still point
+at it: a home can carry skt and not git-issue-workflow, and then the
+front door resolves while the rooms behind it do not.
 
 `list` and `sweep` are the FLEET verbs and live in :mod:`skt.sweep`.
 They take no TICKET, they do not go through `wt` — an epic retires a
@@ -15,6 +21,7 @@ still standing here?" is how an operator finds out what is wrong.
 
 from __future__ import annotations
 
+import importlib
 import os
 import sys
 import tomllib
@@ -75,12 +82,19 @@ def _giw_remedy(home: Path | None, start: str | Path = ".") -> list[str]:
             "fix:   create this checkout's home first — scripts/agent-home.sh, or "
             "git-issue-workflow's scripts/bootstrap-home.sh --root <repo-root>",
         ]
-    installed = (home / "skills" / UNIT).is_dir() or (
-        home / "installed" / f"{UNIT}.json"
-    ).is_file()
+    # BOTH RUNGS, for the same reason `_bootstrap_script` checks both: a
+    # contained skill's bytes are under `plugins/<plugin>/skills/`, and asking
+    # only about `skills/` reports "not installed" for a home that has it.
+    installed = (
+        (home / "skills" / UNIT).is_dir()
+        or any(home.glob(f"plugins/*/skills/{UNIT}"))
+        or (home / "installed" / f"{UNIT}.json").is_file()
+    )
     if installed:
         return [
-            f"{UNIT} is installed in {home} but carries no importable python surface",
+            f"{UNIT} is installed in {home} but carries no worktree lifecycle "
+            "scripts — `wt` delegates to its scripts/lib.sh, new-change.sh and "
+            "close-change.sh, and they are not there",
             f"fix:   {cli} sync {UNIT} --git-latest   # needs the SKT-2 version or later",
         ]
     manifest = _manifest_path(start)
@@ -106,25 +120,30 @@ def _giw_remedy(home: Path | None, start: str | Path = ".") -> list[str]:
 
 
 def _import_wrapper(start: str | Path = "."):
-    """Import git_issue_workflow from the environment or the home's store copy."""
-    try:
-        import git_issue_workflow  # noqa: F401
+    """The worktree surface: `skt.wt`, which ships in this plugin (SI-17).
 
-        return sys.modules["git_issue_workflow"]
+    It used to be git-issue-workflow's `git_issue_workflow` package, imported
+    across units and therefore genuinely absent in homes that had not installed
+    it — which is what `_giw_remedy` below was written for. The surface is
+    ours now, so this import is expected to succeed.
+
+    The remedy path is KEPT rather than deleted, because the failure it
+    describes did not go away, it moved one layer down: `wt` is only the front
+    door, and a home carrying skt without git-issue-workflow has no
+    `new-change.sh` to delegate to. The four remedies — no home, installed but
+    without the lifecycle scripts, declared but not installed, neither — are
+    each still the right next command for that home.
+    """
+    try:
+        return importlib.import_module("skt.wt")
     except ImportError:
         pass
     home = homes.find_home(start)
-    if home is not None:
-        candidate = home / "skills" / UNIT / "src"
-        if (candidate / "git_issue_workflow").is_dir():
-            sys.path.insert(0, str(candidate))
-            import git_issue_workflow
-
-            return git_issue_workflow
     raise SystemExit(
         "\n".join(
             [
-                f"skt ticket: the {UNIT} python surface is not importable.",
+                f"skt ticket: the worktree surface is unavailable, and {UNIT} "
+                "supplies the lifecycle it drives.",
                 *_giw_remedy(home, start),
             ]
         )

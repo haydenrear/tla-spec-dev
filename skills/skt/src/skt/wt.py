@@ -1,8 +1,15 @@
 r"""Subprocess wrapper over ``scripts/wt`` with typed results and errors.
 
-Output contracts parsed here (see ``scripts/lib.sh`` ``contract()``,
-``scripts/wt`` error emission, and ``scripts/new-change.sh``
-``emit_contract()``):
+SI-17 moved this module out of git-issue-workflow and into skt, beside the
+CLI that calls it and beside the ``scripts/wt`` it drives. What did NOT move
+is the lifecycle it is a surface over: ``lib.sh``, ``new-change.sh`` and
+``close-change.sh`` are still git-issue-workflow's, and ``wt`` resolves them
+at run time. So the contracts below are still emitted by that unit's scripts,
+and the file references in this docstring name it rather than this one.
+
+Output contracts parsed here (see git-issue-workflow's ``scripts/lib.sh``
+``contract()``, this unit's ``scripts/wt`` error emission, and
+git-issue-workflow's ``scripts/new-change.sh`` ``emit_contract()``):
 
 - contract lines: ``printf '%-10s %s'`` — first whitespace-delimited
   token is the key (``WORKTREE``, ``BRANCH``, ``BASE``, ``LAUNCH``,
@@ -117,16 +124,40 @@ class CloseResult:
 
 
 def wt_bin() -> Path:
-    """Resolve scripts/wt: env override, then this unit's own copy, then the home's."""
-    env = os.environ.get("GIW_WT_BIN")
+    """Resolve ``scripts/wt``: env override, this unit's own copy, then the home.
+
+    SI-17 moved ``wt`` into skt, so ``parents[2]`` is now skt's own unit root
+    and the in-checkout rung needs no change — the file it points at moved
+    WITH this module, which is the property that made the move cheap.
+
+    The HOME rung did change, and in two ways. It names ``skt`` rather than
+    ``git-issue-workflow``, and it tries BOTH rungs: ``skills/skt`` for a
+    standalone install, then ``plugins/*/skills/skt`` because skt is a
+    CONTAINED skill of the tla-spec-dev plugin and that is where its bytes
+    actually land. Resolving only the standalone rung is the defect
+    ``tests/test_bootstrap_rungs.py`` was written for — it punished exactly
+    the homes that had migrated correctly.
+
+    Standalone stays FIRST so existing precedence is unchanged where both
+    exist; the glob is sorted for determinism across plugins. The last rung is
+    returned unconditionally so the caller gets a path to report rather than
+    ``None`` — ``wt`` itself refuses with a readable error when it is absent.
+    """
+    env = os.environ.get("WT_BIN") or os.environ.get("GIW_WT_BIN")
     if env:
         return Path(env)
     unit_root = Path(__file__).resolve().parents[2]
     candidate = unit_root / "scripts" / "wt"
     if candidate.is_file():
         return candidate
-    home = os.environ.get("SKILL_MANAGER_HOME") or str(Path.home() / ".skill-manager")
-    return Path(home) / "skills" / "git-issue-workflow" / "scripts" / "wt"
+    home = Path(os.environ.get("SKILL_MANAGER_HOME") or Path.home() / ".skill-manager")
+    standalone = home / "skills" / "skt" / "scripts" / "wt"
+    if standalone.is_file():
+        return standalone
+    for contained in sorted(home.glob("plugins/*/skills/skt/scripts/wt")):
+        if contained.is_file():
+            return contained
+    return standalone
 
 
 def parse_contract(text: str) -> dict[str, str]:

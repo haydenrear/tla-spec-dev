@@ -90,7 +90,7 @@ never fires.
 
 ```
 error creating worktree: base epic/subtract-to-measure is 21 commit(s) behind origin/epic/subtract-to-measure — branching it would start from a superseded tree (--stale-base-ok to do it anyway)
-fix: /…/skills/git-issue-workflow/scripts/wt new SM-07 origin/epic/subtract-to-measure
+fix: /…/skills/skt/scripts/wt new SM-07 origin/epic/subtract-to-measure
 log: /tmp/wt-9fK2aQ-run.log
 ```
 
@@ -486,13 +486,29 @@ and never upgrade or reinstall skill-manager to get past it.
 
 `skt ticket new|close <ticket>` is the front door and is on `PATH` in
 skt-carrying homes; `command -v skt` is the test. Only when that prints nothing,
-resolve this skill's own script — project home first, operator's home second.
-Two rungs, because git-issue-workflow is a CONTAINED SKILL of the `tla-spec-dev`
-plugin and its bytes are under `plugins/*/skills/`, not `skills/`:
+resolve the script by path — project home first, operator's home second.
+
+**The script is `skt`'s, not this skill's** (SI-17): `wt` ships beside the CLI
+that calls it, so that the one command an agent types and the CLI that wraps it
+are installed together. This skill still owns the lifecycle underneath —
+`lib.sh`, `new-change.sh`, `close-change.sh`, which hold every rule about which
+repo is branched and which home a worktree closes into — and `wt` holds no
+policy at all. Nothing about the commands, the keys or the exit codes changed
+with the move; only the unit name in the path below did.
+
+`wt` resolves this skill's `scripts/` itself, at run time, over three rungs:
+`$GIT_ISSUE_WORKFLOW_SCRIPTS`, then the sibling unit in a checkout of the
+bundle, then an installed home (`skills/` first, then `plugins/*/skills/`). A
+home that carries `skt` WITHOUT `git-issue-workflow` therefore has the door and
+not the room behind it, and `wt` says exactly that in one line with the override
+as its `fix:` rather than half-creating a worktree.
+
+Two rungs below, because skt is a CONTAINED SKILL of the `tla-spec-dev` plugin
+and its bytes are under `plugins/*/skills/`, not `skills/`:
 
 ```bash
-WT=$(for d in "./.skill-manager"/skills/git-issue-workflow "./.skill-manager"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/wt
-[ -x "$WT" ] || WT="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/wt"
+WT=$(for d in "./.skill-manager"/skills/skt "./.skill-manager"/plugins/*/skills/skt; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/wt
+[ -x "$WT" ] || WT="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/skt "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/skt; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/wt"
 
 "$WT" new   <ticket>     # worktree + its OWN Skill Manager home, launchable
 "$WT" close <ticket>     # teardown, through the close-out gate

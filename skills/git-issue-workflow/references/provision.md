@@ -89,9 +89,11 @@ that is the defect `SKILL.md` §*Reaching a by-hand route is itself a finding*
 asks you to report, not a route this section offers.
 
 ```bash
-# The front door. An installed unit's files live at $SKILL_MANAGER_HOME/skills/<unit>/;
-# the :- fallback is what makes this line work from a bare shell too.
-WT="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/git-issue-workflow "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/git-issue-workflow; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/wt"
+# The front door. `wt` ships with skt (SI-17), so the unit in this path is skt
+# and not this skill; an installed unit's files live at
+# $SKILL_MANAGER_HOME/skills/<unit>/, with the plugins/ rung for a contained one.
+# The :- fallback is what makes this line work from a bare shell too.
+WT="$(for d in "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/skills/skt "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}"/plugins/*/skills/skt; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/wt"
 
 git fetch origin
 test -z "$(git status --porcelain)" || { echo "dirty tree — reconcile first"; exit 1; }

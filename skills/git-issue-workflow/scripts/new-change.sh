@@ -322,7 +322,7 @@ emit_contract() {
   else
     contract LAUNCH    "none — this worktree has no home; an agent here uses the operator's GLOBAL home"
   fi
-  contract CLOSE     "$SCRIPT_DIR/wt close $TICKET"
+  contract CLOSE     "$(wt_bin) close $TICKET"
   [ "$KIND" != integration ] || contract PROPAGATE "$(propagate_command "$TICKET")"
 }
 
@@ -416,7 +416,7 @@ if [ "$INFO" = 1 ]; then
         "$INFO_N worktrees are named $TICKET (each one named in the log) — cd into the repo that owns the one you mean"
     fi
   fi
-  [ -d "$WT" ] || die_fix 1 "$SCRIPT_DIR/wt new $TICKET" \
+  [ -d "$WT" ] || die_fix 1 "$(wt_bin) new $TICKET" \
     "no worktree for $TICKET at $WT"
   # What the worktree is ACTUALLY on, not what `new` would have called it: a
   # worktree may have been rebranched, and reporting the default spelling of a
@@ -433,7 +433,7 @@ assert_worktree_outside_integration "$WT"
 # hit it reached for `rm -rf` or a bare `git worktree remove` — both of which
 # skip the close-out gate and delete the home silently. It is one command, so it
 # is the FIX.
-[ -e "$WT" ] && die_fix 1 "$SCRIPT_DIR/wt close $TICKET" \
+[ -e "$WT" ] && die_fix 1 "$(wt_bin) close $TICKET" \
   "a worktree for $TICKET already exists at $WT"
 
 : "${BASE:=$(git -C "$ROOT" symbolic-ref --quiet --short HEAD)}"
@@ -550,13 +550,13 @@ if [ -n "$BASE_TRACK" ] && git -C "$ROOT" show-ref --verify --quiet "refs/remote
       # EXIT 7, and the number is not free. The codes a `wt` caller switches on
       # are an interface: 3 is "the home bootstrap failed and the worktree was
       # rolled back", 4 is close-change.sh's REFUSED_EXIT — the close-out gate —
-      # and src/git_issue_workflow/wt.py maps both onto typed exceptions
+      # and skt's src/skt/wt.py maps both onto typed exceptions
       # (BootstrapFailed, CloseRefused). Reusing 4 here made a refused `wt new`
       # raise CloseRefused, which names the wrong gate on the wrong verb. 5 and 6
       # are bootstrap-home.sh's own (empty home / unprojected) and 8 is
       # skill-manager's launch drift gate, so 7 is the first number that means
       # only this.
-      die_fix 7 "$SCRIPT_DIR/wt new $TICKET $BASE_TRACK$FIX_FLAGS" \
+      die_fix 7 "$(wt_bin) new $TICKET $BASE_TRACK$FIX_FLAGS" \
         "base $BASE $REL $BASE_TRACK — branching it would start from a superseded tree (--stale-base-ok to do it anyway)"
     fi
   fi

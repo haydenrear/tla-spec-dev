@@ -73,7 +73,7 @@ one tier down from where it was installed. Every `skt` verb is a wrapper:
 | `skt status` / `skt check` | `skill-manager list`, `skill-manager home describe --json` |
 | `skt sync <unit>` | `skill-manager sync <unit> --git-latest` |
 | `skt publish <unit>` | `skill-manager home sync` then `skill-manager unit publish` (the two legs below) |
-| `skt ticket new/close` | `<home>/skills/git-issue-workflow/scripts/wt new\|close <TICKET>` — for a home that installed that unit; the same caveat applies to it |
+| `skt ticket new/close` | `<home>/skills/skt/scripts/wt new\|close <TICKET>` — this plugin's own script, so a home without skt has neither |
 
 To get the plugin itself into this checkout's home, declare it in the
 checkout's `skill-project.toml` and run `skill-manager project resolve`
@@ -179,13 +179,16 @@ Harnesses without a hook runtime (codex, gemini) get the projected skt
 skill plus an instruction snippet instead — the honest per-harness
 matrix is `../unit-authoring/references/harness-capabilities.md`.
 
-`skt ticket new/close` wraps git-issue-workflow's `wt`; the raw path
-form still works everywhere and is the fallback when skt is not
-installed:
+`skt ticket new/close` wraps `wt`, **this plugin's own script**. The raw
+path form still works and is the fallback when `skt` is not on `PATH`:
 
 ```bash
-"${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/git-issue-workflow/scripts/wt" new <TICKET>
+"${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/skills/skt/scripts/wt" new <TICKET>
 ```
+
+`wt` is the door; the lifecycle behind it is `git-issue-workflow`'s and
+`wt` resolves that unit at run time, refusing in one line when it cannot
+(`$GIT_ISSUE_WORKFLOW_SCRIPTS` overrides).
 
 ## Retiring an epic's worktrees at the end: `list` and `sweep`
 

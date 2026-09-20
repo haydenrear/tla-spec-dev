@@ -102,8 +102,43 @@ jobs:
       # across this repo's hooks and install script (unused-var and
       # cd-without-guard), and they are excluded rather than silently tolerated
       # so that lowering the bar is a diff.
+      #
+      # SI-17 added `scripts/wt` and `.github/scripts/*.sh`: `wt` moved here
+      # from git-issue-workflow, whose own `units` job used to lint it. Naming
+      # them here is what keeps that coverage from being lost in the move.
       - name: Lint the shipped shell scripts
-        run: shellcheck --severity=warning --exclude=SC2034,SC2164,SC2046 hooks/*.sh skill-scripts/*.sh
+        run: shellcheck --severity=warning --exclude=SC2034,SC2164,SC2046 scripts/wt .github/scripts/*.sh
+
+  # ------------------------------------------------------------------ wt smoke
+  #
+  # Moved here from git-issue-workflow by SI-17, with `wt` itself.
+  #
+  # A real `wt new` / `wt info` / `wt close` round trip against a throwaway git
+  # repository, from a bare shell with NO skill-manager installed. It is the
+  # half the Python wrapper cannot reach: the wrapper parses the contract, and
+  # this proves the contract describes something that actually happened.
+  #
+  # It needs no uv, no skill-manager and no home, and that is the point — it
+  # runs in the environment a human running `wt` by hand is in, which is the
+  # shape every home-resolution bug this lifecycle has had lived in. After
+  # SI-17 it also covers one thing it could not before: `wt` resolving its
+  # delegates ACROSS units, from the in-checkout sibling rung.
+  wt-smoke:
+    name: wt new / close round trip
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Give git a committer identity
+        run: |
+          git config --global user.email "ci@skt.invalid"
+          git config --global user.name "skt CI"
+          git config --global init.defaultBranch main
+
+      - name: Smoke the worktree front door
+        run: bash .github/scripts/wt_smoke.sh
 
   # ---------------------------------------------------------------- test graph
   #

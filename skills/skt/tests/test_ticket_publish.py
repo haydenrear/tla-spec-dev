@@ -22,7 +22,7 @@ def isolate_root_home(tmp_path, monkeypatch):
     monkeypatch.setenv("SKT_ROOT_HOME", str(tmp_path / "fake-root" / ".skill-manager"))
 
 
-# --- fake git_issue_workflow wrapper ---------------------------------------
+# --- fake skt.wt wrapper ---------------------------------------------------
 
 
 class FakeWtError(RuntimeError):
@@ -40,7 +40,7 @@ class FakeCloseRefused(FakeWtError):
 
 
 def fake_giw(monkeypatch, **behaviors):
-    mod = types.ModuleType("git_issue_workflow")
+    mod = types.ModuleType("skt.wt")
     mod.WtError = FakeWtError
     mod.BootstrapFailed = FakeBootstrapFailed
     mod.CloseRefused = FakeCloseRefused
@@ -58,7 +58,7 @@ def fake_giw(monkeypatch, **behaviors):
             home_work="/repo/.skill-manager (one tier only)", dry_run_clean=False,
         ),
     )
-    monkeypatch.setitem(sys.modules, "git_issue_workflow", mod)
+    monkeypatch.setitem(sys.modules, "skt.wt", mod)
     return mod
 
 
@@ -360,7 +360,7 @@ def _refusal(monkeypatch, repo) -> str:
     from skt import ticket as ticket_mod
 
     # the environment copy must not satisfy the import under test
-    monkeypatch.setitem(sys.modules, "git_issue_workflow", None)
+    monkeypatch.setitem(sys.modules, "skt.wt", None)
     with pytest.raises(SystemExit) as exc:
         ticket_mod._import_wrapper(repo)
     return str(exc.value)
@@ -389,7 +389,7 @@ def test_remedy_for_an_installed_but_stale_unit_still_names_sync(tmp_path, monke
     """`sync` was right for exactly one of the three states; keep it there."""
     repo, home = _remedy_home(tmp_path, monkeypatch, installed=True, declared=True)
     message = _refusal(monkeypatch, repo)
-    assert "carries no importable python surface" in message
+    assert "carries no worktree lifecycle scripts" in message
     assert "sync git-issue-workflow --git-latest" in message
     assert "install github:" not in message
 

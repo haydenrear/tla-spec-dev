@@ -146,7 +146,7 @@ case "$TARGET" in
                 printf '%s\n' "$FOUND" | while IFS= read -r c; do
                   [ -n "$c" ] && printf '    %s\n' "$c" >&2
                 done
-                die_fix 1 "$SCRIPT_DIR/wt close <one of the paths in the log>" \
+                die_fix 1 "$(wt_bin) close <one of the paths in the log>" \
                   "$N_FOUND worktrees are named $TARGET (each one named in the log) — name the one you mean by path"
               fi
             fi ;;
@@ -635,7 +635,7 @@ if [ "$DRY_RUN" = 1 ]; then
   info "would run: git -C \"$ROOT\" worktree remove \"$WT\""
   if [ "$gate_clean" = 1 ]; then
     contract CLEAN "$WT — the gate found nothing that removing it would destroy"
-    contract CLOSE "$SCRIPT_DIR/wt close $TARGET"
+    contract CLOSE "$(wt_bin) close $TARGET"
   fi
   exit 0
 fi
@@ -650,7 +650,7 @@ fi
 # gesture the one that was blocked while the destructive one was still a cd
 # away.
 case "$INVOKED_FROM/" in
-  "$WT"/*) die_fix 1 "bash -c \"cd '$ROOT' && '$SCRIPT_DIR/wt' close '$TARGET'\"" \
+  "$WT"/*) die_fix 1 "bash -c \"cd '$ROOT' && '$(wt_bin)' close '$TARGET'\"" \
     "refusing to remove $WT while you are standing in it — cd elsewhere and re-run, or use --dry-run to just ask" ;;
 esac
 

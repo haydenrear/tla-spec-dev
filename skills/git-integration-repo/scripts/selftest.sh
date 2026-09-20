@@ -374,8 +374,8 @@ step "Every scripts/ path this skill names is one it ships"
 # `(^|[^/…])scripts/…` — a LEADING SLASH disqualifies the match. Since the
 # worktree machinery moved to git-issue-workflow, this skill's pages name that
 # skill's files the way every cross-unit path in these skills is named:
-# `\$SKILL_MANAGER_HOME/skills/git-issue-workflow/scripts/wt`, or
-# `\$SKILL_MANAGER_HOME/plugins/*/skills/git-issue-workflow/scripts/wt` now that
+# `\$SKILL_MANAGER_HOME/skills/skt/scripts/wt`, or
+# `\$SKILL_MANAGER_HOME/plugins/*/skills/skt/scripts/wt` now that
 # that unit is a contained skill of the tla-spec-dev plugin. Those resolve
 # inside a DIFFERENT unit and are not this skill's to ship, and sweeping them up
 # would make the rule below assert the opposite of what it means. A bare
