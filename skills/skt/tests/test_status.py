@@ -455,7 +455,8 @@ def test_migration_notice_for_a_standalone_retired_unit(tmp_path):
     assert report["migration"]["standalone"] == ["skill-manager"]
     text = status.render_text(report)
     assert "Do NOT edit imports or references" in text
-    assert "skill-manager sync skt" in text
+    # The carrier is tla-spec-dev, not skt: skt is a contained skill of it now.
+    assert "skill-manager sync tla-spec-dev" in text
 
 
 def test_migration_notice_for_a_manifest_declaring_it(tmp_path):
@@ -470,13 +471,70 @@ def test_migration_notice_for_a_manifest_declaring_it(tmp_path):
 
 
 def test_no_migration_notice_on_a_migrated_home(tmp_path):
+    # THE END STATE MOVED. This test declared [plugins.skt] and asserted
+    # silence, because that WAS migrated when it was written. skt is a
+    # contained skill of tla-spec-dev now, so the same manifest is the thing to
+    # migrate — see test_migration_notice_for_the_retired_carrier_as_a_plugin.
     repo = make_repo(tmp_path / "proj")
-    home = make_home(repo, plugins=["skt"])
-    (home / "plugins" / "skt" / "skills" / "skill-manager").mkdir(parents=True)
-    (repo / "skill-project.toml").write_text('[project]\nname = "p"\n\n[plugins.skt]\nsource = "github:haydenrear/skt"\n')
+    home = make_home(repo, plugins=["tla-spec-dev"])
+    (home / "plugins" / "tla-spec-dev" / "skills" / "skill-manager").mkdir(parents=True)
+    (repo / "skill-project.toml").write_text(
+        '[project]\nname = "p"\n\n[plugins.tla-spec-dev]\n'
+        'source = "github:haydenrear/tla-spec-dev-plugin"\n'
+    )
     report = status.collect(repo)
     assert report["migration"] is None
     assert "migrate" not in status.render_text(report)
+
+
+def test_migration_notice_for_the_retired_carrier_as_a_plugin(tmp_path):
+    """`[plugins.skt]` — the most common unmigrated shape, and the one that
+    had no detector at all.
+
+    Measured across 86 skill projects on one machine: 14 declare it, more than
+    any other shape. The coordinate STILL RESOLVES (skt 0.8.2), so
+    `skill-manager project resolve` installs a standalone skt beside
+    tla-spec-dev; retirement keys on the CARRIER arriving and skt is a
+    passenger now, so nothing fires and nothing warns. Silence here meant the
+    command an operator runs to check a project said nothing while the command
+    they run to migrate it recreated the duplicate.
+    """
+    repo = make_repo(tmp_path / "proj")
+    make_home(repo, plugins=["tla-spec-dev"])
+    (repo / "skill-project.toml").write_text(
+        '[project]\nname = "p"\n\n[plugins.skt]\nsource = "github:haydenrear/skt"\n'
+    )
+    report = status.collect(repo)
+    assert report["migration"]["carrier_as_plugin"] == "skt"
+    text = status.render_text(report)
+    assert "[plugins.skt]" in text
+    assert "[plugins.tla-spec-dev]" in text
+    assert "github:haydenrear/tla-spec-dev-plugin" in text
+
+
+def test_migration_notice_for_a_vendored_block_on_the_old_rung(tmp_path):
+    """The SECOND manifest edit, which nothing used to mention.
+
+    A half-migrated manifest hand-bakes the plugin path into from_subpath
+    because the contained rung did not resolve. skill-manager resolves both
+    rungs now, so the honest declaration is the unit's own name with its own
+    subpath — and an operator told only about the [plugins.*] block would fix
+    one of the two things wrong with their manifest and still fail to resolve.
+    """
+    repo = make_repo(tmp_path / "proj")
+    make_home(repo, plugins=["tla-spec-dev"])
+    (repo / "skill-project.toml").write_text(
+        '[project]\nname = "p"\n\n[plugins.tla-spec-dev]\n'
+        'source = "github:haydenrear/tla-spec-dev-plugin"\n\n'
+        '[[vendored]]\nname = "test-graph-sdk"\npaths = ["test_graph/sdk"]\n'
+        'from_unit = "tla-spec-dev"\n'
+        'from_subpath = "skills/test-graph/project_sdk_sources"\n'
+    )
+    report = status.collect(repo)
+    assert report["migration"]["vendored_old_rung"] is True
+    text = status.render_text(report)
+    assert "from_unit" in text
+    assert "test-graph" in text
 
 
 def test_migration_notice_for_skt_declared_as_a_skill(tmp_path):
@@ -486,5 +544,9 @@ def test_migration_notice_for_skt_declared_as_a_skill(tmp_path):
         '[project]\nname = "p"\n\n[skills.skill-publisher]\nsource = "github:haydenrear/skill-publisher-skill"\n'
     )
     report = status.collect(repo)
-    assert report["migration"]["carrier_as_skill"] is True
-    assert "replace that block with [plugins.skt]" in status.render_text(report)
+    # Carries the block NAME now, so the message can name the one the reader is
+    # looking at rather than a hardcoded guess.
+    assert report["migration"]["carrier_as_skill"] == "skill-publisher"
+    text = status.render_text(report)
+    assert "[skills.skill-publisher]" in text
+    assert "replace that block with [plugins.tla-spec-dev]" in text

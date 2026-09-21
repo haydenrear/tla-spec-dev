@@ -180,9 +180,20 @@ def _descent_parent(home: Path) -> str | None:
     return None
 
 
-# One-time: skill-manager moved into this plugin and skill-dev-skill was
+# One-time: skill-manager and skt moved into this plugin and skill-dev-skill was
 # deleted. Printed, never documented — it disappears once the home is migrated.
-RETIRED_UNITS = ("skill-manager", "skill-dev-skill")
+#
+# THE CARRIER IS `tla-spec-dev`, NOT `skt`. skt was a plugin of its own and is a
+# contained skill of this bundle now, so every sentence below that used to name
+# skt as the thing to install names tla-spec-dev instead. Getting this wrong is
+# not cosmetic: the old text told operators to declare
+# `[plugins.skt] source = "github:haydenrear/skt"`, and that coordinate still
+# resolves — it ships skt 0.8.2 — so following the advice reinstalled the exact
+# standalone the migration removes.
+CARRIER = "tla-spec-dev"
+CARRIER_COORD = "github:haydenrear/tla-spec-dev-plugin"
+
+RETIRED_UNITS = ("skill-manager", "skill-dev-skill", "skt")
 _RETIRED_MANIFEST = re.compile(
     r"^\s*\[skills\.(skill-manager|skill-dev-skill)\]"
     r"|github:haydenrear/(skill-manager-skill|skill-dev-skill)\b",
@@ -193,6 +204,28 @@ _RETIRED_MANIFEST = re.compile(
 _CARRIER_AS_SKILL = re.compile(
     r"^\s*\[skills\.(skill-publisher|skt)\]\s*\n\s*source\s*=\s*\"[^\"]*(skill-publisher-skill|haydenrear/skt)",
     re.MULTILINE,
+)
+
+# `[plugins.skt]` — the RETIRED CARRIER still declared as a plugin.
+#
+# This shape had no detector at all, and it is the most common one in the wild:
+# measured across 86 skill projects on one machine, 14 declare it, more than any
+# other. `skill-manager project resolve` on one installs the standalone skt
+# beside tla-spec-dev and says nothing, because retirement keys on the CARRIER
+# arriving and skt is a passenger now. So the command an operator runs to check
+# a project was silent, and the command they run to migrate it recreated the
+# duplicate.
+_RETIRED_CARRIER_AS_PLUGIN = re.compile(
+    r"^\s*\[plugins\.(skt|skill-publisher)\]",
+    re.MULTILINE,
+)
+
+# A `[[vendored]]` block still reaching the old standalone rung, or hand-baking
+# the plugin path into from_subpath because the rung did not resolve. Both stop
+# working: skill-manager resolves BOTH rungs now, so the honest declaration is
+# the UNIT's own name with its own subpath.
+_VENDORED_OLD_RUNG = re.compile(
+    r"^\s*from_unit\s*=\s*\"(tla-spec-dev|skt)\"", re.MULTILINE
 )
 
 
@@ -212,30 +245,57 @@ def _migration(home: Path, start: str | Path) -> dict | None:
                 declared.append(name)
     # skt under its pre-plugin name: installs the plugin but is refused as a
     # SKILL ("expected SKILL but installed PLUGIN"), so resolve fails outright.
-    carrier_as_skill = bool(manifest.is_file() and _CARRIER_AS_SKILL.search(text))
-    if not standalone and not declared and not carrier_as_skill:
+    m_skill = _CARRIER_AS_SKILL.search(text) if manifest.is_file() else None
+    carrier_as_skill = m_skill.group(1) if m_skill else None
+    m_plugin = _RETIRED_CARRIER_AS_PLUGIN.search(text) if manifest.is_file() else None
+    carrier_as_plugin = m_plugin.group(1) if m_plugin else None
+    vendored_old_rung = bool(manifest.is_file() and _VENDORED_OLD_RUNG.search(text))
+    if not (standalone or declared or carrier_as_skill or carrier_as_plugin
+            or vendored_old_rung):
         return None
+    names_manifest = declared or carrier_as_skill or carrier_as_plugin or vendored_old_rung
     return {"standalone": standalone,
-            "manifest": str(manifest) if (declared or carrier_as_skill) else None,
-            "declared": declared, "carrier_as_skill": carrier_as_skill}
+            "manifest": str(manifest) if names_manifest else None,
+            "declared": declared, "carrier_as_skill": carrier_as_skill,
+            "carrier_as_plugin": carrier_as_plugin,
+            "vendored_old_rung": vendored_old_rung}
 
 
 def _migration_lines(block: dict | None) -> list[str]:
     if not block:
         return []
-    lines = ["migrate    skill-manager now ships inside the skt plugin; skill-dev-skill is gone. "
-             "Do NOT edit imports or references — they resolve to skt's copy."]
+    lines = [f"migrate    skill-manager and skt ship inside the {CARRIER} plugin now; "
+             "skill-dev-skill is gone. Do NOT edit imports or references — they "
+             f"resolve to {CARRIER}'s copies."]
     if block["standalone"]:
         lines.append(f"           this home still holds {', '.join(block['standalone'])} — run once: "
-                     "skill-manager sync skt   (retires it automatically)")
+                     f"skill-manager sync {CARRIER}   (retires it automatically)")
     if block["declared"]:
         blocks = ", ".join(f"[skills.{n}]" for n in block["declared"])
-        lines.append(f"           skill-project.toml declares {blocks} — delete that block; skt provides it "
-                     "(declare [plugins.skt] source = \"github:haydenrear/skt\" if the manifest has no skt entry)")
+        lines.append(f"           skill-project.toml declares {blocks} — delete that block; "
+                     f"{CARRIER} provides it (declare [plugins.{CARRIER}] source = "
+                     f"\"{CARRIER_COORD}\" if the manifest has no {CARRIER} entry)")
+    if block.get("carrier_as_plugin"):
+        # The most common unmigrated shape, and the one that had no detector.
+        name = block["carrier_as_plugin"]
+        lines.append(f"           skill-project.toml declares [plugins.{name}] — that coordinate "
+                     f"STILL RESOLVES (skt 0.8.2), so resolving installs a standalone {name} beside "
+                     f"{CARRIER} and nothing warns. Replace it with [plugins.{CARRIER}] source = "
+                     f"\"{CARRIER_COORD}\"")
     if block.get("carrier_as_skill"):
-        lines.append("           skill-project.toml declares skt as a skill ([skills.skill-publisher]) — "
-                     "replace that block with [plugins.skt] source = \"github:haydenrear/skt\"; "
-                     "resolve refuses a plugin declared as a skill")
+        name = block["carrier_as_skill"]
+        lines.append(f"           skill-project.toml declares the carrier as a skill "
+                     f"([skills.{name}]) — replace that block with [plugins.{CARRIER}] "
+                     f"source = \"{CARRIER_COORD}\"; resolve refuses a plugin declared as a skill")
+    if block.get("vendored_old_rung"):
+        # The second edit, which nothing used to mention. A half-migrated
+        # manifest hand-bakes the plugin path into from_subpath because the
+        # contained rung did not resolve; skill-manager resolves both rungs now,
+        # so the honest declaration is the unit's own name and its own subpath.
+        lines.append("           [[vendored]] names from_unit = \"tla-spec-dev\"/\"skt\" — name the "
+                     "UNIT that owns the trees instead, e.g. from_unit = \"test-graph\" with "
+                     "from_subpath = \"project_sdk_sources\"; skill-manager resolves the contained "
+                     "rung, then `project resolve --repair-vendored` re-points the links")
     return lines
 
 
