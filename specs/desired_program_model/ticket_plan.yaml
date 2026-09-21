@@ -4,7 +4,13 @@
 version: 1
 name: self-improvement-substrate
 updated: "2026-09-21"
-schedule_revision: 6
+# REVISION 7 (2026-09-21): SI-25 and SI-26 are done, and SI-18's scheduling is
+# repaired. Revision 5 gave SI-18 `depends_on` SI-19..SI-22 while placing it at
+# wave 16, AHEAD of all four -- the only row in the plan that depended on a
+# later wave. The owner re-sequenced: graph surface, then the manual gamut,
+# then skill-manager, and the eval ladder LAST, consuming a substrate both
+# products already share. The dependency list and the objective now say that.
+schedule_revision: 7
 purpose: "Make tla-spec-dev one plugin and one loop: the substrate improves because of what agents ran into while using it, and the epic agent is the one writer of the model, the matrix, the scorecard row and the plugin."
 
 planning_rules:
@@ -1329,14 +1335,22 @@ tickets:
     title: "skill-manager adopts the unified plugin: drop vendored skt, teach the resolver the plugin rung, stop onboard re-installing"
     status: planned
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/367"
-    schedule_revision: 5
-    depends_on: ["SI-15", "SI-16", "SI-17", "SI-19", "SI-20", "SI-21", "SI-22", "SI-24"]
+    schedule_revision: 7
+    # REVISION 7: the eval-ladder dependencies are dropped. Revision 5 had
+    # SI-18 depending on SI-19..SI-22 while scheduling it at wave 16, AHEAD of
+    # all four -- a ticket cannot run before its own dependencies, and this was
+    # the only such row in the plan. The owner re-sequenced deliberately:
+    # "finish test graph, gamut of manual testing, only then can we think about
+    # starting skill-manager stuff", and earlier: "do skill-manager, which has
+    # test graph including skt. Then ... we'll reconvene here to do the evals."
+    # So SI-18 runs BEFORE the ladder, and the ladder consumes its result.
+    depends_on: ["SI-15", "SI-16", "SI-17", "SI-24", "SI-25", "SI-26"]
     blocks: ["SI-23"]
     wave: 16
     promotion_order: 160
     promotion_predecessor: "SI-26"
     role: implementation
-    objective: "Make the skill-manager repository consume the unified tla-spec-dev-plugin instead of carrying its own skt. DISPATCHED AS A SEPARATE AGENT IN THE skill-manager REPOSITORY AND A SEPARATE SESSION (owner decision, 2026-09-20), after the rebuilt root home has been validated by the eval ladder. Scope is skt, the resolver, onboard and the evals -- history stays where it is."
+    objective: "Make the skill-manager repository consume the unified tla-spec-dev-plugin instead of carrying its own skt. DISPATCHED AS A SEPARATE AGENT IN THE skill-manager REPOSITORY AND A SEPARATE SESSION (owner decision, 2026-09-20), after the graph surface and the manual gamut (SI-25, SI-26) -- NOT after the eval ladder. Revision 5 said 'after the rebuilt root home has been validated by the eval ladder'; the owner re-sequenced so skill-manager lands first and the ladder then runs against a substrate both products consume. Scope is skt, the resolver, onboard and the evals -- history stays where it is."
     desired_actions: []
     implementation_scope:
       - "THE VENDORED skt COPY IS NOT CANONICAL AND DELETING IT LOSES NOTHING. skill-publisher-skill/src/skt and skill-publisher-skill/skills/skt were last touched by `chore: vendored skt 0.3.0` and `chore: refresh vendored skill copies from merged leaf mains`; canonical skt is haydenrear/skt, now contained in the plugin. Confirm that before deleting, then delete."

@@ -41,10 +41,23 @@ and the `tla-spec-dev` *repository* are being retired.
    the migration that would reinstall the standalone duplicate the whole epic
    removed. This is the delicate part — take it carefully.
 4. **Install the plugin and re-run skill-manager's test graphs**, which include
-   skt coverage. Measured before the handoff: skill-manager has **30 graphs,
-   ZERO of which name skt**, and **zero of its 13 Python graph files mention
-   it** — so "skill-manager's graphs already cover skt" is FALSE. Adding skt to
-   its `skill-project.toml` is part of this work.
+   skt coverage. **Re-measured against `epic/self-improvement-substrate` at
+   `d2760141` (2026-09-20):** `test_graph/build.gradle.kts` registers exactly
+   **30 graphs** — artifact-dag, browser-auth, checkout-home, doc-smoke,
+   git-latest-source-tracking, harness-smoke, home-clone, home-integrity,
+   home-sync, home-tripwire, home-verdicts, hyper-experiments, onboard,
+   onboarding, password-reset, plugin-smoke, project-child-home, project-env,
+   project-libs, project-manifest, project-profiles, project-resolve,
+   project-smoke, refresh-flow, smoke, source-tracking, spec-conformance,
+   sponsored, sync-settles, ticket-lifecycle — and **NOT ONE names skt**.
+   `skt` appears twice in that file and both are COMMENTS (lines 591 and 1474).
+   **0 of 299** files under `test_graph/sources/` have skt in their path. So
+   "skill-manager's graphs already cover skt" is FALSE. Adding skt to its
+   `skill-project.toml` is part of this work.
+
+   Do not confuse `test_graph/` (skill-manager's own 30 graphs) with
+   `skills/test_graph/` (the vendored test-graph skill, ~1,500 files). I did,
+   briefly, and it inverted the conclusion.
 
 ## Seven findings already filed against skill-manager
 
