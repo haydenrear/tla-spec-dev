@@ -1,0 +1,33 @@
+# plugin-repository verify.sh — FAIL, decomposed
+# recorded 2026-09-21T01:40:44Z, rc captured without a pipe
+
+Three causes. NONE is a defect in the tracked repository.
+
+1. 'Parent working tree ... NOT clean' — my own uncommitted review and
+   manual artifacts at the time of the run.
+
+2. '<constituent>: no .git (run finalize-constituents.sh)' for all 8.
+   STALE EXPECTATION. README.md:152 states the constituents were nested
+   with git subtree, are ordinary tracked files, and that 'there is no
+   finalize.sh step to run and running one would restore state this
+   model does not use'. git-integration-repo's verify.sh line 47 still
+   treats a missing .git as failure. The PLUGIN half passed outright:
+   markers agree, all 8 constituents resolve as contained skills.
+
+3. '297 frontmatter import(s) name a bundled skill as a UNIT.'
+   MEASURED AND SCOPED: the section lists 115 distinct files —
+   97 under test_graph/build (fixtures produced by the graph run
+   minutes earlier) and 18 under .skill-manager (the project-local
+   installed home, which still carries a stale standalone plugins/skt/
+   copy). TRACKED FILES IN THAT SECTION: ZERO.
+
+   My first count said 193 tracked files. That was wrong: the grep swept
+   the whole report instead of this section, mixing in the store-path
+   resolver listing. Recorded here because the wrong number would have
+   sent someone hunting 297 imports in a tree that contains none.
+
+   The real defect this exposes is that verify.sh scans build output —
+   its only exclusion is --exclude-dir=.git. 684 of 1541 lines in the
+   first sample named test_graph/build. Filed as SI-25-DF-08.
+
+Full output: plugin-repository-verify-full.txt

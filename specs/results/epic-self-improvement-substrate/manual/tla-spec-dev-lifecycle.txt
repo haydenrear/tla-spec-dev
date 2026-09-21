@@ -1,0 +1,104 @@
+# tla-spec-dev: the spec-ticket lifecycle, end to end
+# disposable repo: /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo  (kind=standalone, outside any worktree)
+# recorded 2026-09-21T01:29:06Z
+# every rc captured directly, never through a pipe
+
+$ tla-spec-dev --spec-root specs scaffold project --name GamutDemo
+rc=0
+wrote /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/program_model/README.md
+wrote /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/program_model/__init__.py
+wrote /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/program_model/Core.tla
+wrote /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/program_model/Internal.tla
+wrote /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/program_model/Internal.cfg
+wrote /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/program_model/spec_manifest.yaml
+wrote /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/program_model/tests/test_program_model_onboarding.py
+scaffolded program model files: 7
+
+These are placeholders: replace the scaffolded state, actions and invariants
+with this repository's real ones. The baseline is
+  - specs/program_model/Core.tla + Internal.tla + Internal.cfg  -> the model TLC checks
+  - specs/program_model/spec_manifest.yaml                     -> ports, invariants, budgets
+Optional later: `scaffold project --full` adds the External view, adapters and providers.
+
+
+BUDGETS -- documented defaults, recorded. Nothing to agree before modeling.
+A budgets: block was written to specs/program_model/spec_manifest.yaml:
+
+      tlc_seconds: 120  (hard external timeout per TLC run)
+      max_distinct_states: 50000  (reachable states TLC may find, per component model)
+      max_state_space_bound: 1000000  (static declared-representation ceiling; see modular_fuzzing.md)
+      max_internal_cases_per_component: 200  (spec-unit case cap per component)
+      max_external_cases_per_action: 50  (Test Graph case cap per external action)
+      kill_rate_floor: 0.8  (minimum mutation kill rate (EXPERIMENTAL fuzzing surface; optional))
+
+$ tla-spec-dev --spec-root specs scaffold workflow GAM-1 'Gamut demo ticket'
+rc=0
+copied /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/program_model/Core.tla -> /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/current/Core.tla
+copied /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/program_model/Internal.cfg -> /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/current/Internal.cfg
+copied /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/program_model/Internal.tla -> /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/current/Internal.tla
+copied /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/program_model/__init__.py -> /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/current/__init__.py
+copied /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/program_model/Core.tla -> /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/desired_program_model/Core.tla
+copied /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/program_model/Internal.cfg -> /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/desired_program_model/Internal.cfg
+copied /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/program_model/Internal.tla -> /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/desired_program_model/Internal.tla
+copied /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/program_model/__init__.py -> /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/desired_program_model/__init__.py
+wrote /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/current/README.md
+wrote /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/current/spec_manifest.yaml
+wrote /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/current/tests/test_current_ticket_workflow.py
+wrote /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/desired_program_model/README.md
+wrote /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/desired_program_model/spec_manifest.yaml
+wrote /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/desired_program_model/ticket_plan.yaml
+wrote /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/desired_program_model/desired_state.yaml
+scaffolded ticket workflow files: 15
+
+BUDGETS -- documented defaults, recorded. Nothing to agree before modeling.
+A budgets: block was written to specs/current/spec_manifest.yaml:
+
+      tlc_seconds: 120  (hard external timeout per TLC run)
+      max_distinct_states: 50000  (reachable states TLC may find, per component model)
+      max_state_space_bound: 1000000  (static declared-representation ceiling; see modular_fuzzing.md)
+      max_internal_cases_per_component: 200  (spec-unit case cap per component)
+      max_external_cases_per_action: 50  (Test Graph case cap per external action)
+
+$ tla-spec-dev --spec-root specs open ticket GAM-1
+rc=0
+copied /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/current/Core.tla -> /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/tickets/GAM-1/desired/Core.tla
+copied /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/current/Internal.cfg -> /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/tickets/GAM-1/desired/Internal.cfg
+copied /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/current/Internal.tla -> /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/tickets/GAM-1/desired/Internal.tla
+copied /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/current/README.md -> /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/tickets/GAM-1/desired/README.md
+copied /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/current/__init__.py -> /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/tickets/GAM-1/desired/__init__.py
+copied /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/current/spec_manifest.yaml -> /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/tickets/GAM-1/desired/spec_manifest.yaml
+wrote /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/tickets/GAM-1/README.md
+wrote /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/tickets/GAM-1/ticket.yaml
+wrote /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/tickets/GAM-1/tests/test_ticket_workflow.py
+wrote /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/tickets/GAM-1/results/.gitkeep
+wrote /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/tickets/GAM-1/results/complexity_ledger.yaml
+
+Next ticket workflow steps for GAM-1:
+  1. Edit /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/tickets/GAM-1/desired. Update the TLA+ model/configs so they
+     describe the whole-program state after this ticket. Run TLC on it once.
+  2. Optional: ticket-local spec-unit adapters/tests under
+     /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/tickets/GAM-1/desired when the project has the generated-case layer.
+  3. Optional: ticket-local Test Graph adapters/bindings/selectors under
+     /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/tickets/GAM-1/testgraph or /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/tickets/GAM-1/test_graph when the
+     project has one.
+  4. Implement the ticket.
+  5. Mark GAM-1 done in the project ticket plan and run:
+     tla-spec-dev --spec-root specs close ticket GAM-1
+     If the close refuses, rerun it with --force and say why in --summary.
+  6. In the close-out feedback, give every finding that targets THIS repository
+
+$ tla-spec-dev --spec-root specs analyze complexity
+rc=2
+usage: tla-spec-dev analyze complexity [-h] [--manifest MANIFEST]
+                                       [--format {text,json}] [--out OUT]
+                                       [--tlc-report TLC_REPORT]
+                                       [--baseline-tlc BASELINE_TLC]
+                                       tla [cfg]
+tla-spec-dev analyze complexity: error: the following arguments are required: tla
+
+Run 'tla-spec-dev analyze complexity --help' to see the next supported workflow step.
+
+$ tla-spec-dev --spec-root specs run spec-unit-tests --ticket GAM-1
+rc=2
+ERROR: no spec-unit pytest tests or generated case packages found for /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/specs/tickets/GAM-1/desired
+

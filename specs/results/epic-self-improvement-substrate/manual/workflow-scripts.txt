@@ -1,0 +1,109 @@
+# the workflow SCRIPTS the skills ship, not just the CLIs
+# resolved from the installed plugin: /Users/hayde/.skill-manager/plugins/tla-spec-dev/skills
+# recorded 2026-09-21T01:29:16Z
+
+$ wt (no args -> usage)
+rc=1
+usage: wt new   <TICKET> [base-branch] [--integration] [--no-home] [--verbose]
+                [--stale-base-ok]
+       wt close <TICKET|PATH> [--force] [--dry-run] [--verbose]
+       wt info  <TICKET>
+
+  new     Create the worktree for TICKET AND its own Skill Manager home, in the
+          repo you are standing in, and leave it launchable.
+  close   Tear that worktree down through the close-out gate, which refuses
+          while its home still holds work that removing it would destroy.
+  info    Print the full key set for a worktree that already exists. Creates
+          and removes nothing.
+
+A successful new or close prints ONE line, and the path on it is the only fact
+that does not follow from convention:
+
+  created worktree <path>
+  closed worktree <path> (branch <branch> kept)
+
+
+$ wt --help
+rc=0
+usage: wt new   <TICKET> [base-branch] [--integration] [--no-home] [--verbose]
+                [--stale-base-ok]
+       wt close <TICKET|PATH> [--force] [--dry-run] [--verbose]
+       wt info  <TICKET>
+
+  new     Create the worktree for TICKET AND its own Skill Manager home, in the
+          repo you are standing in, and leave it launchable.
+  close   Tear that worktree down through the close-out gate, which refuses
+          while its home still holds work that removing it would destroy.
+  info    Print the full key set for a worktree that already exists. Creates
+          and removes nothing.
+
+A successful new or close prints ONE line, and the path on it is the only fact
+that does not follow from convention:
+
+  created worktree <path>
+  closed worktree <path> (branch <branch> kept)
+
+
+$ new-change.sh (no args -> usage)
+rc=1
+usage: new-change.sh <TICKET> [base-branch] [--integration] [--no-home]
+                     [--stale-base-ok]
+
+  TICKET          Ticket id. The branch is feature/<TICKET>; the worktree is
+                  <repo>-<TICKET>, placed beside the outermost enclosing
+                  integration repo.
+  base-branch     Branch to start from. Default: the checkout's current branch.
+                  A bare name is the LOCAL ref; see --stale-base-ok.
+  --integration   Target the enclosing INTEGRATION repo rather than the
+                  constituent you are standing in.
+  --no-home       Skip the per-worktree Skill Manager home. Agents launched in
+                  the worktree then use the operator's global home.
+  --stale-base-ok Branch from the local base even when it is BEHIND its remote
+                  counterpart. Without it that is a refusal, because a bare base
+                  name resolves to the local ref and a base that trails
+                  origin/<base> produces a worktree of a superseded tree with no
+                  signal at all.
+  --quiet         Print nothing at all on stderr. The contract on stdout is
+
+$ close-change.sh (no args -> usage)
+rc=1
+usage: close-change.sh <TICKET|WORKTREE-PATH> [--into HOME] [--force] [--dry-run]
+
+  TICKET           Ticket id; the worktree is <parent-dir>/<repo>-<TICKET>,
+                   the same path new-change.sh creates. If that path is not
+                   there, the ticket is resolved against the worktrees that
+                   ARE — so this runs from any directory, not only from the
+                   repo that opened the worktree. Ambiguity is named, never
+                   guessed. A path may be given instead.
+  --into HOME      Project home the worktree's work must reach first.
+                   Default: the project home the worktree's own home was cloned
+                   FROM — <main working tree>/.skill-manager. bootstrap-home.sh
+                   derives the clone source from the same function, so the two
+                   agree by construction rather than by exported variable.
+  --force          Remove even if the gate refuses. The gate still runs and its
+                   blockers are still printed; the work is DISCARDED.
+  --dry-run        Run the gate and report; remove nothing.
+  -h, --help       This message.
+
+
+$ bootstrap-home.sh --help
+rc=0
+usage: bootstrap-home.sh [DIR | --root DIR] [--source HOME] [--policy live|frozen]
+                         [--print-env] [--force] [--quiet] [--verbose]
+                         [--onboard [--onboard-gateway]] [--allow-empty]
+
+  DIR              Checkout to give a home to, positionally -- the same thing
+                   --root names. Accepted because every other front door in
+                   this pair takes its subject that way.
+  --root DIR       Checkout to give a home to. Default: the nearest enclosing
+                   git toplevel — which inside a constituent is the
+                   CONSTITUENT, not the integration repo tracking its files.
+  --source HOME    Home to clone from. Only ever read. Default: for a LINKED
+                   WORKTREE, its project home (the main working tree's), which
+                   is the home close-change.sh reconciles it back into; for a
+                   main working tree, $SKILL_MANAGER_HOME, else ~/.skill-manager.
+                   A --source that disagrees with a worktree's project home is
+                   REFUSED, not silently honoured.
+  --policy P       Policy to declare on the new home: live (default) or
+                   frozen. A home that is ALREADY frozen is never touched.
+

@@ -1,0 +1,42 @@
+# skt worktree-ticket lifecycle: bootstrap -> new -> info -> list -> close
+# repo: /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo   recorded 2026-09-21T01:36:24Z
+
+$ bootstrap-home.sh --root /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo
+rc=0
+warning:   /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo is not clean after the bootstrap, so `wt new` will refuse it (the files are in the log). Commit or revert them, or add them to .gitignore.
+warning:   /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo is not clean after the bootstrap, so `wt new` will refuse it (the files are in the log). Commit or revert them, or add them to .gitignore.
+home:      /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/.skill-manager
+projected: 8 of 8 into each of .claude .codex .gemini
+verified:  8 skill(s) servable — an agent launched here reads them from .claude .codex .gemini; descriptor env inside /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo; claude/codex resolve to this home's shims
+launch:    /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/.skill-manager/bin/launch/claude
+creds:     agents launched from this home share the operator's login.
+           If one says 'Not logged in', check CLAUDE_SECURESTORAGE_CONFIG_DIR
+           is EMPTY -- a path there selects a slot nobody has written and
+           fails exactly as if it were unset (skill-manager#263).
+log:       /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/bootstrap-home-14tCq5.log
+
+$ skt ticket new GAM-2
+rc=1
+error: working tree is not clean: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo (commit or revert the files listed above)
+fix:   git -C /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo status --short
+
+$ skt ticket info GAM-2
+rc=1
+error: no worktree for GAM-2 at /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo-GAM-2
+fix:   /Users/hayde/.skill-manager/plugins/tla-spec-dev/skills/skt/scripts/wt new GAM-2
+
+$ skt ticket list
+rc=0
+skt ticket list — /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo
+epic       none discoverable
+target     none — containment NOT checked (pass --epic <slug> or --target <ref>)
+home       close-out destination: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo/.skill-manager
+  no linked worktrees — nothing to sweep
+
+$ skt ticket close GAM-2
+rc=1
+note: edited unit(s) in this home before close: tla-spec-dev
+      (`skt publish <unit>` moves them out; the gate below enforces it)
+error: no worktree for ticket GAM-2: not at /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo-GAM-2 (where new-change.sh would put gamut-repo's), and nothing named '*-GAM-2' in /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG
+fix:   git -C "/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.RuBJ30yseG/gamut-repo" worktree list
+

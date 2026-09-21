@@ -4368,3 +4368,387 @@ findings:
     skill_change: "declined(no unit change: this is home composition, not a unit's files)"
     disposition: pending
     disposition_ticket: null
+
+  - id: SI-25-DF-01
+    found_by: "SI-25 (epic agent)"
+    found_at_commit: "ab99d575"
+    schedule_revision: 6
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: ["test_graph/gradle/wrapper/gradle-wrapper.properties"]
+    summary: >-
+      FOUR TRACKED gradle wrappers pin `org.gradle.java.home` to one operator's
+      machine: `/Users/hayde/.sdkman/candidates/java/current`. They are
+      `test_graph/`, `examples/distributed_history/test_graph/`,
+      `skills/test-graph/project_sdk_sources/` and `skills/test-graph/test_graph/`.
+      It has never been caught because it RESOLVES here -- the symlink points at
+      21-oracle and `JAVA_HOME` already holds the identical string -- so the
+      property is redundant on this machine and load-bearing on no machine. It
+      can only ever break somebody else's. It also propagates: every
+      `specWorkflow` cleanup-failure probe copies the wrapper into its nested
+      build, and frozen copies carrying the same line are visible in MF-027's
+      run reports and throughout `specs/.history`.
+    reproduction: >-
+      `grep -rn org.gradle.java.home --include=*.properties` over the tracked
+      tree, excluding build output and history: four live hits. `echo $JAVA_HOME`
+      returns the same path the property hardcodes, which is why removing it
+      changes nothing locally.
+    evidence:
+      - "test_graph/gradle/wrapper/gradle-wrapper.properties:7"
+    why_out_of_scope: >-
+      SI-25's conflict keys cover `test_graph/**`, but two of the four wrappers
+      are `skills/test-graph/`'s and one is an example's -- a cross-unit edit,
+      and `skills/test-graph` is a contained skill with its own upstream.
+    suggested_fix: >-
+      Delete the line from all four. Gradle falls back to `JAVA_HOME` and then
+      the launching JVM, both correct here. If a pinned toolchain is genuinely
+      wanted, express it as a Gradle toolchain spec, which resolves per machine.
+    blast_radius: >-
+      Every graph, on every machine that is not this one, and any CI runner.
+      Zero effect locally, which is exactly why it survived.
+    skill_change: "proposed(skills/test-graph owns two of the four wrappers)"
+    disposition: pending
+    disposition_ticket: null
+
+  - id: SI-25-DF-02
+    found_by: "SI-25 (epic agent)"
+    found_at_commit: "ab99d575"
+    schedule_revision: 6
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      The repository suite has no timeout discipline. TWENTY of the 34 test
+      files that spawn subprocesses pass no `timeout=` to any of them, there is
+      no `pytest-timeout`, and there is no pytest configuration file at all --
+      no pyproject.toml, setup.cfg, pytest.ini or tox.ini. A subprocess that
+      never returns hangs the suite with no diagnostic. Measured on this run:
+      19:51 wall against 1:48 of CPU, so roughly ninety percent of the suite's
+      duration is spent waiting on child processes.
+    reproduction: >-
+      For each file under `tests/` matching `subprocess.run|subprocess.Popen`,
+      count `timeout=`: 20 of 34 have zero. `uv run --with pytest --with pyyaml
+      -m pytest tests -q` reports `in 1191.09s`; `ps -o time=` on the pytest pid
+      at exit shows ~1:48 of CPU.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/review/wave-13-15/suite-baseline.log"
+    why_out_of_scope: >-
+      Repo-wide test hygiene, outside a graph-surface ticket's conflict keys,
+      and adding a global timeout could turn slow-but-correct tests red.
+    suggested_fix: >-
+      Add `pytest-timeout` with a generous per-test ceiling, chosen from the
+      measured distribution rather than guessed, so a hang fails one named test
+      instead of stalling the run. The per-call `timeout=` additions can follow.
+    blast_radius: >-
+      Diagnosis time whenever the suite stalls, and CI reliability. No behaviour.
+    skill_change: "declined(repository test config, not a unit's files)"
+    disposition: pending
+    disposition_ticket: null
+
+  - id: SI-25-DF-03
+    found_by: "SI-25 (epic agent)"
+    found_at_commit: "ab99d575"
+    schedule_revision: 6
+    severity: minor
+    surface:
+      production: ["examples/effect_providers/legacy_payment_http/scripts/regenerate.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      A TRACKED evidence file records a wall-clock measurement, so the tree can
+      never stay clean across a regeneration.
+      `examples/effect_providers/legacy_payment_http/evidence/tlc-generation.json`
+      carries `wall_seconds`, written by that example's
+      `scripts/regenerate.py`. Observed this session: 0.9060331249784213 became
+      1.0035601670388132 on a re-run that changed nothing else about the corpus.
+      SCOPE, MEASURED RATHER THAN ASSUMED: this is the only observed churner.
+      `atomic_publisher/regenerate.py` writes `provenance.json`, which carries no
+      timing and did not change; `reminder_worker/regenerate.py` writes neither;
+      the other eighteen tracked files matching `wall_seconds` are frozen
+      experiment records last touched 2026-07-22 and no driver rewrites them.
+    reproduction: >-
+      Run `examples/effect_providers/legacy_payment_http/scripts/regenerate.py`
+      twice from a clean tree. `git status` shows `tlc-generation.json` modified
+      both times, with only `wall_seconds` differing once `package` is correct.
+    evidence:
+      - "examples/effect_providers/legacy_payment_http/evidence/tlc-generation.json"
+    why_out_of_scope: >-
+      The fix is a judgement about what evidence is FOR -- whether a timing
+      belongs in a committed record at all -- and that belongs to whoever owns
+      the effect-provider evidence convention, not to a graph-surface ticket.
+    suggested_fix: >-
+      Either drop `wall_seconds` from the committed record and keep it in the
+      run log, or move the file out of the tracked tree. A committed artifact
+      that cannot reproduce itself byte-for-byte defeats every clean-tree check
+      built on top of it.
+    blast_radius: >-
+      Any guard asserting a clean tree after a regeneration, and any reviewer
+      reading a one-line diff as a real change.
+    skill_change: "declined(example evidence convention, not a unit's files)"
+    disposition: pending
+    disposition_ticket: null
+
+  - id: SI-25-DF-04
+    found_by: "SI-25 (epic agent)"
+    found_at_commit: "ab99d575"
+    schedule_revision: 6
+    severity: major
+    surface:
+      production: ["specs/current/spec_manifest.yaml", "specs/desired_program_model/spec_manifest.yaml", "specs/program_model/spec_manifest.yaml"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      THREE of the known-ten standing failures are ONE defect, copied three
+      times. The citation checker reports 30 problems, and they are ten
+      identical stale citations replicated across the three `spec_manifest.yaml`
+      files -- `specs/current/`, `specs/desired_program_model/` and
+      `specs/program_model/` -- which carry the same citation block. Nine are
+      repairable in principle; ONE IS NOT. `run_generated_case_adapters.py:1353`
+      cites the anchor `program_path`, and that anchor appears on ZERO lines of
+      a 2,409-line file, so `check_citations.py --fix` can never resolve it --
+      it refuses when an anchor matches none or several. The remaining nine cite
+      anchors that appear on two to four lines each, so `--fix` refuses those
+      too; every one needs a human to say which line was meant.
+    reproduction: >-
+      `python3 skills/spec-double-2/scripts/check_citations.py` -> exit 1,
+      `30 stale or uncheckable citation(s)`, ten per manifest. Or run
+      `tests/test_source_citations.py` alone: 3 failed, 83 passed, and the three
+      failures are the three manifests.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/review/wave-13-15/citations.txt"
+    why_out_of_scope: >-
+      These predate SI-25 and sit in the spec manifests, not the graph surface.
+      Each repair is a judgement about which line the author meant, and guessing
+      is precisely what the anchored-citation convention exists to prevent.
+    suggested_fix: >-
+      Fix the ten once and propagate to all three manifests, or better, find why
+      three files carry the same citation block and whether two of them should
+      be derived rather than copied -- a defect that exists in three places and
+      is reported in three places is the shape this repository keeps rediscovering.
+    blast_radius: >-
+      Three of the ten standing failures, which is a third of the baseline every
+      ticket in this epic has had to compare against by name.
+    skill_change: "proposed(spec-double-2 owns check_citations.py and the manifests)"
+    disposition: pending
+    disposition_ticket: null
+
+  - id: SI-25-DF-05
+    found_by: "SI-25 (epic agent)"
+    found_at_commit: "ab99d575"
+    schedule_revision: 6
+    severity: major
+    surface:
+      production: ["examples/run_distributed_history_validation.py"]
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      TWO of the known-ten failures are guards protecting a corpus that was
+      deliberately deleted, and both say so themselves.
+      `examples/distributed_history/specs/generated` was removed in `76ef2758`
+      ("removed generated") -- fourteen files deleted and a `.gitignore` line
+      added -- and zero tracked files remain under it. `GENERATED_ROOT` is now
+      `_run_scratch_root(EXAMPLE_ROOT, RUN_ID)`, a scratch directory, not a
+      committed tree. So `test_a_validation_run_does_not_generate_over_a_committed_corpus`
+      fails with "the committed corpus this test protects is gone -- either it
+      moved (update this path) or the protection is now vacuous", and
+      `test_cli_passes_on_the_committed_example_corpus` fails with "case
+      directory not found". The guards are not detecting a regression; they are
+      reporting their own subject's removal.
+    reproduction: >-
+      `ls examples/distributed_history/specs/generated` -> no such directory.
+      `git log --oneline -- examples/distributed_history/specs/generated` ->
+      `76ef2758 removed generated`. `git ls-files` under it -> 0.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/review/wave-13-15/suite-baseline.log"
+    why_out_of_scope: >-
+      Deciding whether the corpus should come back or the guards should retire
+      is a question about what the distributed-history example is for, which is
+      not a graph-surface ticket's call.
+    suggested_fix: >-
+      Decide explicitly: restore a committed corpus for the guards to protect,
+      repoint them at one that still exists, or retire both with the removal
+      recorded. Leaving them red keeps two permanent entries in a baseline that
+      every ticket compares against, which trains readers to ignore the baseline.
+    blast_radius: >-
+      Two of the ten standing failures, permanently. Combined with SI-25-DF-04,
+      FIVE of the known ten are two defects that have nothing to do with the
+      code under test.
+    skill_change: "declined(example content, not a unit's files)"
+    disposition: pending
+    disposition_ticket: null
+
+  - id: SI-25-DF-06
+    found_by: "SI-25 (epic agent)"
+    found_at_commit: "ab99d575"
+    schedule_revision: 6
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: ["test_graph/sources/skt_ticket_roundtrip.py"]
+    summary: >-
+      `skt.ticket-roundtrip` RESOLVES ONLY THE STANDALONE RUNG, which is the
+      ninth recurrence of the defect this epic keeps tripping over, and it makes
+      the node test the wrong code. `_resolve_giw` probes
+      `<base>/skills/git-issue-workflow` for `SKILL_MANAGER_HOME` and
+      `~/.skill-manager`, and falls back to cloning
+      `github.com/haydenrear/git-issue-workflow-skill` when neither has it.
+      Measured 2026-09-21 against the rebuilt root home:
+      `~/.skill-manager/skills/git-issue-workflow` DOES NOT EXIST, while
+      `~/.skill-manager/plugins/tla-spec-dev/skills/git-issue-workflow` carries
+      both `scripts/lib.sh` and `scripts/new-change.sh`. So the node published
+      `giwSource: clone:https://github.com/haydenrear/git-issue-workflow-skill.git`
+      and exercised UPSTREAM main -- code that predates SI-16 and SI-17 -- while
+      asserting post-migration expectations. Four assertions fail as a result:
+      `new prints the worktree and branch keys`, `the worktree directory
+      exists`, `it is a LINKED worktree, not a copy`, `git knows about it`,
+      with `ticket new exits zero` and `the branch feature/TG-1 exists` passing.
+      skt's own code already resolves BOTH rungs -- `wt.py:157` globs
+      `plugins/*/skills/skt/scripts/wt`, and `ticket.py:90` globs
+      `plugins/*/skills/<unit>` under a comment that states the rule outright:
+      asking only about `skills/` reports "not installed" for a home that has it.
+      The graph node never received that fix.
+    reproduction: >-
+      `test -f ~/.skill-manager/skills/git-issue-workflow/scripts/lib.sh` -> absent;
+      `test -f ~/.skill-manager/plugins/tla-spec-dev/skills/git-issue-workflow/scripts/lib.sh`
+      -> present. Run `python3 test_graph/run-graphs.py --only sktSurface` and read
+      `published.giwSource` in the run's summary.json: it says `clone:`.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/manual/graph-verdicts.txt"
+    why_out_of_scope: >-
+      SI-25's scope named `skt.status-tiers` as sktSurface's single red node and
+      that one is fixed here. This is a different node with a different cause,
+      found only because fixing the first let the graph run far enough to reach it.
+    suggested_fix: >-
+      Give `_resolve_giw` the same two rungs the rest of the codebase already
+      has: `<home>/skills/<unit>`, then `sorted(home.glob("plugins/*/skills/<unit>"))`.
+      Then the clone becomes what its docstring says it is -- the fallback a
+      hosted runner takes -- rather than the path every local run silently takes.
+    blast_radius: >-
+      Every local sktSurface run tests upstream main instead of this checkout, so
+      the node cannot detect a regression in the code it is supposed to guard.
+    skill_change: "proposed(the two-rung rule is skt's own and is documented in ticket.py)"
+    disposition: pending
+    disposition_ticket: null
+
+  - id: SI-25-DF-07
+    found_by: "SI-25 (epic agent)"
+    found_at_commit: "ab99d575"
+    schedule_revision: 6
+    severity: minor
+    surface:
+      production: ["skills/skt/src/skt/ticket.py"]
+      tla: []
+      adapters: []
+      test_graph: ["test_graph/sources/skt_ticket_roundtrip.py"]
+    summary: >-
+      `_giw_remedy`'s four differentiated refusals NO LONGER HAVE A TRIGGER, and
+      nine assertions still assert them. Every one of the nine is a
+      `names '<phrase>'` assertion; every behavioural twin -- `exits non-zero`,
+      `creates no worktree`, `does NOT prescribe <wrong remedy>` -- PASSES, so
+      skt refuses correctly and says something else. THE MECHANISM IS NOT THAT
+      SOMETHING PREEMPTS THE REMEDY. `_import_wrapper` reaches `_giw_remedy`
+      only from `except ImportError` around `importlib.import_module("skt.wt")`,
+      and after SI-17 that module SHIPS IN THIS PLUGIN -- its own docstring says
+      the import "is expected to succeed". Measured: `import skt.wt` from the
+      installed plugin succeeds. So the branch is dead, skt delegates to `wt`,
+      and the missing-lifecycle failure surfaces one layer down from
+      `new-change.sh` with that script's wording instead. The docstring
+      anticipated exactly this -- it records that the remedy path was KEPT
+      because "the failure it describes did not go away, it moved one layer
+      down" -- but nothing moved the MESSAGES down with it, and the node still
+      asserts the pre-SI-17 contract.
+    reproduction: >-
+      With a committed repo and an empty home carrying an EMPTY
+      `skills/git-issue-workflow/`: `PYTHONPATH= SKILL_MANAGER_HOME=<home> skt
+      ticket new TG-REFUSED` -> rc=3 and "no Skill Manager home could be
+      created for this worktree", not "carries no worktree lifecycle scripts".
+      The orphan-directory case gives rc=1 "not inside a git repository". NOTE:
+      a repo without a commit fails earlier still with `fatal: invalid
+      reference: main`, a THIRD path the node does not test.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/manual/graph-verdicts.txt"
+    why_out_of_scope: >-
+      Whether the four remedies should be re-triggered at the new layer, or the
+      assertions should follow the wording that now holds, is a question about
+      which refusal serves the reader. That is skt's call, not a graph ticket's.
+    suggested_fix: >-
+      Re-trigger the remedies where the failure now lives -- `wt`'s delegation
+      to `new-change.sh` -- or retire the four and update the node. Do not leave
+      a deliberately-built diagnostic whose trigger condition cannot occur;
+      `_giw_remedy`'s docstring records the fault being hit five times over this
+      epic, and that diagnosis is what is being lost.
+    blast_radius: >-
+      Nine of the thirteen red assertions in sktSurface's only failing node, and
+      the loss of a not-installed versus not-synced distinction that was built
+      deliberately after five recurrences.
+    skill_change: "proposed(skt owns both the refusal text and where it is raised)"
+    disposition: pending
+    disposition_ticket: null
+
+  - id: SI-25-DF-08
+    found_by: "SI-25 (epic agent)"
+    found_at_commit: "ab99d575"
+    schedule_revision: 6
+    severity: major
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["skills/plugin-repository/scripts/verify.sh", "skills/git-integration-repo/scripts/verify.sh"]
+    summary: >-
+      `verify.sh` SCANS BUILD OUTPUT, and it is the third instrument in this
+      epic to do so. Its repository sweep excludes only `.git`
+      (`grep -rl --exclude-dir=.git`), so a checkout that has run its own test
+      graphs is scanned together with every fixture those graphs wrote. Measured
+      2026-09-21: 684 of 1,541 output lines named `test_graph/build`, and the
+      run's headline finding -- "297 frontmatter import(s) name a bundled skill
+      as a UNIT" -- resolves, when scoped to its own section, to 115 files of
+      which 97 are under `test_graph/build`, 18 are under `.skill-manager`, and
+      ZERO ARE TRACKED. The instrument reports a repository defect that the
+      repository does not have. This is the same shape as SI-16's 73,487-entry
+      build directory taking four suite tests red, and as the 328,508-entry
+      directory found at the start of this ticket.
+      Two further FAIL causes in the same run are also not repository defects:
+      a dirty parent tree (uncommitted work in progress) and a
+      `finalize-constituents.sh` expectation that README.md:152 explicitly
+      retired -- the constituents are subtree-nested plain files and "running
+      one would restore state this model does not use".
+    reproduction: >-
+      From a checkout that has run `python3 test_graph/run-graphs.py`, run
+      plugin-repository's `scripts/verify.sh`. Count output lines naming
+      `test_graph/build`. Then bound the frontmatter section between its
+      preceding `== ` header and the summary line and resolve each path with
+      `git ls-files --error-unmatch`: none is tracked.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/manual/plugin-repository-verify.txt"
+      - "specs/results/epic-self-improvement-substrate/manual/plugin-repository-verify-full.txt"
+    why_out_of_scope: >-
+      Two different units own the two halves (plugin-repository and
+      git-integration-repo), both are contained skills with their own upstreams,
+      and SI-25's conflict keys cover neither.
+    suggested_fix: >-
+      Exclude ignored paths from the sweep -- `git ls-files` is the honest
+      enumeration for a git repository, and it answers the tracked/untracked
+      question the finding actually turns on. Separately, retire the
+      `finalize-constituents.sh` check or gate it on a repository that uses
+      submodules, since this model does not.
+    blast_radius: >-
+      Every verify.sh run in a checkout that has built anything, which is every
+      working checkout. A verdict that cannot distinguish a tracked file from a
+      build fixture cannot be acted on, and acting on this one would have sent a
+      reader hunting 297 imports that do not exist in the tree.
+    skill_change: "proposed(plugin-repository and git-integration-repo own the two halves)"
+    disposition: pending
+    disposition_ticket: null

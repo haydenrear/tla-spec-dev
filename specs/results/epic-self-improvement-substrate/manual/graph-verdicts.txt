@@ -1,0 +1,14 @@
+# All five test graphs, with stated verdicts
+# HEAD ab99d575, recorded 2026-09-21T01:35:34Z
+
+  PASSED   specWorkflow             9/9 nodes
+  PASSED   cliWorkflow              2/2 nodes
+  PASSED   effectProviderExamples   1/1 node
+  PASSED   sktHooks                 3/3 nodes
+  ERRORED  sktSurface               4/5 nodes; skt.ticket-roundtrip red (13 of 39 assertions)
+
+skt.status-tiers -- the node SI-25 named -- PASSES after the fixture-locality fix.
+The tree was clean before the default-set run and clean after it (dirty_count=0).
+
+Each graph appears exactly once in the runner's verdict table; the
+double-print defect that printed an opt-in graph twice is fixed.

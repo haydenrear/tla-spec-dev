@@ -1,0 +1,40 @@
+# the dirty-tree guard: the refusal AND the override
+# repo: /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.weWJ3jaVa9/dirty-repo   recorded 2026-09-21T01:36:31Z
+
+$ bootstrap-home.sh --root /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.weWJ3jaVa9/dirty-repo
+rc=0
+home:      /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.weWJ3jaVa9/dirty-repo/.skill-manager
+projected: 8 of 8 into each of .claude .codex .gemini
+verified:  8 skill(s) servable — an agent launched here reads them from .claude .codex .gemini; descriptor env inside /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.weWJ3jaVa9/dirty-repo; claude/codex resolve to this home's shims
+launch:    /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.weWJ3jaVa9/dirty-repo/.skill-manager/bin/launch/claude
+creds:     agents launched from this home share the operator's login.
+           If one says 'Not logged in', check CLAUDE_SECURESTORAGE_CONFIG_DIR
+           is EMPTY -- a path there selects a slot nobody has written and
+           fails exactly as if it were unset (skill-manager#263).
+log:       /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/bootstrap-home-46pOXF.log
+
+# tree made dirty: README.md modified, uncommitted
+
+$ skt ticket new DIRTY-1   (expect refusal naming WT_DIRTY_OK)
+rc=1
+error: working tree is not clean: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.weWJ3jaVa9/dirty-repo (commit or revert the files listed above)
+fix:   git -C /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.weWJ3jaVa9/dirty-repo status --short
+
+$ WT_DIRTY_OK=1 skt ticket new DIRTY-1   (expect the override to proceed)
+rc=0
+created ticket worktree for DIRTY-1:
+worktree   /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.weWJ3jaVa9/dirty-repo-DIRTY-1
+branch     feature/DIRTY-1 (standalone repo dirty-repo)
+launch     /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.weWJ3jaVa9/dirty-repo-DIRTY-1/.skill-manager/bin/launch/claude
+if-exit-8  /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.weWJ3jaVa9/dirty-repo-DIRTY-1/.skill-manager/bin/cli/skill-manager home drift --ack
+close      skt ticket close — or: /Users/hayde/.skill-manager/plugins/tla-spec-dev/skills/skt/scripts/wt close DIRTY-1
+
+A skill edit inside that worktree's home is in no git diff; run `skt publish` there before closing, or the close gate will refuse.
+
+$ skt ticket close DIRTY-1
+rc=0
+note: edited unit(s) in this home before close: tla-spec-dev
+      (`skt publish <unit>` moves them out; the gate below enforces it)
+closed /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.weWJ3jaVa9/dirty-repo-DIRTY-1
+branch feature/DIRTY-1 kept — delete once the change has landed
+
