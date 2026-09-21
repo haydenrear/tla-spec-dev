@@ -48,7 +48,20 @@ def copy_probe_project(source: Path, target: Path) -> None:
     if target.exists():
         shutil.rmtree(target)
     ignore = shutil.ignore_patterns("build", ".gradle", "__pycache__", "*.pyc")
-    for name in ["settings.gradle.kts", "gradlew", "gradle", "build-logic", "sdk", "sources"]:
+    # `support` IS REQUIRED even though this probe registers only four nodes.
+    # The SDK indexes EVERY script under a configured sourcesDir (GraphAssembler:
+    # "Index every remaining script under the configured sourcesDirs"), so the
+    # nested build describes all 17 sources, not the 4 it runs. Five of them --
+    # skt_check_cached, skt_hook_contract, skt_status_tiers, skt_ticket_roundtrip,
+    # skt_wrapper_installed -- do `sys.path.insert(..., parents[1] / "support")`
+    # and `from skt_fixture import ...` at MODULE level, so the import runs at
+    # describe time. Omitting this directory made every one of them exit 1 with
+    # `ModuleNotFoundError: No module named 'skt_fixture'`, which surfaced as
+    # `describe failed for skt_check_cached.py (exit=1)` and took the whole
+    # specWorkflow graph red. Those five arrived with SI-16's skt demotion
+    # (4caab479); before it there was no source here that needed `support`, which
+    # is why this list was complete for as long as it was.
+    for name in ["settings.gradle.kts", "gradlew", "gradle", "build-logic", "sdk", "sources", "support"]:
         src = source / "test_graph" / name
         dst = target / name
         if src.is_dir():
