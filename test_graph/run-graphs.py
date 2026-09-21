@@ -271,7 +271,17 @@ def main() -> int:
     print("\n== verdicts (read from each run's own summary.json, not from exit codes) ==")
     for graph, verdict, code, evidence in results:
         print(f"  {verdict:9} {graph:26} runner_exit={code}  {evidence}")
+    # ONLY the opt-in graphs this invocation did NOT run. Printing all of them
+    # unconditionally meant an opt-in graph that DID run appeared twice -- once
+    # with its real verdict and once as NOT RUN. Observed 2026-09-21:
+    # `--only sktHooks --only sktSurface` reported sktSurface as ERRORED and
+    # then again as NOT RUN in the same table. A red graph that also prints
+    # NOT RUN reads as skipped, which is the did-not-run versus is-not-run-here
+    # confusion this script exists to prevent (SI-13).
+    ran = {graph for graph, _, _, _ in results}
     for graph, reason in OPT_IN.items():
+        if graph in ran:
+            continue
         print(f"  {'NOT RUN':9} {graph:26} opt-in: {reason}")
     for graph, reason in DEAD.items():
         print(f"  {'DEAD':9} {graph:26} {reason}")

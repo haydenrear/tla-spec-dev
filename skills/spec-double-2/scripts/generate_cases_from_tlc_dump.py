@@ -1348,6 +1348,23 @@ def report_param_recovery(
     return measurement
 
 
+
+def _relative_source(package_dir: Path) -> str:
+    """`package_dir` relative to the repository root, or its name as a floor.
+
+    Never absolute: the value is committed beside generated corpora, and an
+    absolute path makes the record differ per checkout for no reader's benefit.
+    """
+    resolved = Path(package_dir).resolve()
+    for parent in [resolved, *resolved.parents]:
+        if (parent / ".git").exists():
+            try:
+                return str(resolved.relative_to(parent))
+            except ValueError:
+                break
+    return resolved.name
+
+
 def report_action_coverage(
     prepared: list[PreparedCase],
     *,
@@ -1463,7 +1480,21 @@ def report_action_coverage(
         action_counts=emitted_counts,
         declared_view_actions=declared_for_view,
         declaration=declaration,
-        source=str(package_dir),
+        # RELATIVE, not str(package_dir). An absolute path here is the checkout
+        # that last regenerated the corpus, so a tracked record encodes one
+        # operator's worktree: measured 2026-09-21, all six tracked
+        # case_coverage.json files carried an absolute path and they came from
+        # TWO different worktrees (wt-334-plugin-migration x4,
+        # tla-spec-dev-2 x2). Regenerating in a third rewrote four of them and
+        # dirtied the tree, which then made `skt ticket new` refuse its
+        # clean-slate guard and read as a front-door regression.
+        #
+        # Nothing consumes this field -- build_report never reads it (its own
+        # `source` at case_modules.py:608 (view_action_source) is a different
+        # thing), and read_coverage_record validates only `module` and stamps
+        # `path`. It is redundant with the record's own location, because
+        # write_coverage_record writes INTO package_dir.
+        source=_relative_source(package_dir),
     )
     record["declared_zero_actions"] = dict(sorted(declared_zero.items()))
     record["undeclared_zero_actions"] = undeclared_zero

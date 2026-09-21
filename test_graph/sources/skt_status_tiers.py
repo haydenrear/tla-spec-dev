@@ -118,7 +118,25 @@ def main(ctx):
         )
 
     # --- tier: root -------------------------------------------------------
-    root_repo = init_repo(work / "root-checkout")
+    #
+    # A SYSTEM temp dir, not one under `work`. `checkout_kind` walks ancestors
+    # looking for `integration.toml`, and THIS repository carries one at its
+    # root -- so any fixture checkout created inside the worktree classifies as
+    # `constituent` and can never be `standalone`. Measured 2026-09-21: a fresh
+    # git repo under the worktree reports kind=constituent, and the same repo in
+    # a system temp dir reports standalone. The failing assertion was therefore
+    # reporting the behaviour under test working CORRECTLY, against a fixture
+    # that could not produce the answer it asked for.
+    #
+    # The tier assertions below are unaffected: `classify_tier` decides `root`
+    # by comparing the resolved home against SKT_ROOT_HOME, never by where the
+    # checkout sits.
+    #
+    # This is the same hazard the `orphan` fixture at the end of this node
+    # documents and avoids with `tempfile.mkdtemp`. That one was fixed when it
+    # was found; this one was not, and it is the only node sktSurface fails on.
+    root_checkout_dir = Path(tempfile.mkdtemp(prefix="skt-tg-root-checkout-"))
+    root_repo = init_repo(root_checkout_dir / "root-checkout")
     root_home = home_at(work / "operator-home")
 
     # --- tier: project, and tier: worktree off the same main tree ---------
@@ -276,6 +294,10 @@ def main(ctx):
             missing.returncode != 0 and "no skill-manager home found" in missing.stdout,
         )
         shutil.rmtree(orphan, ignore_errors=True)
+
+    # The root checkout lives OUTSIDE ctx.report_dir (see the tier: root block),
+    # so it is not disposed of with the report and has to be removed here.
+    shutil.rmtree(root_checkout_dir, ignore_errors=True)
 
     result.metric("tierChecks", len(checked))
     return result.publish("tiersChecked", ",".join(checked))
