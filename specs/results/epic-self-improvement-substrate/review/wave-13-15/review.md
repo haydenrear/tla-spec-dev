@@ -145,3 +145,30 @@ graphs name skt **zero** times, and the traps that cost this epic hours.
 overwrites the plugin's now-real `hooks.json`) and `SI-16-DF-03` (nesting
 retired the skt pin). The staging ceiling — 28,603 entries against a 20,000
 limit — is also unresolved.
+
+## Two more measurement errors, both caught after the review was first written
+
+**"I cannot push."** I checked the remotes with `git remote -v` and read only
+the first four lines, concluded `tla-spec-dev-plugin` was not configured, and
+prepared to tell the owner the authorized push was impossible. It is the tenth
+remote. Reading a truncated listing as a complete one is the same error as
+reading an empty result as a negative one, and this time it would have
+manufactured a blocker out of nothing.
+
+The push is still not done, but for a REAL reason: `pulling-upstream.md`
+records the owner's 2026-09-19 decision that the mid-epic mirror is retired and
+the plugin repo gets the result "by cutover, once, at epic close", which
+conflicts with the 2026-09-20 instruction to push to plugin main. The plugin's
+`main` is 0 commits ahead and 4 behind this tip, so it has evidently been
+tracking the epic anyway. That contradiction is the owner's to resolve.
+
+**"The handoff's graph claim is false."** A recursive tree listing returned 382
+test-graph files against the handoff's "13", so I moved to retract the claim.
+The 382 were `skills/test_graph/` -- the VENDORED test-graph skill. Measured
+correctly: skill-manager's own `test_graph/build.gradle.kts` registers exactly
+30 graphs, NONE named skt, and 0 of 299 files under `test_graph/sources/` name
+it. The original claim was right; only the incidental "13 Python files" figure
+was wrong. Two directories with near-identical names, opposite conclusions.
+
+Both were caught by re-measuring rather than by reading, which is the same
+lesson as the other six and the reason the count in this section is now eight.
