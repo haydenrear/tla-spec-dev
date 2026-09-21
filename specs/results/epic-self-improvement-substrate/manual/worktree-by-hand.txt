@@ -1,0 +1,57 @@
+# the OTHER front door: by-hand git worktree add + bootstrap-home.sh
+# SI-26 requires BOTH routes. repo: /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.N8ppRQTTLM/byhand
+# recorded 2026-09-21T01:41:51Z
+
+$ git worktree add ../byhand-BH-1 -b feature/BH-1
+rc=0
+Preparing worktree (new branch 'feature/BH-1')
+HEAD is now at 9b2107e fixture
+
+$ bootstrap-home.sh --root ../byhand-BH-1
+rc=1
+log:       /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/bootstrap-home-JCaXJt.log
+error: this is a worktree of /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.N8ppRQTTLM/byhand, and that
+  checkout has no Skill Manager home at
+    /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.N8ppRQTTLM/byhand/.skill-manager
+  A worktree home is a copy of its PROJECT home, and close-change.sh reconciles
+  it back into that same path. Cloning from anywhere else — the global home
+  included — makes this worktree unclosable from birth (issue #50).
+  Give the project its home first, then re-run:
+    /Users/hayde/.skill-manager/plugins/tla-spec-dev/skills/git-issue-workflow/scripts/bootstrap-home.sh --root '/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.N8ppRQTTLM/byhand'
+  or name a source deliberately with --source.
+
+$ skt status (inside the by-hand worktree)
+rc=0
+skt status — /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.N8ppRQTTLM/byhand-BH-1
+checkout   standalone repo, branch feature/BH-1 (ticket BH-1)
+home       /Users/hayde/.skill-manager — tier: root, policy: live
+parent     none — this IS the root home; nothing is above it
+publish    edited a unit here? `skt publish <unit>` — no sync leg at this tier, it goes straight to the unit's own git repo.
+writes     this session writes /Users/hayde/.skill-manager. Never write another home by hand.
+base       in sync with parent @9b2107e4 (0 commit(s) ahead)
+cli        @google/gemini-cli, claude, codex, computeq, docker, gh, helm, helm-deploy, jinja2-cli[yaml], k3d +11 more
+units      11 installed (11 change-managed)
+  acp-cdc-ai-python 0.2.0 skill [loaded] [cm] 3c02dc52
+  andrej-karpathy-skills 1.0.0 plugin [cm] 43442d0f
+  debugging 0.1.0 skill [loaded] [cm] 3520c531
+  deploy-helm 0.1.0 skill [loaded] [cm] 5d48d0e6
+  doc-repo-devops 0.1.0 doc [cm] 3bf44536
+  hyper-experiments-finance 0.1.0 skill [loaded] [cm] 5b3c8d2b
+  hyper-experiments 0.1.0 skill [loaded] [cm] 41b8f560
+
+$ close-change.sh BH-1 --dry-run
+rc=0
+
+== Closing out /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.N8ppRQTTLM/byhand-BH-1 ==
+  worktree:  /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.N8ppRQTTLM/byhand-BH-1
+  home:      /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.N8ppRQTTLM/byhand-BH-1/.skill-manager
+  into:      /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.N8ppRQTTLM/byhand/.skill-manager
+  probing:   for a skill-manager that answers `home close-out` (one CLI start per candidate)
+  gate:      skipped — no home in this worktree, so it holds no unit work
+  lifecycle: no project plugin pre-remove callbacks
+
+== Dry run — nothing removed ==
+  would run: git -C "/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.N8ppRQTTLM/byhand" worktree remove "/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.N8ppRQTTLM/byhand-BH-1"
+CLEAN      /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.N8ppRQTTLM/byhand-BH-1 — the gate found nothing that removing it would destroy
+CLOSE      /Users/hayde/.skill-manager/plugins/tla-spec-dev/skills/skt/scripts/wt close BH-1
+

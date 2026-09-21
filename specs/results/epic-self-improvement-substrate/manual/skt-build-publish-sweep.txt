@@ -1,0 +1,59 @@
+# skt build / publish / sweep — the verbs not yet driven beyond --help
+# recorded 2026-09-21T01:41:32Z, rc without a pipe
+
+$ skt build --list (root home)
+rc=2
+usage: skt [-h] [--version] {status,check,sync,ticket,build,publish} ...
+skt: error: unrecognized arguments: --list
+
+$ skt ticket sweep (dry run, no -y)
+rc=1
+error: not inside a git repository, or git could not list its worktrees
+fix:   cd into the primary checkout of the repository whose worktrees you want
+
+$ skt ticket list --json (in the epic worktree)
+rc=0
+{
+  "schema": 1,
+  "root": "/Users/hayde/IdeaProjects/tla-spec-dev",
+  "destination_home": "/Users/hayde/IdeaProjects/tla-spec-dev/.skill-manager",
+  "epic": null,
+  "epic_scoped": false,
+  "target": null,
+  "current": "/Users/hayde/IdeaProjects/wt-epic-self-improvement-substrate",
+  "error": null,
+  "fix": null,
+  "worktrees": [
+    {
+      "path": "/Users/hayde/IdeaProjects/tla-spec-dev",
+      "ticket": null,
+      "branch": "main",
+      "head": "5d05ba7fb042429e59f877790ba34d1ce477dace",
+      "primary": true,
+      "excluded": "the primary checkout \u2014 never removed",
+      "status": {
+        "clean": true,
+
+$ skt ticket sweep --epic self-improvement-substrate (dry run)
+rc=0
+skt ticket sweep (dry run) — /Users/hayde/IdeaProjects/tla-spec-dev
+epic       self-improvement-substrate (scoped to it)
+target     epic/self-improvement-substrate — commits must be contained in it
+home       close-out destination: /Users/hayde/IdeaProjects/tla-spec-dev/.skill-manager
+  excluded     -                /Users/hayde/IdeaProjects/tla-spec-dev
+      the primary checkout — never removed
+  excluded     -                /Users/hayde/IdeaProjects/wt-epic-self-improvement-substrate
+      the worktree this command is running IN — run the sweep from the primary checkout instead: git -C /Users/hayde/IdeaProjects/tla-spec-dev … / cd /Users/hayde/IdeaProjects/tla-spec-dev
+  would remove -                /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/base-wt
+  would remove -                /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/basecheck
+  would remove -                /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si17check
+  would remove 334-plugin-migra /Users/hayde/IdeaProjects/wt-334-plugin-migration
+  would remove 335-nest-workflo /Users/hayde/IdeaProjects/wt-335-nest-workflow-skills
+  would remove 336-improvement- /Users/hayde/IdeaProjects/wt-336-improvement-card
+  would remove 337-improvement- /Users/hayde/IdeaProjects/wt-337-improvement-record
+  would remove 338-close-out-ow /Users/hayde/IdeaProjects/wt-338-close-out-owes-change
+  would remove 339-skills-propo /Users/hayde/IdeaProjects/wt-339-skills-propose
+  would remove 340-epic-owns-mo /Users/hayde/IdeaProjects/wt-340-epic-owns-model
+  would remove 341-evaluation   /Users/hayde/IdeaProjects/wt-341-evaluation
+  would remove 342-progressive- /Users/hayde/IdeaProjects/wt-342-progressive-disclosure
+
