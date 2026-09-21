@@ -20,7 +20,7 @@ unit — and installing from this repo's own coord would give you a second,
 standalone copy alongside the bundled one.
 
 ```bash
-skill-manager install github:haydenrear/tla-spec-dev --yes
+skill-manager install github:haydenrear/tla-spec-dev-plugin --yes
 skill-manager sync tla-spec-dev --git-latest
 ```
 

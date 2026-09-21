@@ -3629,10 +3629,16 @@ findings:
       (skills/git-integration-repo/**, skills/plugin-repository/**, README.md,
       integration.toml).
     suggested_fix: >-
-      Point it at the bundle coord, github:haydenrear/tla-spec-dev. Worth pairing
-      with SI-12-DF-03: a widened store-path guard still would not catch this,
-      because there is no check anywhere for "a reference naming a repo this
-      bundle contains" -- only for paths.
+      Point it at the bundle coord, github:haydenrear/tla-spec-dev-plugin.
+      CORRECTED 2026-09-21: this line said github:haydenrear/tla-spec-dev until
+      the plugin cutover made that the wrong repository -- tla-spec-dev keeps
+      shipping the spec-double-compiler SKILL, so that coord would have given
+      this declaration the skill rather than the bundle and left the duplicate
+      the finding is about. The finding is still `pending`, so the advice was
+      live and someone acting on it would have reintroduced the defect. Worth
+      pairing with SI-12-DF-03: a widened store-path guard still would not catch
+      this, because there is no check anywhere for "a reference naming a repo
+      this bundle contains" -- only for paths.
     blast_radius: >-
       One resolving declaration, which re-materialises a standalone test-graph in
       any home that resolves the discovery project -- precisely the measurement

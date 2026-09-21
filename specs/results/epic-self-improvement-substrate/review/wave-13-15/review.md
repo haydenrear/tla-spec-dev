@@ -155,12 +155,27 @@ remote. Reading a truncated listing as a complete one is the same error as
 reading an empty result as a negative one, and this time it would have
 manufactured a blocker out of nothing.
 
-The push is still not done, but for a REAL reason: `pulling-upstream.md`
-records the owner's 2026-09-19 decision that the mid-epic mirror is retired and
-the plugin repo gets the result "by cutover, once, at epic close", which
-conflicts with the 2026-09-20 instruction to push to plugin main. The plugin's
-`main` is 0 commits ahead and 4 behind this tip, so it has evidently been
-tracking the epic anyway. That contradiction is the owner's to resolve.
+**And the "conflict" I escalated was not one.** I reported that
+`pulling-upstream.md`'s retired-mirror rule contradicted the owner's
+instruction to push to the plugin's `main`, declined to push, and handed the
+contradiction back to them to resolve. There was nothing to resolve. The plan's
+own `planning_rules.no_default_branch_merge` already records that
+`tla-spec-dev-plugin`'s `main` "was cut over on 2026-09-20 at wave 10 by owner
+decision" and "IS the epic's delivery surface and later waves land on it".
+`pulling-upstream.md` was simply stale and had never been updated to match.
+
+I read the migration note, treated it as authoritative, and never checked the
+planning rules two files away — then asked the owner to adjudicate a question
+their own plan had answered the day before. Declining to act was right; the
+reason I gave was wrong. Both documents now say the same thing, and
+`pulling-upstream.md` records that it was the stale one.
+
+**The rule, stated once:** the epic tip goes to `tla-spec-dev-plugin`'s `main`
+at every wave close, because `skill-manager onboard` points at `main` and there
+is no branch to aim it at. The epic still never merges to `tla-spec-dev`'s
+default branch — that repository keeps shipping the `spec-double-compiler`
+skill, and a plugin layout on its `main` would break every install that syncs
+from it.
 
 **"The handoff's graph claim is false."** A recursive tree listing returned 382
 test-graph files against the handoff's "13", so I moved to retract the claim.

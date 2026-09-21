@@ -287,7 +287,9 @@ propagate_command() {
   done
   # The remedy is the BUNDLE coord: installing the skill's own repo would add a
   # standalone duplicate of a skill that already ships inside the plugin.
-  printf 'skill-manager install github:haydenrear/tla-spec-dev\n'
+  # tla-spec-dev-plugin, NOT tla-spec-dev: the latter still ships the
+  # spec-double-compiler SKILL, so that coord gets you the skill, not the bundle.
+  printf 'skill-manager install github:haydenrear/tla-spec-dev-plugin\n'
 }
 
 emit_contract() {

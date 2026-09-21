@@ -94,8 +94,14 @@ HOME_DIR=/path/to/.skill-manager                 # or $HOME/.skill-manager
 SM="$HOME_DIR/bin/cli/skill-manager"             # equivalently: skill-manager --home "$HOME_DIR"
 
 # 1. Install the bundle.
-#    Once merged, straight from the coord:
-"$SM" install github:haydenrear/tla-spec-dev --yes
+#    The delivery surface is tla-spec-dev-plugin's `main`: every wave lands
+#    there, so the coord is current. `skill-manager onboard` points at `main`,
+#    which is why it has to be that branch and not a feature or epic ref.
+#
+#    NOT github:haydenrear/tla-spec-dev. That repository keeps shipping the
+#    spec-double-compiler SKILL so existing installs keep syncing; installing
+#    it gets you the skill, not this plugin. Two repos, two surfaces.
+"$SM" install github:haydenrear/tla-spec-dev-plugin --yes
 #
 #    From a CHECKOUT while the change is unmerged, stage it first with
 #    `git archive`. Do NOT use `file://$(pwd)` on a checkout that carries its

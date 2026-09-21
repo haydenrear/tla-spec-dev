@@ -133,8 +133,8 @@ flows:
   `${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/plugins/tla-spec-dev/skills/skt/references/derived-artifacts.md`
   (absent in a home that does not have the tla-spec-dev plugin installed — then read
   `skills/skt/references/derived-artifacts.md` in
-  `github.com/haydenrear/tla-spec-dev`, or install it with
-  `skill-manager install github:haydenrear/tla-spec-dev`). Read it
+  `github.com/haydenrear/tla-spec-dev-plugin`, or install it with
+  `skill-manager install github:haydenrear/tla-spec-dev-plugin`). Read it
   there rather than inferring it from this CLI's output or its source; the last
   two agents to work it out from source got it wrong, in opposite directions.
 - `scripts/env.sh` / `scripts/env.py` - resolve absolute paths for

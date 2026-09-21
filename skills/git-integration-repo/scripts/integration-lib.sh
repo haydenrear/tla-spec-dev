@@ -107,7 +107,7 @@ if [ -z "$_GIW_LIB" ]; then
     "${SKILL_MANAGER_HOME:-$HOME/.skill-manager}" >&2
   printf '  Install the dependency. It now ships as a contained skill of the\n' >&2
   printf '  tla-spec-dev plugin, so the coordinate is the BUNDLE, not the skill:\n' >&2
-  printf '    skill-manager install github:haydenrear/tla-spec-dev\n' >&2
+  printf '    skill-manager install github:haydenrear/tla-spec-dev-plugin\n' >&2
   printf '  or point at the copy you are working on:\n' >&2
   printf '    GIT_ISSUE_WORKFLOW_SCRIPTS=/path/to/git-issue-workflow/scripts %s\n' "$0" >&2
   exit 1

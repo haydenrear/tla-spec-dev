@@ -21,8 +21,25 @@ carrier plugin root; its `src/` moved DOWN into the skill.
 
 The root home has been rebuilt from a recorded manifest and verified: 11 units,
 plugins `andrej-karpathy-skills` and `tla-spec-dev`, and **no standalone skt**.
-`github:haydenrear/tla-spec-dev` is the coord to use; the old `skt` plugin coord
-and the `tla-spec-dev` *repository* are being retired.
+**`github:haydenrear/tla-spec-dev-plugin` at `main` is the coord to use.** Its
+`main` is the epic's delivery surface — every wave lands there, so it is
+current by the time you read this. That matters for you specifically:
+**`skill-manager onboard` points at `main`**, so there is no branch to aim it
+at, and the plugin's `main` has to BE the real thing before this ticket runs.
+It is. Point your evals at that coord and they measure the substrate this epic
+actually built.
+
+**Do NOT use `github:haydenrear/tla-spec-dev`.** That repository keeps shipping
+the `spec-double-compiler` **skill** so existing installs keep syncing;
+installing that coord gets you the skill, not the plugin. Two repositories, two
+surfaces. The old `skt` plugin coord is retired as well.
+
+**Known defect at the coordinate, and it is YOURS:** installing from a git
+source fails the toolchain's own two CLI installers (`SIS-W2-F-05`) — `tlc2`
+and `tla-spec-dev` are declared on the contained skill but resolved under the
+plugin's name, so a **fresh** home gets no toolchain. The fix is
+`SI-11-DF-01` in the table below, and it lands in skill-manager's resolver, not
+here. Expect it on a fresh home and fix it as part of this ticket.
 
 ## Your scope
 

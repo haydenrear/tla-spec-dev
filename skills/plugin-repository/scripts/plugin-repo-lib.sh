@@ -85,7 +85,7 @@ if [ -z "$_GIR_SCRIPTS" ]; then
   printf '  Install the dependency. It now ships as a contained skill of the\n' >&2
   printf '  tla-spec-dev plugin, so the coordinate is the BUNDLE, not the skill\n' >&2
   printf '  (installing the skill'\''s own repo would add a standalone duplicate):\n' >&2
-  printf '    skill-manager install github:haydenrear/tla-spec-dev\n' >&2
+  printf '    skill-manager install github:haydenrear/tla-spec-dev-plugin\n' >&2
   printf '  or point at the copy you are working on:\n' >&2
   printf '    GIT_INTEGRATION_REPO_SCRIPTS=/path/to/git-integration-repo/scripts %s\n' "$0" >&2
   exit 1
