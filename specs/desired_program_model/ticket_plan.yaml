@@ -3,8 +3,8 @@
 # mirror it for handoff; they do not replace it.
 version: 1
 name: self-improvement-substrate
-updated: "2026-09-20"
-schedule_revision: 5
+updated: "2026-09-21"
+schedule_revision: 6
 purpose: "Make tla-spec-dev one plugin and one loop: the substrate improves because of what agents ran into while using it, and the epic agent is the one writer of the model, the matrix, the scorecard row and the plugin."
 
 planning_rules:
@@ -1332,9 +1332,9 @@ tickets:
     schedule_revision: 5
     depends_on: ["SI-15", "SI-16", "SI-17", "SI-19", "SI-20", "SI-21", "SI-22", "SI-24"]
     blocks: ["SI-23"]
-    wave: 18
-    promotion_order: 190
-    promotion_predecessor: "SI-22"
+    wave: 16
+    promotion_order: 160
+    promotion_predecessor: "SI-26"
     role: implementation
     objective: "Make the skill-manager repository consume the unified tla-spec-dev-plugin instead of carrying its own skt. DISPATCHED AS A SEPARATE AGENT IN THE skill-manager REPOSITORY AND A SEPARATE SESSION (owner decision, 2026-09-20), after the rebuilt root home has been validated by the eval ladder. Scope is skt, the resolver, onboard and the evals -- history stays where it is."
     desired_actions: []
@@ -1381,7 +1381,7 @@ tickets:
 
   - id: SI-24
     title: "Nuke and rebuild the root home from a recorded manifest"
-    status: planned
+    status: done
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/377"
     schedule_revision: 5
     depends_on: ["SI-16", "SI-17"]
@@ -1431,6 +1431,95 @@ tickets:
         - "The front door `skt ticket new` works in the rebuilt home."
       evidence: []
 
+  - id: SI-25
+    title: "Finish the test graph surface: every graph runs, and the runner tells the truth about which did"
+    status: planned
+    github_issue: "PENDING"
+    schedule_revision: 6
+    depends_on: ["SI-24"]
+    blocks: ["SI-26", "SI-18", "SI-23"]
+    wave: 14
+    promotion_order: 152
+    promotion_predecessor: "SI-24"
+    role: implementation
+    objective: "Bring all five graphs to a known state against the rebuilt root home, and repair the two instrument defects found while running them. A graph surface that misreports which graphs ran is worse than one that is red, because the red is visible."
+    desired_actions: []
+    implementation_scope:
+      - "run-graphs.py line 274 prints EVERY OPT_IN entry as NOT RUN unconditionally, so an opt-in graph that DID run appears twice -- once with its real verdict and once as NOT RUN. Observed: sktSurface printed both ERRORED and NOT RUN in the same table. That is exactly the did-not-run versus is-not-run-here confusion this script was written to prevent (SI-13)."
+      - "sktSurface fails one node, skt.status-tiers, on one assertion across both interpreters: 'a checkout under neither is standalone'. root_repo = init_repo(work / 'root-checkout') sits inside the node's own work dir, and find_home walks ancestors -- the comment six lines below at spec source line 260 documents this exact hazard for its NEIGHBOUR and fixes that one with tempfile.mkdtemp. This one was not fixed. Establish whether it is fixture locality or tier logic BEFORE changing either."
+      - "sktSurface has NEVER executed in this epic: SI-13 classified it OPT-IN without running it, SI-16 nested it, and 2026-09-21 was its first run. There is no green baseline, so this may be pre-existing in skt rather than a regression. Say which."
+      - "case_coverage.json carries an ABSOLUTE worktree path in its `source` field, written by case_modules.py:458 and read by nothing. It rewrites on every graph run in a different worktree and dirties four tracked files, which is what made `skt ticket new` refuse mid-session and briefly read as a front-door regression."
+      - "the graphs that already pass must STAY passing: specWorkflow, cliWorkflow, effectProviderExamples, sktHooks. Compare failure NAMES, never counts."
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests: []
+      graph_after_unit_pass: []
+    conflict_keys:
+      production: ["test_graph/**", "skills/spec-double-2/scripts/case_modules.py"]
+      tla: []
+      adapters: []
+      test_graph: ["test_graph/run-graphs.py", "test_graph/sources/**"]
+      workflow: []
+    goals:
+      - goal: GOAL-evals-earned
+        contribution: enabling
+        expected_effect: "no eval is written against a graph surface whose verdicts cannot be trusted"
+        local_signal: "all five graphs reach a stated verdict, and each appears exactly once in the table"
+    acceptance:
+      commands: []
+      assertions:
+        - "Every graph appears EXACTLY ONCE in the verdict table."
+        - "sktSurface reaches a stated verdict, and if it stays red the cause is named as fixture-locality or tier-logic with evidence."
+        - "A graph run in a clean tree leaves the tree clean."
+      evidence: []
+
+  - id: SI-26
+    title: "The manual gamut: drive every script and both CLIs by hand, and write down what each did"
+    status: planned
+    github_issue: "PENDING"
+    schedule_revision: 6
+    depends_on: ["SI-25"]
+    blocks: ["SI-18", "SI-19", "SI-23"]
+    wave: 15
+    promotion_order: 155
+    promotion_predecessor: "SI-25"
+    role: implementation
+    objective: "Exercise the whole substrate by hand against the rebuilt root home, because GOAL-evals-earned forbids writing an eval for behaviour nobody has watched work. The record IS the deliverable; a passing run with no transcript does not satisfy it."
+    desired_actions: []
+    implementation_scope:
+      - "tla-spec-dev CLI, every verb, against a disposable repo: scaffold project, scaffold workflow, open ticket, run spec-unit-tests, analyze, generate, retire, close. `run spec-unit-tests --ticket` is KNOWN-WEAK (SIS-KICKOFF-F-04): it resolves both targets and executes only the first. Verify the ACTUAL behaviour, not the documented one."
+      - "skt, every verb: status, check (exit 10 is NOTIFY_EXIT, not an error -- check.py:145), sync, build, publish, and ticket new/close/info/list/sweep."
+      - "worktree scaffolding end to end, BOTH front doors: `skt ticket new` and the by-hand `git worktree add` route. The dirty-tree guard refuses correctly and names WT_DIRTY_OK=1 -- exercise both the refusal and the override."
+      - "ticket lifecycle in BOTH systems: a tla-spec-dev spec ticket (open -> spec-unit -> close) and an skt worktree ticket (new -> info -> list -> close). They are different objects with similar names and the difference is what an agent gets wrong."
+      - "the workflow SCRIPTS the skills ship, not just the CLIs: git-issue-workflow's new-change.sh and close-change.sh, wt, bootstrap-home.sh, and plugin-repository's verify.sh."
+      - "every transcript lands under specs/results/epic-self-improvement-substrate/manual/ with the command, the exit code taken WITHOUT a pipe, and what was observed. An exit code read through a pipe is tail's, and this epic has made that error repeatedly."
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests: []
+      graph_after_unit_pass: []
+    conflict_keys:
+      production: ["specs/results/epic-self-improvement-substrate/manual/**"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    goals:
+      - goal: GOAL-evals-earned
+        contribution: direct
+        expected_effect: "every surface an eval will later encode has been watched working by hand first"
+        local_signal: "a transcript per surface, committed, predating any eval case written against it"
+    acceptance:
+      commands: []
+      assertions:
+        - "Every verb of both CLIs has a transcript with a real exit code."
+        - "Both ticket systems were driven end to end and the difference between them is stated."
+        - "Anything that refused is recorded WITH its refusal, not retried until quiet."
+      evidence: []
+
   - id: SI-19
     title: "Eval ladder 1/4: scaffold a test graph, verify by hand, then one small eval"
     status: planned
@@ -1438,9 +1527,9 @@ tickets:
     schedule_revision: 4
     depends_on: ["SI-13", "SI-14"]
     blocks: ["SI-20", "SI-23"]
-    wave: 14
-    promotion_order: 160
-    promotion_predecessor: "SI-24"
+    wave: 17
+    promotion_order: 170
+    promotion_predecessor: "SI-18"
     role: implementation
     objective: "First rung of the ladder. Scaffold a test graph, run it, verify the workflow scripts by hand, record what was observed -- and only then write one small eval that encodes it."
     desired_actions: []
@@ -1483,8 +1572,8 @@ tickets:
     schedule_revision: 4
     depends_on: ["SI-16", "SI-17", "SI-19"]
     blocks: ["SI-21", "SI-23"]
-    wave: 15
-    promotion_order: 170
+    wave: 18
+    promotion_order: 175
     promotion_predecessor: "SI-19"
     role: implementation
     objective: "Second rung. Verify every skt function by hand in its FINAL home -- contained, with wt inside it -- and then write small evals for what was observed."
@@ -1528,7 +1617,7 @@ tickets:
     schedule_revision: 4
     depends_on: ["SI-20"]
     blocks: ["SI-22", "SI-23"]
-    wave: 16
+    wave: 19
     promotion_order: 180
     promotion_predecessor: "SI-20"
     role: implementation
@@ -1573,7 +1662,7 @@ tickets:
     schedule_revision: 4
     depends_on: ["SI-18", "SI-21"]
     blocks: ["SI-18", "SI-23"]
-    wave: 17
+    wave: 20
     promotion_order: 185
     promotion_predecessor: "SI-21"
     role: implementation
@@ -1618,9 +1707,9 @@ tickets:
     schedule_revision: 4
     depends_on: ["SI-08", "SI-16", "SI-17", "SI-18", "SI-19", "SI-20", "SI-21", "SI-22", "SI-24"]
     blocks: []
-    wave: 19
+    wave: 21
     promotion_order: 200
-    promotion_predecessor: "SI-18"
+    promotion_predecessor: "SI-22"
     role: evaluation
     owns_goals:
       - GOAL-one-plugin
