@@ -32,7 +32,7 @@ disagreed and both turned out to be half right:
      scaffold: <abs path>/scaffold.sh
      FILED SCAFFOLD RAN pwd=/private/tmp/e-jS2iI9/home/cwd whoami=hayde
      HOME=/private/tmp/e-jS2iI9/home
-     git ls-remote https://github.com/haydenrear/skt main -> 0f380781...
+     git ls-remote <unit remote> <branch> -> <sha>
    Note HOME is a SCRATCH home, not the operator's: a scaffold script cannot
    reach ~/.skill-manager, which is exactly the dependency this ticket removes.
 
@@ -50,10 +50,10 @@ operator-side anyway, for three reasons, each of which is a defect if ignored:
 Usage
 -----
     python3 evals/lib/toolchain.py materialise [--ref <commitish>] [--check-drift]
-    python3 evals/lib/toolchain.py print-ref [--unit skt]
+    python3 evals/lib/toolchain.py print-ref [--unit <name>]
     python3 evals/lib/toolchain.py record --out <file.json>
 
-`--ref` overrides the pinned commit for `skt` only, and the override is RECORDED
+`--ref` overrides the pinned commit for one unit, and the override is RECORDED
 as an override; that is what makes "the runner asked and I answered something
 else" visible afterwards instead of indistinguishable from the pin.
 """
@@ -311,7 +311,12 @@ def _materialise_all(args) -> dict:
     for name, spec in sorted(spec_by_name.items()):
         commit = spec["commit"]
         source = "pinned in evals/lib/toolchain.lock.toml"
-        if args.ref and name == "skt":
+        # SI-18: this read `name == "skt"`, and skt is not a pinned unit any
+        # more — it is nested in this plugin, so the override could never
+        # apply and `--ref` became a flag that accepted a value and did
+        # nothing. It now targets the unit the operator names, defaulting to
+        # the only one there is.
+        if args.ref and name == (args.ref_unit or _sole_unit(spec_by_name)):
             resolved = _resolve_override(spec, cache, args.ref)
             if resolved != commit:
                 source = f"OVERRIDE: operator asked for {args.ref!r}"
@@ -340,6 +345,16 @@ def _materialise_all(args) -> dict:
     return out
 
 
+def _sole_unit(spec_by_name):
+    """The only pinned unit's name, or None when there is more than one.
+
+    `--ref` used to be hardcoded to "skt". Defaulting to the sole unit keeps
+    the one-unit case ergonomic without silently picking one of several.
+    """
+    names = list(spec_by_name)
+    return names[0] if len(names) == 1 else None
+
+
 def _resolve_override(spec: dict, cache: pathlib.Path, ref: str) -> str:
     """Turn an operator's answer into a commit, or refuse."""
     if HEX40.match(ref.strip()):
@@ -363,13 +378,17 @@ def main(argv: list[str] | None = None) -> int:
 
     m = sub.add_parser("materialise", help="fetch and verify every pinned unit")
     m.add_argument("--cache", default=None)
-    m.add_argument("--ref", default=None, help="override skt's pinned commit (recorded as an override)")
+    m.add_argument("--ref", default=None,
+                   help="override a unit's pinned commit (recorded as an override)")
+    m.add_argument("--ref-unit", default=None,
+                   help="which unit --ref applies to; defaults to the only pinned unit")
     m.add_argument("--check-drift", action="store_true")
     m.add_argument("--record", default=None, help="write the run record here")
     m.add_argument("--stage-into", default=None, help="a staged view to copy stage_into_view units into")
 
     p = sub.add_parser("print-ref", help="print a unit's pinned commit")
-    p.add_argument("--unit", default="skt")
+    p.add_argument("--unit", default=None,
+                   help="unit name; defaults to the only pinned unit")
 
     r = sub.add_parser("record", help="materialise and write the record only")
     r.add_argument("--out", required=True)
@@ -381,9 +400,13 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if args.cmd == "print-ref":
-        spec = units().get(args.unit)
+        all_units = units()
+        unit = args.unit or _sole_unit(all_units)
+        if unit is None:
+            raise SystemExit("toolchain: several units are pinned; pass --unit")
+        spec = all_units.get(unit)
         if not spec:
-            raise SystemExit(f"toolchain: no unit {args.unit!r} in the lock")
+            raise SystemExit(f"toolchain: no unit {unit!r} in the lock")
         print(spec["commit"])
         return 0
 

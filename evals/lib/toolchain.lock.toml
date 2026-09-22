@@ -30,38 +30,34 @@
 # depending on. `toolchain.py` refuses anything that is not 40 hex characters.
 schema_version = 1
 
-[units.skt]
-origin = "https://github.com/haydenrear/skt.git"
-commit = "286a3694a815c6f6a9e76bffcb03a1fd8100cce3"
-# WHY THIS COMMIT AND NOT THE CURRENT TIP: it is the one the project home has
-# actually been resolving since 2026-09-14, so pinning it changes nothing about
-# what runs and only makes what runs explicit. Moving the pin is then a separate,
-# reviewable, one-line change with a score on each side of it -- which is the
-# whole point. To move it: update this commit, run
-# `python3 evals/lib/toolchain.py materialise --check-drift`, and say in the PR
-# what moved and what it was measured against.
-ref_when_pinned = "main"
-installed_in_project_home_at = "2026-09-14T23:56:23Z"
-role = """
-The skill-lifecycle plugin the workflow skills tell an agent to run: `skt ticket
-new`, `skt status`, `skt publish`. A case that asks "what is the first move"
-(evals/git-issue-workflow/use-the-front-door) is asking about THIS unit, so the
-case loads it through `plugins:` and the loaded copy is the pinned one.
-"""
-# Staged into the view at this path, so a case reaches it as
-# `../../../toolchain/skt` from `evals/<skill>/<case>/`. It is staged OUTSIDE
-# `evals/` deliberately: case discovery is a recursive glob over the eval dir,
-# and a unit staged inside it would contribute its own case.yaml files to this
-# suite's run, where they would score and bill as ours.
-stage_into_view = "toolchain/skt"
+# [units.skt] WAS HERE, pinned at haydenrear/skt 286a3694, staged into the view
+# at toolchain/skt. It is retired, and it was already INERT before it was
+# retired.
+#
+# SI-16 nested skt into this plugin. run.sh stages the pinned unit's skills into
+# the view but refuses to put one OVER a skill the plugin owns — "a nested skill
+# of this plugin is the thing under review; a pinned copy silently replacing it
+# would grade the pin instead of the branch". The pinned skt ships exactly
+# skill-manager, skt and unit-authoring, and this plugin now owns ALL THREE. So
+# every candidate collided, `staged_units` stayed empty, and the success line
+# never printed either: a silent no-op that looked like provisioning.
+#
+# By that same rule the right answer is not to repoint the pin at
+# tla-spec-dev-plugin — that would pin this repository against itself and grade
+# the pin instead of the branch. The view IS the plugin, its skills/ is what
+# loads, and the w-skt and w-sm cases therefore exercise the branch under test.
+# That is what SI-16 bought, and it is strictly better than what the pin did.
+#
+# What still needs pinning is the thing this repository does NOT contain: the
+# skill-manager CLI, below.
 
 [units.skill-manager]
 origin = "git@github.com:haydenrear/skill-manager.git"
-commit = "6ffacb88ff968aafadaa464811a77be7f3ddffd1"
-ref_when_pinned = "epic/self-improvement-substrate"
+commit = "cc46028151a894c1b736387d4a083f6536f1569d"
+ref_when_pinned = "feature/si18-adopt-unified-plugin"
 role = """
-The CLI itself. Evals must run against the skill-manager from its
-`epic/self-improvement-substrate` branch, NOT the operator's brew install at
+The CLI itself. Evals must run against the skill-manager from the branch under
+review, NOT the operator's brew install at
 /opt/homebrew/Cellar/skill-manager/0.28.1. The mechanism is small and it is not
 a rebuild and not an install: the repo root carries `./skill-manager`, a 346-byte
 bash wrapper that exports SKILL_MANAGER_INSTALL_DIR and execs

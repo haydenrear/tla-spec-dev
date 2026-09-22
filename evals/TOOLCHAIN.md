@@ -41,7 +41,7 @@ low count below was read line by line rather than trusted.
 | unit | kind | what names it |
 |---|---|---|
 | `tla-spec-dev` | plugin | **this repository is it** (`.claude-plugin/plugin.json`); 623 declaring files |
-| `skt` | plugin | `skill-project.toml` `[plugins.skt]`; the front door the workflow skills tell agents to run; **pinned for eval use** |
+| `skt` | contained skill | nested in THIS plugin since SI-16, so it is no longer pinned or staged: the view is the plugin and its `skills/skt` is the copy under test. Declared in a project as part of `[plugins.tla-spec-dev]`. |
 | `spec-double-compiler` | skill | contained at `skills/spec-double-2/` — **also installed standalone** |
 | `test-graph` | skill | contained at `skills/test-graph/`; owns the three graphs — **also installed standalone** |
 | `git-issue-workflow` | skill | contained at `skills/git-issue-workflow/` — **also installed standalone** |

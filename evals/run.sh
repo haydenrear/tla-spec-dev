@@ -261,28 +261,35 @@ if python3 "$here/lib/toolchain.py" materialise \
     # is 183 entries and ships NO case.yaml of its own, so it cannot contribute
     # cases to this suite's discovery the way the 11,481-entry skill-manager
     # checkout would (which is why that one is reached by a PATH shim instead).
-    if [ -d "$view/toolchain/skt/skills" ]; then
-        staged_units=""
-        for unit_dir in "$view/toolchain/skt/skills"/*/; do
-            [ -d "$unit_dir" ] || continue
-            unit_name=$(basename "$unit_dir")
-            # NEVER OVER ONE OF OUR OWN. A nested skill of this plugin is the
-            # thing under review; a pinned copy silently replacing it would
-            # grade the pin instead of the branch.
-            if [ -d "$view/skills/$unit_name" ]; then
-                echo "eval: NOTE -- not staging skt's '$unit_name' over this plugin's own"
-                continue
-            fi
-            cp -R "$unit_dir" "$view/skills/$unit_name"
-            staged_units="$staged_units $unit_name"
-        done
-        [ -n "$staged_units" ] && \
-            echo "eval: staged the pinned skt's skills into the view:$staged_units"
+    # THE STAGING IS GONE, AND SO IS THE PIN IT STAGED.
+    #
+    # This block copied the pinned skt's skills into the view, refusing to put
+    # one OVER a skill the plugin owns. SI-16 nested skt here, so the pinned
+    # unit's three skills -- skill-manager, skt, unit-authoring -- ALL collide
+    # now. Every candidate was skipped, `staged_units` stayed empty, and the
+    # success line never printed: a silent no-op that read as provisioning.
+    #
+    # The view IS the plugin and its skills/ is what loads, so the w-skt and
+    # w-sm cases reach their units from the branch under test. That is the
+    # outcome the skip rule wanted all along -- grade the branch, not the pin.
+    #
+    # What replaces it is the CHECK, not the copy. A case about a unit the view
+    # does not carry scores as a skill failure and reads as a model problem, so
+    # the absence is named here, loudly, before anything runs.
+    missing_units=""
+    for unit_name in skt skill-manager unit-authoring; do
+        [ -d "$view/skills/$unit_name" ] || missing_units="$missing_units $unit_name"
+    done
+    if [ -n "$missing_units" ]; then
+        echo "eval: WARNING -- the view carries no:$missing_units"
+        echo "eval:            the w-skt and w-sm cases are ABOUT those units and will"
+        echo "eval:            run without them, scoring as skill failures."
+        echo "eval:            Do not quote their scores. This plugin is supposed to"
+        echo "eval:            nest them (SI-16); check skills/ in the view."
     else
-        echo "eval: WARNING -- no skt skills were staged, so the w-skt and w-sm"
-        echo "eval:            cases will run WITHOUT the unit they are about and"
-        echo "eval:            score as skill failures. Do not quote their scores."
+        echo "eval: the view carries skt, skill-manager and unit-authoring from this branch"
     fi
+
 else
     # WARN, NEVER REFUSE -- but be explicit about what the run now cannot say.
     echo "eval: WARNING -- the toolchain could not be materialised."

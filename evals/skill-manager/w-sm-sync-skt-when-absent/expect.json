@@ -3,10 +3,17 @@
     {
       "id": "installs-skt",
       "tool": "Bash",
-      "match": "\\bskill-manager\\s+install\\s+['\\\"]?github:haydenrear/skt\\b"
+      "match": "\\bskill-manager\\s+install\\s+['\\\"]?github:haydenrear/tla-spec-dev-plugin\\b"
     }
   ],
   "max_calls": {
     "Bash": 4
-  }
+  },
+  "forbid": [
+    {
+      "id": "no-retired-skt-coord",
+      "tool": "Bash",
+      "match": "install\\s+['\\\"]?github:haydenrear/(skt|skill-publisher-skill)\\b"
+    }
+  ]
 }

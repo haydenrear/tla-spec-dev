@@ -4,7 +4,13 @@ description: >-
   Six project homes never installed skt, so the migration instruction "run
   skill-manager sync skt" ended at "not installed: skt" with no next step.
   The CLI now prints the install line. Does the agent follow it rather than
-  retry the sync or stop? Provenance: skill-manager 888c4068.
+  retry the sync or stop?
+
+  SI-18 repointed that line: skt is a contained skill of the tla-spec-dev
+  plugin now, so the coordinate is tla-spec-dev-plugin. The old one still
+  resolves and installs the retired standalone, which makes following it a
+  failure rather than a stale pass. Provenance: skill-manager 888c4068,
+  repointed at cc460281.
 runs: 1
 execution:
   env:
