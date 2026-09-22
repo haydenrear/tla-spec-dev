@@ -63,7 +63,33 @@ plugin=$(CDPATH= cd -- "$here/../.." && pwd)
 repo="$plugin"
 case_name="${EVAL_CASE:-}"
 
+# WHERE THE VERDICTS GO, AND WHY IT IS NOT JUST ".eval".
+#
+# Every `file_exists` grader spells its path `.eval/<verdict>`, and `plugin
+# eval` resolves that against the WORKSPACE ROOT -- the directory the session
+# started in. This hook does NOT run there. A Stop hook inherits the cwd the
+# agent left behind, so any case whose prompt sends the agent into a
+# subdirectory (`cases/<case>/` is the house style) publishes its verdicts one
+# or more levels down, where no grader looks.
+#
+# That failure is SILENT AND MAXIMALLY MISLEADING: the verdicts are all
+# derived correctly and written correctly, the log says `ok`, and the case
+# still scores 0.00 -- which reads as "the agent did the wrong thing" when the
+# agent did the right thing. Measured on w-misc-plugin-repo-finalize-sh
+# (2026-09-22): `forbid-no-finalize-constituents:ok
+# require-runs-finalize-sh:ok`, published to
+# `home/cwd/cases/w-misc-plugin-repo-finalize-sh/.eval/`, scored 0.00 twice.
+#
+# So the root is resolved rather than assumed. `CLAUDE_PROJECT_DIR` is the
+# direct answer and needs nothing read; `verify_from_expect` re-anchors from
+# the transcript's first `cwd` if it is not set (the transcript records the
+# session cwd per entry, and the FIRST one predates any agent `cd`). The bare
+# relative path stays as the last resort so a hand-run `sh verify.sh` in a
+# workspace still publishes where it always did.
 VD=".eval"
+if [ -n "${CLAUDE_PROJECT_DIR:-}" ] && [ -d "${CLAUDE_PROJECT_DIR}" ]; then
+    VD="$CLAUDE_PROJECT_DIR/.eval"
+fi
 WORK=$(mktemp -d 2>/dev/null) || exit 0
 trap 'rm -rf "$WORK"' EXIT
 mkdir -p "$WORK/v" 2>/dev/null || exit 0
@@ -112,6 +138,22 @@ except Exception: print("")' 2>/dev/null)
         say "no transcript_path on stdin; no command verdicts for $case_name"
         verdict UNDECIDED-notranscript "the Stop hook received no transcript_path, so no command verdict could be derived"
         return 0
+    fi
+    # Re-anchor the publish directory if CLAUDE_PROJECT_DIR did not answer.
+    # Each transcript entry carries the session cwd; the first one is the
+    # workspace root, before any `cd` the agent made.
+    if [ "$VD" = ".eval" ]; then
+        root=$(python3 -c 'import json,sys
+for line in open(sys.argv[1], errors="replace"):
+    try: d = json.loads(line)
+    except Exception: continue
+    c = d.get("cwd")
+    if c:
+        print(c); break' "$transcript" 2>/dev/null)
+        if [ -n "$root" ] && [ -d "$root" ]; then
+            VD="$root/.eval"
+            say "publish dir anchored from the transcript: $VD"
+        fi
     fi
     say "expect.py over $transcript"
     python3 "$here/checks/expect.py" "$transcript" "$here/.." "$WORK/v" >>"$log" 2>&1 \
@@ -604,6 +646,7 @@ esac
 # ONLY NOW. Every line of agent-authored code has already run; anything it
 # wrote under `.eval/` dies here.
 say "verdicts: $(ls "$WORK/v" 2>/dev/null | tr '\n' ' ')"
+say "publish dir: $VD"
 rm -rf "$VD"
 mkdir -p "$VD" 2>/dev/null || exit 0
 for v in "$WORK/v/"*; do
