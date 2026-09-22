@@ -153,6 +153,14 @@ produces. Reading a descriptor, fitness functions, the briefs:
   or cache logic.
 - Do not create disconnected TLA+ specs per feature.
 - Do not rewrite append-only history entries.
+- Do not write an adapter binding view-qualified. `adapter:
+  adapters:CheckoutHttpAdapter`, never
+  `adapter: specs.program_model.adapters:CheckoutHttpAdapter` — the dotted form
+  resolves from the project root, so a ticket that edits its own `adapters.py`
+  validates against the BASELINE's adapters and goes green without ever
+  executing the change. Copying the neighbouring line is how this spreads:
+  older `case_adapters.toml` files carry the qualified form, and it is wrong in
+  every one of them (`references/testgraph_adapters.md`).
 - Do not use TLA+ ceremony for trivial CRUD or exploratory UI work.
 - Do not build a mechanical architecture or coherence check and let it gate
   anything (`references/architecture_advice.md`).
