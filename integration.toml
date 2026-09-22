@@ -66,25 +66,25 @@ deploy_helm = false
 [[constituent]]
 name = "git-epic-workflow"
 path = "skills/git-epic-workflow"
-remote = "https://github.com/haydenrear/git-epic-skill.git"
+remote = "https://github.com/haydenrear/git-epic-workflow.git"
 default_branch = "main"
 
 [[constituent]]
 name = "git-issue-workflow"
 path = "skills/git-issue-workflow"
-remote = "https://github.com/haydenrear/git-issue-workflow-skill.git"
+remote = "https://github.com/haydenrear/git-issue-workflow.git"
 default_branch = "main"
 
 [[constituent]]
 name = "git-issue"
 path = "skills/git-issue"
-remote = "https://github.com/haydenrear/git-issue-skill.git"
+remote = "https://github.com/haydenrear/git-issue.git"
 default_branch = "main"
 
 [[constituent]]
 name = "discovery"
 path = "skills/discovery"
-remote = "https://github.com/haydenrear/discovery-skill.git"
+remote = "https://github.com/haydenrear/discovery.git"
 default_branch = "main"
 
 # RENAMED upstream: test_graph_skill -> test-graph. The old URL still redirects,
@@ -97,22 +97,27 @@ remote = "https://github.com/haydenrear/test-graph.git"
 default_branch = "main"
 
 # --- added by SI-12 (wave 5) ------------------------------------------------
-# Note the coords: as everywhere here, the remote is the REPO root and the name
-# is the installed unit, and the two differ for both of these.
+# These two used to be the examples of "the remote is the REPO root and the name
+# is the installed unit, and the two differ". They do not differ any more:
 #
-#   github:haydenrear/git-integration-skill   -> skill "git-integration-repo"
-#   github:haydenrear/plugin-repository-skill -> skill "plugin-repository"
+#   github:haydenrear/git-integration-skill   -> renamed git-integration-repo
+#   github:haydenrear/plugin-repository-skill -> renamed plugin-repository
+#
+# Six of the eight constituents below were renamed upstream to match their unit
+# name, and every old URL still redirects — so `git subtree pull` kept working
+# and the renames were invisible from here. That is exactly why they are written
+# down rather than left to the redirect: a redirect is not a record.
 
 [[constituent]]
 name = "git-integration-repo"
 path = "skills/git-integration-repo"
-remote = "https://github.com/haydenrear/git-integration-skill.git"
+remote = "https://github.com/haydenrear/git-integration-repo.git"
 default_branch = "main"
 
 [[constituent]]
 name = "plugin-repository"
 path = "skills/plugin-repository"
-remote = "https://github.com/haydenrear/plugin-repository-skill.git"
+remote = "https://github.com/haydenrear/plugin-repository.git"
 default_branch = "main"
 
 # --- added by SI-16 (wave 11) -----------------------------------------------
