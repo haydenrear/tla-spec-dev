@@ -2,10 +2,19 @@
 
 Some issues change **state-machine behavior**; those must carry a spec workflow
 so the TLA+ specs, generated Python doubles, test-graph cases, and adapter
-conformance tests move together. This is driven by the **spec-double-compiler**
-skill (installed from `github:haydenrear/tla-spec-dev`), which provides the
-`tla-spec-dev` CLI. This reference is about what the *issue* must say — the
+conformance tests move together. This is driven by the **spec-double-2**
+skill, which provides the `tla-spec-dev` CLI and is a CONTAINED SKILL of the
+`tla-spec-dev` plugin — so it arrives with
+`skill-manager install github:haydenrear/tla-spec-dev-plugin` and needs no
+install of its own. This reference is about what the *issue* must say — the
 mechanics live in that skill.
+
+> NOT `github:haydenrear/tla-spec-dev`, which this line used to name. That
+> repository still ships the standalone **spec-double-compiler** skill so
+> existing installs keep syncing, so the coordinate RESOLVES — following it
+> succeeds and quietly gives a home a second, separately updatable copy of a
+> capability the bundle already carries. Two repositories one hyphen apart, and
+> only the `-plugin` one is this bundle.
 
 ## Epic assignment override
 
