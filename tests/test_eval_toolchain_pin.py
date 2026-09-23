@@ -65,7 +65,11 @@ def test_every_pinned_unit_names_a_commit_and_never_a_branch() -> None:
     units = _units()
     # NON-VACUITY: an empty lock must not pass this test by having nothing to fail.
     assert units, "the lock declares no units"
-    assert len(units) >= 2, f"expected the lock to pin skt and skill-manager, got {sorted(units)}"
+    # WAS `>= 2` ("expected the lock to pin skt and skill-manager"). skt's pin was
+    # RETIRED at eb740669 and the count is not the property this test is about --
+    # the loop below is. One unit is the correct number now; see the companion
+    # test for why skt is deliberately absent.
+    assert len(units) >= 1, f"the lock pins nothing, got {sorted(units)}"
     for name, spec in units.items():
         assert HEX40.match(spec["commit"]), (
             f"unit {name} is pinned at {spec['commit']!r}, which is not a 40-character "
@@ -74,12 +78,31 @@ def test_every_pinned_unit_names_a_commit_and_never_a_branch() -> None:
         assert spec["origin"], f"unit {name} declares no origin"
 
 
-def test_the_two_units_this_epic_runs_against_are_the_ones_pinned() -> None:
+def test_the_pinned_unit_is_the_cli_and_skt_is_deliberately_not_pinned() -> None:
+    """RENAMED AND INVERTED at the skt retirement (eb740669, pulled 2026-09-23).
+
+    This used to assert `"skt" in units`, because skt was "the unit the loop
+    resolves from the home". SI-16 nested skt INTO this plugin, so that stopped
+    being true: `run.sh` refuses to stage a pinned unit over a skill the plugin
+    owns -- "a pinned copy silently replacing it would grade the pin instead of
+    the branch" -- and the pinned skt shipped exactly skill-manager, skt and
+    unit-authoring, all three of which the plugin now owns. Every candidate
+    collided, `staged_units` stayed empty, and the pin was a silent no-op that
+    read as provisioning.
+
+    So skt's ABSENCE is now the invariant, not its presence. Repointing it at
+    tla-spec-dev-plugin would pin this repository against itself. What still
+    needs pinning is the one thing this repository does not contain: the CLI.
+    """
     units = _units()
-    assert "skt" in units, "skt is not pinned; it is the unit the loop resolves from the home"
     assert "skill-manager" in units, (
-        "skill-manager is not pinned; evals are supposed to run against the CLI from "
-        "its epic/self-improvement-substrate branch, not the brew install"
+        "skill-manager is not pinned; evals are supposed to run against the CLI "
+        "from the branch under test, not the brew install"
+    )
+    assert "skt" not in units, (
+        "skt is pinned again. It must not be: this plugin CONTAINS skt, so a pin "
+        "would stage a copy over the branch under test and grade the pin instead "
+        "of the branch (eb740669)."
     )
 
 
@@ -200,8 +223,11 @@ def test_the_suite_does_not_wire_plugins_into_a_hooked_case() -> None:
 def test_the_lock_is_reachable_by_the_runner_without_network(tmp_path) -> None:
     """`print-ref` reads the pin only. A run that cannot reach the network
     should still be able to say which toolchain it was SUPPOSED to use."""
+    # NO `--unit`. It used to name skt, which is no longer in the lock; since
+    # eb740669 `print-ref` defaults to the sole pinned unit, so omitting it
+    # exercises that default and does not re-encode a unit name that can retire.
     proc = subprocess.run(
-        [sys.executable, str(TOOLCHAIN), "print-ref", "--unit", "skt"],
+        [sys.executable, str(TOOLCHAIN), "print-ref"],
         text=True, capture_output=True, timeout=120, cwd=str(ROOT),
     )
     assert proc.returncode == 0, proc.stderr
