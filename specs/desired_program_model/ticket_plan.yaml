@@ -10,7 +10,7 @@ updated: "2026-09-21"
 # later wave. The owner re-sequenced: graph surface, then the manual gamut,
 # then skill-manager, and the eval ladder LAST, consuming a substrate both
 # products already share. The dependency list and the objective now say that.
-schedule_revision: 7
+schedule_revision: 8
 purpose: "Make tla-spec-dev one plugin and one loop: the substrate improves because of what agents ran into while using it, and the epic agent is the one writer of the model, the matrix, the scorecard row and the plugin."
 
 planning_rules:
@@ -1552,6 +1552,53 @@ tickets:
          agents touching the root home at all. Recorded here as deliberately not
          attempted rather than skipped quietly: their `--help` surfaces were
          driven and exit 0, but no publish or sync was performed."
+
+  - id: SI-27
+    title: "Complete the findings: validate every open row, batch the fixes, and fill the attribution record"
+    status: planned
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/382"
+    schedule_revision: 8
+    depends_on: ["SI-25", "SI-26"]
+    blocks: ["SI-19", "SI-23"]
+    wave: 16
+    promotion_order: 165
+    promotion_predecessor: "SI-26"
+    role: implementation
+    objective: "Make the findings record answerable. It is currently TWO ledgers that disagree -- deferred_findings_final.yaml holds 87 rows and the per-ticket files under specs/results/deferred/ hold 28 more that are not in it (SI-08 x11, SI-16 x6, SI-15 x5, SI-17 x5, EPIC-AGENT x1), so the real total is 115. The epic agent cited SI-16-DF-02 and -DF-03 as the eval blockers and a ledger query returned NOT FOUND for both. Beyond reconciling that, disposition the 80 unsettled rows with evidence, batch the fixes that are safely in scope, and fill the three attribution record kinds that are entirely empty."
+    desired_actions: []
+    implementation_scope:
+      - "RECONCILE THE TWO LEDGERS. Absorb the 28 per-ticket rows into deferred_findings_final.yaml, or declare the per-ticket files authoritative and stop calling _final.yaml the ledger. One or the other, and every reader updated. A split that produced a wrong answer once will produce another."
+      - "DISPOSITION ALL 80 OPEN ROWS -- 54 `pending` plus 26 carrying no disposition field at all -- each with evidence: still true / fixed by <commit> / surface retired / superseded by <id>. A row left `pending` with no note is not dispositioned."
+      - "A MECHANICAL STALENESS SWEEP IS A BAD INSTRUMENT HERE AND WAS ALREADY TRIED. It flagged 3 rows and all 3 were false positives, because those rows put prose in `surface` (\"skt references/dependencies.md\", \"git_issue_workflow/wt.py\") rather than repo paths. 44 of the 80 have nothing checkable without reading the reproduction. Read them."
+      - "EXPECT ALREADY-FIXED ROWS THAT NOBODY CLOSED. SI-16-DF-03 was closed outright by eb740669, which took the first of the two fixes that finding itself offered. skill-manager PR #397 plausibly closes several of the seven rows carrying `target: skill-manager`. Check before re-fixing."
+      - "BATCH BY SURFACE: skills/spec-double-2 (7), skills/git-issue-workflow (4), skills/skt (3), evals/ (3), specs/desired_program_model (2), and 39 with no surface recorded. Anything reaching skill-manager or a unit with its own upstream is FILED, not fixed, with the reason stated."
+      - "FILL THE ATTRIBUTION RECORD. references/bug_attribution.md defines CATCH, REACH, BLIND and PRICE. All 115 findings are CATCH; the other three are EMPTY, which is the exact failure that page was written about -- the record reads the same whether a place was checked and clean or never looked at. At minimum: one REACH row per invariant this epic enforces, and one BLIND row per green instrument whose blindness is known. SI-25-DF-08 (verify.sh scanning build output) and the eval-view defect are both BLIND-shaped and neither has a row."
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests: []
+      graph_after_unit_pass: []
+    conflict_keys:
+      production: ["specs/results/deferred_findings_final.yaml", "specs/results/deferred/**", "skills/spec-double-2/references/bug_attribution.md"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    goals:
+      - goal: GOAL-findings-become-changes
+        contribution: direct
+        expected_effect: "a finding that nobody can answer is not routing, and the record stops reading the same whether a place was clean or never examined"
+        local_signal: "every row dispositioned with evidence; REACH, BLIND and PRICE no longer empty"
+    acceptance:
+      commands: []
+      assertions:
+        - "All 115 rows carry a disposition, and disputed ones carry evidence."
+        - "The ledger question is decided and only ONE artifact is called the ledger."
+        - "REACH, BLIND and PRICE each hold at least one real row."
+        - "Fixes applied inside the conflict keys; everything else filed with a stated reason."
+        - "Suite compared by NAME against known-ten-baseline.txt: no new failures."
+      evidence: []
 
   - id: SI-19
     title: "Eval ladder 1/4: scaffold a test graph, verify by hand, then one small eval"
