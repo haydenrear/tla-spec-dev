@@ -1,4 +1,4 @@
-# THE LEDGER. One file, 119 rows, and nothing else in this repository is it.
+# THE LEDGER. One file, 120 rows, and nothing else in this repository is it.
 #
 # Reconciled by SI-27 (#382) on 2026-09-23. Before that there were TWO: this
 # file held 87 rows and `specs/results/deferred/<ticket>.yaml` held 28 MORE that
@@ -3058,16 +3058,41 @@ findings:
       object store -- but the PR the epic agent is waiting on never appears,
       and the agent's own verification says it did.
     skill_change: proposed(git-issue-workflow, "SI-04-DF-04; treat a local-path origin as unpublished when confirming a push")
-    disposition: fixed
+    disposition: still-true
     disposition_ticket: "SI-27 (#382)"
-    fixed_by: "remote.origin.url repointed at github.com/haydenrear/tla-spec-dev"
     disposition_note: >-
-      FIXED. `git config --get remote.origin.url` in this worktree AND in the
-      main checkout both return `git@github.com:haydenrear/tla-spec-dev.git`.
-      The sibling-worktree origin that made a push a silent no-op is gone, so
-      the "Everything up-to-date + exit 0 + GitHub 404" trio is no longer
-      reachable. measured 2026-09-23 on feature/382-complete-the-findings at
-      base 2c21e609.
+      STILL TRUE, AND SI-27 GOT THIS WRONG ONCE BEFORE GETTING IT RIGHT --
+      both readings are recorded because the second is only credible with the
+      first beside it. At 11:00 on 2026-09-23, `git config --get
+      remote.origin.url` returned `git@github.com:haydenrear/tla-spec-dev.git`
+      in this worktree and in the main checkout, and SI-27 marked the row
+      FIXED on that. At 12:01 the shared `.git/config` was rewritten by
+      something else running in this clone, and at 12:04 the same question
+      answered differently: `git remote get-url origin` ->
+      `/Users/hayde/IdeaProjects/wt-382-complete-the-findings`, a LOCAL PATH
+      pointing at SI-27's own ticket worktree, with `pushurl =
+      git@github.com:haydenrear/tla-spec-dev.git` beside it. Every sibling
+      worktree reports the same, because `.git/config` is shared by the common
+      dir -- checked on wt-epic-self-improvement-substrate and wt-366.
+      THE SPLIT IS WORSE THAN THE ORIGINAL DEFECT AND IT HID ITSELF FROM THE
+      ORIGINAL TEST. Push goes to GitHub (`pushurl`), so the row's "silent
+      success" symptom is gone -- SI-27's branch really is on GitHub, confirmed
+      by `gh api repos/haydenrear/tla-spec-dev/branches/...`. But FETCH reads
+      the local path, so `origin/<anything>` is a mirror of one ticket
+      worktree's refs. SI-27 believed, for twenty minutes and in a PR body,
+      that the epic branch had been pushed and that its base_sha was an
+      ancestor of `origin/epic/self-improvement-substrate` -- both derived from
+      reading its own worktree's ref back to itself through `origin`.
+      `git ls-remote https://github.com/haydenrear/tla-spec-dev.git
+      refs/heads/epic/self-improvement-substrate` -> `1efa0b4b`; the local epic
+      worktree is at `2d8e8d84`. The epic's last five commits are unpushed.
+      THE RIGHT PROBE: `git remote get-url origin` and `git remote get-url
+      --push origin`, which are not the same question and did not give the same
+      answer. `git config --get remote.origin.url` returns the FIRST value and
+      says nothing about `pushurl`. Not repaired here, for the row's own stated
+      reason: `.git/config` is shared by every worktree of the clone and
+      sibling agents are live. Filed forward as SI-27-DF-05. Evidence:
+      specs/results/epic-self-improvement-substrate/tickets/SI-27/remote-origin-is-local-again.txt.
 
   - id: SI-10-DF-01
     found_by: "SI-10"
@@ -6908,3 +6933,92 @@ findings:
       Filed and measured by SI-27 on 2026-09-23 as a blocker met at its own
       close-out. Not fixed: skills/skt/** is outside SI-27's conflict keys.
       Also carried as a row in the PR's `## Skill changes proposed` table.
+
+  - id: SI-27-DF-05
+    found_by: SI-27
+    found_at_commit: "08c943c1"
+    schedule_revision: 8
+    severity: major
+    target: tla-spec-dev
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: ["test_graph/sources/skt_ticket_roundtrip.py"]
+      workflow: [".git/config (shared by the common dir; not a tracked file)"]
+    summary: >-
+      THE CLONE'S SHARED `remote.origin.url` WAS REPOINTED AT A TICKET
+      WORKTREE WHILE THAT TICKET WAS RUNNING, AND FETCH AND PUSH NOW DISAGREE
+      ABOUT WHAT `origin` IS. Measured 2026-09-23: at 11:00 `git config --get
+      remote.origin.url` returned `git@github.com:haydenrear/tla-spec-dev.git`;
+      `.git/config` was rewritten at 12:01 by something else running in this
+      clone; at 12:04 the same repository answered `url =
+      /Users/hayde/IdeaProjects/wt-382-complete-the-findings` -- SI-27's own
+      worktree -- with `pushurl = git@github.com:haydenrear/tla-spec-dev.git`
+      beside it. The file is the COMMON dir's, so it is every worktree's:
+      wt-epic-self-improvement-substrate and wt-366-wt-into-skt both report the
+      local path.
+      THE SPLIT IS THE DANGEROUS PART, because it defeats the check an agent
+      would run. `git push` uses `pushurl` and genuinely reaches GitHub, so
+      push verification SUCCEEDS -- SI-27's branch is on GitHub and `gh api`
+      confirms it. `git fetch` uses `url` and reads the local path, so
+      `origin/<anything>` is a mirror of ONE ticket worktree's refs. SI-27
+      concluded from `git fetch origin` that the epic branch had been pushed
+      and that its own `base_sha` was an ancestor of
+      `origin/epic/self-improvement-substrate`, wrote that in a PR body, and
+      was reading its own worktree's ref back to itself. Ground truth:
+      `git ls-remote https://github.com/haydenrear/tla-spec-dev.git
+      refs/heads/epic/self-improvement-substrate` -> `1efa0b4b`, while the local
+      epic worktree is at `2d8e8d84`. Five epic commits are unpushed.
+      IT ALSO DEFEATS THE PROBE SI-04-DF-04 TAUGHT. That row says to check
+      `git config --get remote.origin.url`. That command returns the FIRST
+      `url` value and says nothing about `pushurl`, and it is what SI-27 ran at
+      11:00. The probes that answer are `git remote get-url origin` and
+      `git remote get-url --push origin`, which are two different questions
+      with two different answers here.
+    reproduction: >-
+      `git remote get-url origin` -> a path under /Users/hayde/IdeaProjects/;
+      `git remote get-url --push origin` -> the GitHub SSH URL;
+      `git config --show-origin --get-all remote.origin.url` names
+      `/Users/hayde/IdeaProjects/tla-spec-dev/.git/config`, the COMMON dir's
+      file. Then compare `git ls-remote origin <ref>` (local) against
+      `git ls-remote https://github.com/haydenrear/tla-spec-dev.git <ref>`
+      (GitHub): they disagree. `stat` the config for the rewrite time.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-27/remote-origin-is-local-again.txt"
+    why_out_of_scope: >-
+      `.git/config` is not a tracked file, so no PR can repair it, and it is
+      SHARED by the common dir across the main checkout and every live sibling
+      worktree -- repointing it while other ticket agents are running would
+      silently change their fetch base and their push target mid-flight. That
+      is SI-04-DF-04's own stated reason for not touching it and it still
+      holds.
+    suggested_fix: >-
+      Three separable things. (1) The epic owner repoints `origin` ONCE,
+      between waves, with no ticket in flight -- never while agents are live.
+      (2) Find what wrote it: a local-path `origin` pointing at a ticket
+      worktree is the shape a worktree- or clone-creating script produces, and
+      `test_graph/sources/skt_ticket_roundtrip.py` clones and sets remotes in
+      this clone (SI-25-DF-06 already has it resolving the wrong rung). Until
+      the writer is named this will recur. (3) Teach the check: a tool that
+      confirms a push, or resolves an epic base, must read `git remote get-url
+      origin` AND `--push`, refuse when they differ, and refuse outright when
+      either resolves to a local path -- which is the pairing SI-04-DF-04 asked
+      for and SI-27 demonstrated is still missing.
+    blast_radius: >-
+      Every worktree of this clone, and every epic-mode ancestry check in
+      `epic-ticket.md` section 1 -- `git merge-base --is-ancestor <base_sha>
+      origin/epic/<slug>` is precisely the command this makes lie. It cannot
+      lose a commit, because push still reaches GitHub; what it loses is the
+      agent's ability to know what is on the remote, and it loses it in the one
+      direction that reads as good news.
+    skill_change: "proposed(git-issue-workflow, SI-27-DF-05: epic-ticket.md section 1 pairs `git remote get-url origin` with `--push` before any ancestry check, and refuses when either resolves to a local path)"
+    disposition: still-true
+    disposition_ticket: "SI-27 (#382)"
+    disposition_note: >-
+      Filed and measured by SI-27 on 2026-09-23, after it had already published
+      the wrong conclusion in a PR body and had to retract it. Not repaired:
+      `.git/config` is untracked and shared with live sibling worktrees.
+      SI-04-DF-04 is corrected from `fixed` back to `still-true` in the same
+      commit, with both of SI-27's readings recorded. Evidence:
+      specs/results/epic-self-improvement-substrate/tickets/SI-27/remote-origin-is-local-again.txt.

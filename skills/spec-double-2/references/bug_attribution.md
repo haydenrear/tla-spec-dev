@@ -163,7 +163,7 @@ three things beyond the existing schema.
 > merge.
 >
 > **ON `epic/self-improvement-substrate`, SINCE `SI-27` (#382), THE LEDGER IS
-> `specs/results/deferred_findings_final.yaml` — 119 rows, and nothing else in
+> `specs/results/deferred_findings_final.yaml` — 120 rows, and nothing else in
 > this repository is it.** It had been two: that file held 87 rows and
 > `specs/results/deferred/<ticket>.yaml` held 28 more that nothing read, so a
 > query for `SI-16-DF-02` and `SI-16-DF-03` returned NOT FOUND for both while

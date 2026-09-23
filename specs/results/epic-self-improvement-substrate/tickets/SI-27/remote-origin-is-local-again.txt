@@ -1,0 +1,34 @@
+=== SI-27-DF-05 / SI-04-DF-04: the remote, measured with the probes that answer ===
+Wed Sep 23 12:05:26 EDT 2026
+
+$ git remote get-url origin
+/Users/hayde/IdeaProjects/wt-382-complete-the-findings
+$ git remote get-url --push origin
+git@github.com:haydenrear/tla-spec-dev.git
+$ git config --get remote.origin.url   # the probe SI-04-DF-04 taught -- FIRST value only
+/Users/hayde/IdeaProjects/wt-382-complete-the-findings
+$ git config --show-origin --get-all remote.origin.url
+file:/Users/hayde/IdeaProjects/tla-spec-dev/.git/config	/Users/hayde/IdeaProjects/wt-382-complete-the-findings
+$ stat .git/config
+-rw-r--r--@ 1 hayde  staff  15387 Sep 23 12:01 /Users/hayde/IdeaProjects/tla-spec-dev/.git/config
+
+=== siblings see the same shared config ===
+wt-epic-self-improvement-substrate -> /Users/hayde/IdeaProjects/wt-382-complete-the-findings
+wt-366-wt-into-skt -> /Users/hayde/IdeaProjects/wt-382-complete-the-findings
+
+=== fetch-view vs GitHub ground truth ===
+$ git ls-remote origin refs/heads/epic/self-improvement-substrate   (goes to the LOCAL path)
+2d8e8d84fcb2b3b67a5bb7002548e4063426d578	refs/heads/epic/self-improvement-substrate
+$ git ls-remote https://github.com/haydenrear/tla-spec-dev.git refs/heads/epic/self-improvement-substrate
+1efa0b4b4d330c569b813981beabb46e486856cb	refs/heads/epic/self-improvement-substrate
+$ local epic worktree HEAD
+2d8e8d84fcb2b3b67a5bb7002548e4063426d578
+
+=== push DID reach GitHub (pushurl), which is why the push check passes ===
+$ gh api repos/haydenrear/tla-spec-dev/branches/feature/382-complete-the-findings -q .commit.sha
+08c943c1837914507ba5ac43396f80b36584d685
+$ git rev-parse HEAD
+08c943c1837914507ba5ac43396f80b36584d685
+
+CONTROL (must be non-empty): remotes configured in this clone
+      10
