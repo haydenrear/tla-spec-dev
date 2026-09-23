@@ -53,7 +53,7 @@ schema_version = 1
 
 [units.skill-manager]
 origin = "git@github.com:haydenrear/skill-manager.git"
-commit = "c405cba36bd9e84e6520f82c3306c9570b72fc59"
+commit = "fd4bdf7865d68a186a1faca94b2abed9bc981750"
 ref_when_pinned = "feature/si18-adopt-unified-plugin"
 role = """
 The CLI itself. Evals must run against the skill-manager from the branch under
@@ -70,6 +70,7 @@ first on PATH. Nothing is installed over the operator's copy.
 # the cache and is reached by PATH through the shim, never by `plugins:`.
 stage_into_view = ""
 # The wrapper self-reports the commit -- `./skill-manager --version` prints
-# `0.28.1+g6ffacb88ff96` and `build: 6ffacb88ff96 (detached)` -- so the run
-# record captures the CLI's OWN account of which code ran, not just ours.
+# `0.28.1+g<short sha>` and `build: <short sha> (detached)` -- so the run record
+# captures the CLI's OWN account of which code ran, not just ours. The example
+# used to spell a literal commit and went stale twice; the SHAPE is the point.
 self_report_command = "--version"
