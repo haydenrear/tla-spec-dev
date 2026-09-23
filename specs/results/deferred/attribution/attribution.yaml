@@ -1,0 +1,531 @@
+# THE TYPED ATTRIBUTION RECORD. REACH, BLIND and PRICE.
+#
+# Seeded by SI-27 (#382) on 2026-09-23. Schemas: `skills/spec-double-2/
+# references/bug_attribution.md` §5 (REACH), §6 (BLIND), §7 (PRICE).
+#
+# WHY IT EXISTS. That page defines FOUR record kinds -- CATCH, REACH, BLIND,
+# PRICE -- and before this file only CATCH had ever been written. All 115 rows
+# of `specs/results/deferred_findings_final.yaml` are CATCHes, and the other
+# three kinds existed as prose in the page and in
+# `examples/validation/agent_rounds/SELF-IMPROVEMENT-MATRIX.md` and as nothing
+# typed or queryable anywhere. Measured case-sensitively and word-bounded in
+# that matrix: CATCH 5, REACH 0, BLIND 9, PRICE 1 -- and every one of the 15 is
+# narrative, not a row. So there was nothing to migrate and nothing to
+# duplicate; this file decides what a typed record looks like and seeds it.
+#
+# A MEASUREMENT WARNING, because it cost the epic agent two wrong answers in
+# opposite directions. Counting these four tokens with `grep -ciE` is a broken
+# instrument: case-insensitively, "blind" matches "blind dispatch" and "blind
+# review", which this project says constantly, and BLIND came back as 28. A
+# second grep for structured rows returned 0 for ALL FOUR INCLUDING CATCH --
+# which was the non-vacuity control failing and saying the pattern was broken,
+# not that the record was empty. Use case-sensitive, word-bounded patterns and
+# carry a control that MUST match.
+#
+# WHY IT IS AT THIS PATH, which is not where it belongs. bug_attribution.md §4
+# says: when a repository has no `specs/deferred_findings.yaml`, "write the rows
+# into the ticket's own `results/attribution.yaml`". SI-27's conflict keys are
+# exactly three paths -- the ledger file, `specs/results/deferred/**`, and
+# bug_attribution.md -- so `specs/results/attribution.yaml` was not SI-27's to
+# create. It is in a SUBDIRECTORY of the inbox, deliberately: a `*.yaml` glob
+# over `specs/results/deferred/` (which SI-08-DF-11 proposes adding to
+# `improvement_ledger.py`'s BACKLOGS) does not reach one level down, so this
+# file can never be mistaken for a backlog of findings. It should move to
+# `specs/results/attribution.yaml` under a ticket whose keys allow it.
+#
+# THE RULE THAT MAKES REACH AND BLIND WORTH ANYTHING (§3): an empty
+# `unenforced_on` and an empty `could_not_have_caught` are CLAIMS, never
+# defaults. Where the surfaces were not enumerated the value is the literal
+# UNDECIDED and `enumerated_by` says why. Nothing below carries an empty list.
+
+schema_version: 1
+seeded_by: "SI-27 (#382)"
+seeded_at: "2026-09-23"
+schema_source: "skills/spec-double-2/references/bug_attribution.md sections 5, 6, 7"
+
+# =====================================================================
+# REACH -- an invariant, and the surfaces it does not cover. (§5)
+# Written from the invariant, not from a failure. `unenforced_on` is the
+# field this kind exists for.
+# =====================================================================
+reach:
+
+  - invariant: >-
+      every home-anchored resolver that names the standalone rung
+      `<home>/skills/<unit>` also names the plugin rung
+      `<home>/plugins/*/skills/<unit>`
+    enforced_on:
+      - "tests/test_plugin_layout_resolution.py, over skills/*/scripts,
+         skills/*/skill-scripts and the root skill-scripts, filtered to
+         .py/.sh/.bash"
+    unenforced_on:
+      - "every markdown page in the bundle -- where four live broken
+         instructions were sitting when SI-12 swept (SI-12-DF-01)"
+      - "every skill-manager.toml and skill-project.toml"
+      - "test_graph/sources/skt_ticket_roundtrip.py::_resolve_giw, which still
+         resolves one rung and therefore clones and tests UPSTREAM main
+         (SI-25-DF-06)"
+      - "skill-manager's own SkillScriptBackend.resolveScript and its
+         [[vendored]] from_unit resolver -- a different repository
+         (SI-11-DF-01, SI-11-DF-02)"
+      - "skills/git-issue-workflow/scripts/selftest.sh:589, which enumerates
+         `\"$WTP_HOME\"/skills/*/` to pick a unit to corrupt (SI-02-DF-02)"
+    enumerated_by: >-
+      SI-12 swept all 1,348 tracked files under skills/ and reported 10
+      offending lines in 6 files while the guard reported 9 passed
+      (SI-12-DF-03); SI-27 re-read the guard's roots at
+      tests/test_plugin_layout_resolution.py:66-73 and confirmed the scan set
+      is unchanged, and re-read _resolve_giw and integration-lib.sh directly.
+    note: >-
+      NINE recorded recurrences across this epic -- SIS-W2-F-05, SI-04-DF-03,
+      SI-06-DF-02, SI-11-DF-01, SI-11-DF-02, SI-11-DF-04, SI-15-DF-04,
+      SI-08-DF-03, SI-25-DF-06 -- and the guard was written after the fifth.
+      The invariant is the single most-violated rule in this epic and the
+      surfaces it does not cover are exactly where it kept being violated.
+    skill_change: "proposed(tla-spec-dev, SI-12-DF-03: widen the scan to every tracked file under skills/, markdown and TOML included, with the quoted-output exemption SI-12-DF-02 describes)"
+
+  - invariant: >-
+      every projected skill is openable by an agent launched in that home
+    enforced_on: UNDECIDED
+    unenforced_on:
+      - "skills/git-issue-workflow/scripts/bootstrap-home.sh's
+         `verified: N skill(s) servable` counter, which counts what it just
+         wrote and never stats a link target -- it printed `verified: 10
+         skill(s) servable` over three agent directories holding 24 dangling
+         symlinks (SI-27-DF-01)"
+      - "`skt check`, which reported `all current (11 change-managed units)`
+         over the same 24 broken links"
+    enumerated_by: >-
+      NOT FULLY ENUMERATED, and that is why `enforced_on` is UNDECIDED rather
+      than an empty list. Two surfaces were tested directly on 2026-09-23 and
+      both failed to enforce it; no exhaustive search for a third was run, so
+      the honest reading is that nothing is KNOWN to enforce it, not that
+      nothing does. §3.
+    note: >-
+      SI-27-DF-01. A repeat: the same counter lied once before, differently --
+      bootstrap-home.sh carries a comment near line 1500 recording
+      `verified: 20 skill(s) servable` on a worktree whose `.claude` had no
+      `skills/` directory at all. That fix taught it the EMPTY case and not the
+      PRESENT-BUT-DANGLING case, so the green still cannot tell three states
+      apart. `ls` lists a dangling symlink's name; only `[ -e ]` answers.
+    skill_change: "proposed(git-issue-workflow, SI-27-DF-01: stat the link target in the servable counter, and prune dangling projection entries on reconcile)"
+
+  - invariant: >-
+      every finding an epic files carries a disposition that is not `open`,
+      a terminal disposition carries a note, and a deferral names a successor
+      (`disposition.py` D1/D2/D3, `references/consumption.md`)
+    enforced_on:
+      - "skills/spec-double-2/scripts/disposition.py, over
+         `specs/desired_program_model/deferred_findings.yaml` and its archived
+         copies under specs/.history"
+    unenforced_on:
+      - "specs/results/deferred_findings_final.yaml -- the file this
+         repository actually files into. `disposition.py`'s LEDGER constant
+         names a path that DOES NOT EXIST here (`ls
+         specs/desired_program_model/deferred_findings.yaml` -> No such file),
+         so the three clauses have never been evaluated over this epic's 115
+         rows at all"
+      - "specs/results/deferred/**, the per-ticket inbox, which no checker
+         has ever opened"
+      - "specs/results/epic-close/deferred_findings_next.yaml"
+    enumerated_by: >-
+      Read `disposition.py`'s LEDGER and ARCHIVE_GLOBS constants, then tested
+      the live path. SI-27 then counted the population the clauses would have
+      refused on: 80 of 115 rows unsettled -- 54 `pending` and 26 with no
+      `disposition` key at all -- for an entire epic, with nothing reporting it.
+    note: >-
+      THIS IS THE REACH ROW THAT EXPLAINS SI-27'S EXISTENCE. The rule was
+      written, the checker was built, and it was pointed at a path this
+      repository does not use. An instrument that cannot open its subject is
+      indistinguishable, in every report, from one that opened it and found
+      nothing wrong. Also the twin of SI-08-DF-11: the ledger's OTHER reader
+      was pointed at two of the four files.
+    skill_change: "proposed(spec-double-2, SI-27: give disposition.py a resolution order that includes specs/results/deferred_findings_final.yaml, and make a ledger it cannot open a refusal rather than a fallback)"
+
+  - invariant: >-
+      a finding anchored to a SKILL is consumed only by a change to that skill
+      (`improvement_ledger.py` D4)
+    enforced_on:
+      - "skills/spec-double-2/scripts/improvement_ledger.py, over
+         specs/results/skill_feedback.md,
+         specs/results/deferred_findings_final.yaml,
+         specs/results/epic-close/deferred_findings_next.yaml and
+         examples/validation/agent_rounds/SELF-IMPROVEMENT-MATRIX.md"
+    unenforced_on:
+      - "the per-ticket partition specs/results/deferred/*.yaml, which held 28
+         rows and 22 `skill_change` fields that the instrument deciding
+         GOAL-findings-become-changes could not see (SI-08-DF-11). CLOSED BY
+         SI-27 by absorbing the partition into the file BACKLOGS already
+         names, rather than by widening the reader."
+      - "any run under an interpreter without PyYAML, where both backlogs are
+         skipped and the table prints anyway with no PARTIAL marker
+         (SI-08-DF-01) -- so the rule is unenforced by ACCIDENT on a whole
+         class of runs, not by scope"
+    enumerated_by: >-
+      Read BACKLOGS at improvement_ledger.py:82-83 (a 2-tuple, no glob), then
+      counted the rows and skill_change fields the partition held.
+    note: >-
+      The reader reports 57 rows under "D4 -- anchored to a skill, no change to
+      that skill" with `skill_change=(absent)`, and the page's own rule is that
+      an absent `skill_change` is not `none`: absent means nobody was asked.
+      Those 57 are the largest unexamined population in the record.
+    skill_change: "applied(SI-27 (#382): the partition absorbed into deferred_findings_final.yaml; the instrument sees 118 of 118 unedited)"
+
+  - invariant: >-
+      a contained skill's run-time dependency on a fellow contained skill is
+      present wherever the first is installed
+    enforced_on:
+      - "a run-time refusal in skt's `wt`, and nothing else"
+    unenforced_on:
+      - "install time. `skills/skt/skill-manager.toml` carries an EMPTY
+         skill_references with a comment explaining why (a reference to a
+         fellow bundle member is 'redundant at best and an install-time cycle
+         at worst'), and skills/skt/.github/scripts/check_units.py has no
+         contained-skill assertion -- `grep -n 'plugins/\\*/skills\\|contained'`
+         over it returns nothing (SI-17-DF-05)"
+      - "any partial install, and any future split of the bundle"
+    enumerated_by: >-
+      Read skills/skt/skill-manager.toml and check_units.py at this tip; the
+      negative control was reached by hand in SI-17's verification.md.
+    note: >-
+      SI-17-DF-05. The bundle's FIRST intra-member run-time dependency, and the
+      unit system has no way to express it. The cheap half -- assert that every
+      contained skill named by another's run-time resolver is present in the
+      bundle -- is a few lines in check_units.py and needs no schema change.
+    skill_change: "proposed(skt, SI-17-DF-05: check_units.py asserts that a resolver naming plugins/*/skills/<unit> resolves to a skill this bundle ships)"
+
+  - invariant: >-
+      a committed artifact reproduces itself byte-for-byte when its generator
+      is re-run
+    enforced_on:
+      - "tests/test_example_drivers_write_inside_spec_tree.py::
+         test_a_validation_run_does_not_generate_over_a_committed_corpus --
+         which is itself one of the standing failures, and fails because the
+         corpus it protects was deleted (SI-25-DF-05)"
+    unenforced_on:
+      - "examples/effect_providers/legacy_payment_http/evidence/
+         tlc-generation.json, which records `wall_seconds` and therefore
+         changes on every regeneration (SI-25-DF-03)"
+      - "the four committed case_coverage.json files -- FIXED since: their
+         `source` field is repository-relative now, where it used to carry the
+         absolute path of whichever worktree last ran the graphs
+         (SI-13-DF-05)"
+    enumerated_by: >-
+      SI-25 measured the population rather than assuming it: of the tracked
+      files matching `wall_seconds`, one is written by a live driver and
+      eighteen are frozen experiment records last touched 2026-07-22 that no
+      driver rewrites. SI-27 re-confirmed the one live churner at
+      tlc-generation.json:42,70.
+    note: >-
+      A committed artifact that cannot reproduce itself defeats every
+      clean-tree check built on top of it, including the one in `enforced_on`.
+    skill_change: "declined(example evidence convention, not a unit's files -- SI-25-DF-03)"
+
+# =====================================================================
+# BLIND -- a green, and what it could never have caught. (§6)
+# A BLIND does not fail a green and does not gate a close. It annotates one.
+# =====================================================================
+blind:
+
+  - case: "skills/plugin-repository/scripts/verify.sh -- the repository sweep"
+    passes: false
+    could_not_have_caught: >-
+      any question about what the REPOSITORY contains, in either direction.
+      Its sweep is `grep -rl --exclude-dir=.git -- \"skills/$n/\" .`
+      (verify.sh:133), so `.git` is the only exclusion and build output,
+      `.skill-manager` and the agent caches are all scanned as if they were
+      repository content. Measured 2026-09-21: 684 of 1,541 output lines named
+      `test_graph/build`, and the headline "297 frontmatter import(s) name a
+      bundled skill as a UNIT" resolved, scoped to its own section, to 115
+      files of which 97 were under `test_graph/build`, 18 under
+      `.skill-manager`, and ZERO tracked. A verdict that cannot tell a tracked
+      file from a build fixture cannot be acted on in EITHER direction: it
+      cannot report a real defect distinguishably, and its clean runs are
+      clean about a population nobody chose.
+    why: "scan scope, not assertion strength"
+    note: >-
+      SI-25-DF-08, and the third instrument in this epic to scan build output
+      -- after SI-16's 73,487-entry build directory took four suite tests red
+      and the 328,508-entry directory found at the start of SI-25. Acting on
+      this one would have sent a reader hunting 297 imports that do not exist
+      in the tree. `git ls-files` is the honest enumeration for a git
+      repository and answers the tracked/untracked question the finding turns
+      on.
+    skill_change: "proposed(plugin-repository and git-integration-repo own the two halves -- SI-25-DF-08)"
+
+  - case: "any `claude plugin eval` case in this suite, scoring 1.00"
+    passes: true
+    could_not_have_caught: >-
+      anything about the target plugin's HOOKS, if the case declares
+      `plugins:`. Measured on CLI 2.1.276 over four runs ($0.26): two cases
+      identical but for that one key, in a probe plugin whose SessionStart hook
+      appended a line to a file outside the workspace. The `noplug` case fired
+      the hook 2 of 2 runs; the `withplug` case fired it 0 of 2. BOTH SCORED
+      1.00. Both printed `Plugin under test` lines for the target and the
+      entry, so the target resolves -- its hooks simply do not run, and the
+      score is identical either way.
+    why: "the harness silently drops a capability the score does not observe"
+    note: >-
+      SI-14-DF-01. This suite places EVERY fixture from `evals/lib/place.sh`, a
+      SessionStart hook, so a `plugins:` entry added to any case here would
+      hand the agent an empty workspace and score it 0 -- reported as a skill
+      failure. The defect is in the CLI and is not a unit this epic can change;
+      what landed here is a refusal, `tests/test_eval_toolchain_pin.py::
+      test_the_suite_does_not_wire_plugins_into_a_hooked_case`, which sweeps
+      every committed case for the key. A score of 1.00 in this suite is not
+      evidence about hooks, and since SI-16 the shipped hooks are out of the
+      suite's scope deliberately (evals/README.md:236-257).
+    skill_change: "applied(evals/README.md:236-257 and tests/test_eval_toolchain_pin.py:186-218 -- the mechanism is refused rather than built on)"
+
+  - case: "skills/git-issue-workflow/scripts/bootstrap-home.sh -- `verified: N skill(s) servable`"
+    passes: true
+    could_not_have_caught: >-
+      a projection that exists and resolves to nothing. The counter stats what
+      it just wrote and never stats a link TARGET, so its green is identical
+      across three different states: projections present and usable,
+      projections absent, and projections present and dangling. Measured
+      2026-09-23: it printed `projected: 10 of 10 into each of .claude .codex
+      .gemini` and `verified: 10 skill(s) servable` into directories holding 24
+      unusable entries -- 8 plugin-contained skills x 3 agent dirs, each a
+      symlink to `<home>/skills/<unit>`, the standalone rung a home rebuild had
+      removed. `ls` lists a dangling symlink's name, so the directories looked
+      populated; every `open()` failed with ENOENT.
+    why: >-
+      the counter's subject is its own writes, not the directory's contents --
+      construction, not assertion strength
+    note: >-
+      SI-27-DF-01, and a REPEAT, which is what makes it BLIND rather than
+      CATCH. bootstrap-home.sh already carries a comment near line 1500
+      recording that the same counter lied once before, differently: `verified:
+      20 skill(s) servable` on a `wt new` worktree whose `.claude` had no
+      `skills/` directory at all -- "Every agent launched in that worktree saw
+      zero skills." That fix taught it the empty case and not this one.
+      Downstream: `sktHooks` went PASSED -> ERRORED and
+      `skt.wrapper-installed` errored with ZERO assertions run.
+      `skt check` said `all current` over the same state and is not a witness
+      either.
+    skill_change: "proposed(git-issue-workflow, SI-27-DF-01)"
+
+  - case: "tests/test_plugin_layout_resolution.py -- 9 passed"
+    passes: true
+    could_not_have_caught: >-
+      a standalone-only resolver recipe written in a markdown page, a
+      skill-manager.toml or a skill-project.toml. Its roots are
+      `skills/*/scripts`, `skills/*/skill-scripts` and the root
+      `skill-scripts`, filtered to `.py`/`.sh`/`.bash`
+      (test_plugin_layout_resolution.py:66-73). Measured at SI-12: a sweep over
+      all 1,348 tracked files under skills/ reported 10 offending lines in 6
+      files while this test reported 9 passed. Four of the ten were live broken
+      instructions.
+    why: "scan roots, not assertion strength"
+    note: >-
+      SI-12-DF-03. The test's own docstring argues the class is dangerous
+      BECAUSE it is silent; the same argument applies to the files it does not
+      read, and those files are exactly where this epic keeps putting
+      copy-pasteable resolver recipes.
+    skill_change: "proposed(tla-spec-dev, SI-12-DF-03)"
+
+  - case: "skills/spec-double-2/scripts/improvement_ledger.py -- the disposition table"
+    passes: true
+    could_not_have_caught: >-
+      a source it could not parse. Run under an interpreter without PyYAML it
+      skips BOTH backlogs and prints a complete-looking table over 36 records
+      from 2 files, with the header reading `36 record(s) across 2 file(s)` and
+      no PARTIAL marker (`grep -in PARTIAL` over the file returns nothing at
+      this tip). Under `uv run --python 3.12 --with pyyaml` the same script
+      read 121 records across 4 files. The warning line above the table is
+      honest; 36 is the number a reader copies, and the two figures differ by a
+      factor of four on the headline `skill_change` count.
+    why: "an absent input is rendered as a complete result"
+    note: >-
+      SI-08-DF-01, and the exact class bug_attribution.md §3 names: the correct
+      answer to an absent input is UNDECIDED or a refusal, never a PASS. SI-27
+      halves the blast radius -- there is one backlog file now, not two -- and
+      does not touch the defect.
+    skill_change: "proposed(spec-double-2, SI-08-DF-01: a PARTIAL banner in the header line itself, or re-exec under an interpreter that has PyYAML)"
+
+  - case: "`tla-spec-dev run spec-unit-tests --ticket <id>` -- the printed target list"
+    passes: true
+    could_not_have_caught: >-
+      anything at all about the TICKET-LOCAL target, in any repository whose
+      `specs/current` is not green. It resolves both targets, prints a
+      `spec-unit target:` line for EACH, then runs them in a loop that returns
+      on the first non-zero exit (tla_spec_dev.py:456-462). `specs/current` is
+      ordered first and carries pre-existing failures here, so the ticket
+      target is never executed -- and nothing in the output says a target was
+      skipped. The printed line reads as evidence the target ran.
+    why: "the report is written before the work, and the work can be skipped"
+    note: >-
+      SIS-KICKOFF-F-04. It was the REQUIRED spec_unit entry of all ten
+      assignments in this epic, so any close-out citing spec-unit as passing
+      for a ticket target cited a run that did not happen.
+    skill_change: "proposed(spec-double-2, SIS-KICKOFF-F-04: run every resolved target and aggregate the exit codes, or at minimum name the skipped ones)"
+
+  - case: "skills/git-epic-workflow/scripts/validate_epic_plan.py -- the wave-artifact block check"
+    passes: true
+    could_not_have_caught: >-
+      a wave that merged and produced no review directory at all. It
+      enumerates `wave-<n>` directories under `review_policy.artifact_root`
+      (validate_epic_plan.py:1329-1335) and returns early when the root is not
+      a directory (:1322), so a wave with no directory produces no diagnostic.
+      Deleting only `review.md` while keeping the directory IS reported;
+      deleting the directory is not.
+    why: "it enumerates the filesystem, and the filesystem cannot report absence"
+    note: >-
+      SI-07-DF-02, and SHIPPED DELIBERATELY -- the validator reads the plan and
+      the filesystem and has no way to know which waves have actually merged.
+      Closing it needs the set of delivered waves, which is a new capability
+      rather than a fix. Recorded because a wave review nobody produced stays
+      undetected until finalize.md §2b reads the artifacts.
+    skill_change: "proposed(git-epic-workflow, SI-07-DF-02: compare wave directories against the distinct waves of tickets whose plan status is delivered)"
+
+  - case: "the GOAL-one-unit audit grep, `expected zero non-comment hits`"
+    passes: true
+    could_not_have_caught: >-
+      the difference between the defect and its fix, and separately it can
+      report zero for a reason that is not zero. The CORRECT two-rung form
+      CONTAINS the standalone substring the grep counts, so any file that
+      probes `$SKILL_MANAGER_HOME/skills/test-graph` before
+      `$SKILL_MANAGER_HOME/plugins/*/skills/test-graph` is counted as a hit by
+      the fix as surely as by the defect -- measured 10 hits before SI-11 and
+      20 after, where the increase is entirely two-rung pairs. And under zsh,
+      `skills/*/skill-scripts` matching nothing aborts the whole glob and
+      prints 0 hits: a false green that looks exactly like success.
+    why: "the pattern cannot separate the two populations, and its shell can fail silently"
+    note: >-
+      SI-11-DF-05. A target of zero would be met only by deleting every rung.
+      The executable replacement exists and is the right instrument --
+      tests/test_plugin_layout_resolution.py asserts that no executable names a
+      home-anchored standalone rung WITHOUT also naming the plugin rung -- but
+      the plan's declared local_signal is still the grep, so SI-23 can still
+      read a met goal as missed. Note that the replacement carries its own
+      BLIND row above.
+    skill_change: "proposed(tla-spec-dev, SI-11-DF-05: replace the count in the plan's local_signal with the executable check)"
+
+  - case: "`skill-manager install` -- `cli: N installed, M failed`, exit 0"
+    passes: true
+    could_not_have_caught: >-
+      that the plugin it just installed has no working CLI. The install reports
+      a count and exits 0, so the plugin appears installed while its
+      entrypoints are absent from PATH. SIS-W2-F-05 measured `cli: 15
+      installed, 2 failed` on every install from a git source, with `tlc2` and
+      `tla-spec-dev` among the failures -- and THE PROJECT HOME WAS NOT
+      AFFECTED, because shims installed before the migration survived. A green
+      `tla-spec-dev --version` in the home that had one hid a fresh home
+      getting neither tool.
+    why: "a partial result is reported as a successful one"
+    note: >-
+      SIS-W2-F-05 with SI-11-DF-01. The same shape as the improvement-ledger
+      row above, one subsystem over: a count printed beside a zero exit. Now
+      CLOSED for this plugin -- SI-27 measured a fresh scratch home installing
+      it from a file:// coord and `ls <scratch>/bin/cli/` carries both `tlc2`
+      and `tla-spec-dev` -- but the resolver rung that caused it is still
+      missing upstream, so the next plugin declaring a skill-script dep on a
+      contained skill meets the same silent partial.
+    skill_change: "proposed(skill-manager, SI-11-DF-01: add the plugins/<unit>/skills/*/skill-scripts rung, refuse on more than one match, and report EVERY probed candidate)"
+
+# =====================================================================
+# PRICE -- declared before, measured after. (§7)
+# `declared_at_commit` is the point of the kind: a price whose declaration
+# commit is AFTER the measurement commit is a retrospective, and the two shas
+# say which it is. A refused proposal keeps its `declared_before`.
+# =====================================================================
+price:
+
+  - proposal: >-
+      GOAL-progressive-disclosure: cut every skill card to a body of at most
+      1,500 words by moving rationale behind the reference map, deleting
+      nothing load-bearing
+    declared_before:
+      value: "every card body <= 1,500 words; descriptions <= 600 words total"
+      declared_at_commit: "the canonical plan, before SI-09 ran"
+    measured_after:
+      value: >-
+        six of eight cards meet the clause; two cannot. git-epic-workflow 1,820
+        and git-issue-workflow 1,788, re-measured by SI-27 at 2c21e609 with the
+        goal's own command -- and git-issue-workflow has GROWN 13 words since
+        SI-09 recorded 1,775. What remains on each is instruction, not
+        reasoning: 14 numbered rules, the front-door path test, epic-mode
+        selection, the ordered close-out sequence. The other clause is met at
+        exactly 600.
+      measured_at_commit: "2c21e609"
+    verdict: "missed on the word clause for two of eight cards; met on the descriptions clause"
+    note: >-
+      SI-09-DF-03. THE PRICE IS THE POINT: the remaining gap can only be closed
+      by removing rules or by pushing instructions rather than their reasons
+      behind links, both of which contradict the goal they would satisfy. The
+      declaration came first and the measurement second, so this is a price and
+      not a retrospective -- and the honest verdict is that the target was
+      unreachable from the slice, not that the slice underperformed. Both cards
+      are 61% and 58% smaller than at kickoff.
+    skill_change: "declined(a ticket does not edit a goal to match its own result; the owner decides between a per-card budget that scales with non-negotiable rules and a rules/operations split)"
+
+  - proposal: >-
+      GOAL-one-unit: one installed unit for this substrate, and zero standalone
+      copies of the five (later eight) migrated skills in the root or project
+      home
+    declared_before:
+      value: >-
+        clause 1: zero standalone copies in root OR project home.
+        clause 2: every listed graph and eval case green.
+      declared_at_commit: "the canonical plan, before SI-02 ran"
+    measured_after:
+      value: >-
+        CLAUSE 1 IS NOW MET IN BOTH HOMES, and it took an operator action the
+        plan did not price. SI-08 measured the project home clean and the ROOT
+        home carrying all eight standalone, with the plugin not installed at
+        all. SI-27 re-measured on 2026-09-23: `ls -d ~/.skill-manager/skills/*/`
+        lists eight unrelated skills and NOT ONE of the substrate's, and
+        `ls -d ~/.skill-manager/plugins/*/` lists tla-spec-dev; the project
+        home's `installed/` no longer carries any of the five. CLAUSE 2 HAS NO
+        REFERENT: `examples/agent_integration/eval-plugin` does not exist and
+        the suite is 61 cases, 6 UNDECIDED by construction, 1 ever scored.
+        THE UNPRICED COST, measured: nine recurrences of one missing-rung
+        defect across the epic, three of which broke the worktree front door
+        outright, plus `skt sync` and a fresh `skill-manager install` both
+        exiting 11 on eval fixtures the migration brought into scan scope.
+      measured_at_commit: "2c21e609"
+    verdict: "clause 1 met; clause 2 undecided -- its population was redefined mid-epic and never restated"
+    note: >-
+      SI-08-DF-04, SI-08-DF-07, SI-14-DF-04 and the nine-recurrence REACH row
+      above. The declaration named the END STATE and priced none of the
+      resolution work, which is why the epic's largest measured cost has no
+      line to land in -- the exact failure bug_attribution.md §7 was written
+      about (`gate_passed: False` on 16 of 16 runs with nothing stopping).
+      A successor goal should price the migration's resolver surface, not only
+      its install count.
+    skill_change: "proposed(git-epic-workflow, SI-08-DF-07: a goal clause whose population is redefined mid-epic is restated by the owner or returned UNDECIDED, never scored against the old referent)"
+
+  - proposal: >-
+      the deferment policy: a ticket that meets a blocker files a finding
+      rather than widening scope, with a per-ticket budget
+    declared_before:
+      value: >-
+        a bounded budget per ticket (`deferment.budget: 5`), a named backlog
+        path, and the premise that filing routes the work to an owner
+      declared_at_commit: "the canonical plan, before wave 1"
+    measured_after:
+      value: >-
+        115 findings filed across the epic. 80 of them -- 70% -- were still
+        unsettled when SI-27 opened: 54 `pending` and 26 with no `disposition`
+        key at all. 28 of the 115 were in a file no reader ever opened, and
+        the two the epic agent was citing as blockers were among them. SI-08
+        filed 11 against a budget of 5 and said so. Of the 80, SI-27 found 27
+        ALREADY FIXED by work that never closed them -- so a third of the
+        backlog was stale, and nobody could have known which third without
+        reading all 80.
+      measured_at_commit: "2c21e609"
+    verdict: >-
+      the policy bought filing and did not buy consumption; the price of the
+      un-consumed half was one wrong answer to a direct query and 27 rows of
+      stale advice left live
+    note: >-
+      This is the PRICE the growing DEFERRED bin was always going to carry, and
+      it is the reason SI-27 exists. Two rows of stale advice were actively
+      dangerous rather than merely idle: SI-12-DF-05's suggested fix would have
+      reintroduced tracked symlinks holding one developer's absolute home path
+      (175f5c7c removed them), and SI-12-DF-04's advice had to be corrected in
+      place on 2026-09-21 because acting on it would have reintroduced the
+      duplicate the finding was about. A `pending` row is not inert; it is live
+      advice.
+    skill_change: "proposed(git-epic-workflow, SI-27: the wave-close step that absorbs the per-ticket inbox into the ledger is what had never happened -- make it a named step in the wave artifact, and have validate_epic_plan warn when the inbox is non-empty at wave close)"

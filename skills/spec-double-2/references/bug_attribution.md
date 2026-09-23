@@ -21,6 +21,27 @@ where they are blind — **and it reads the same either way.** A reader cannot
 distinguish "we looked here and it was clean" from "nothing has ever looked
 here", because only the first kind of place produces rows.
 
+> **STATUS, 2026-09-23 (`SI-27`, #382).** That sentence was still literally true
+> of this repository until this date: every row in every ledger was a CATCH, and
+> REACH, BLIND and PRICE existed as prose on this page and as **nothing typed
+> anywhere**. Measured case-sensitively and word-bounded in
+> `examples/validation/agent_rounds/SELF-IMPROVEMENT-MATRIX.md`: CATCH 5,
+> REACH 0, BLIND 9, PRICE 1 — and all fifteen are narrative, not rows.
+>
+> **The first typed rows are at
+> `specs/results/deferred/attribution/attribution.yaml`** — 6 REACH, 9 BLIND,
+> 3 PRICE, seeded from findings this epic had already measured. §4's box below
+> says where it should eventually live.
+>
+> **And the counting instrument is a trap.** `grep -ciE "\bBLIND\b"` —
+> case-INsensitive — counts the English words "blind" and "reach", which this
+> project says constantly ("blind dispatch", "blind review"), and returned 28
+> for BLIND. A second pattern aimed at structured rows returned 0 for **all
+> four including CATCH**, which was the non-vacuity control failing and saying
+> the pattern was broken, not that the record was empty. Two wrong answers in
+> opposite directions, from one hour's measuring. Use case-sensitive,
+> word-bounded patterns, and carry a control that MUST match.
+
 Three failures paid for this page, and **none of them would have been prevented
 by a better finding**:
 
@@ -141,9 +162,33 @@ three things beyond the existing schema.
 > `specs/deferred_findings.yaml` from a branch would collide with all of them on
 > merge.
 >
+> **ON `epic/self-improvement-substrate`, SINCE `SI-27` (#382), THE LEDGER IS
+> `specs/results/deferred_findings_final.yaml` — 119 rows, and nothing else in
+> this repository is it.** It had been two: that file held 87 rows and
+> `specs/results/deferred/<ticket>.yaml` held 28 more that nothing read, so a
+> query for `SI-16-DF-02` and `SI-16-DF-03` returned NOT FOUND for both while
+> the epic agent was citing them as the two blockers before any scored eval
+> run. The 28 were absorbed; the per-ticket files are now INBOX STUBS. A ticket
+> still files into its own inbox file, and the epic agent absorbs at wave close
+> — that step is what had never happened. **A row lives in exactly one of the
+> two places, never both**, and nothing reads the inbox directory as a
+> population.
+>
+> **`disposition.py` cannot see any of this.** Its `LEDGER` is
+> `specs/desired_program_model/deferred_findings.yaml`, which does not exist
+> here, so D1/D2/D3 have never been evaluated over these rows at all — 80 of
+> 115 were unsettled for a whole epic with nothing reporting it. That is a
+> REACH row in the seeded record, not a footnote.
+>
 > **So when that path is absent, write the rows into the ticket's own
 > `results/attribution.yaml`** and say in a header where they belong and when
-> they move. A blind agent following §4 literally went looking for the file,
+> they move. In THIS repository the seeded REACH/BLIND/PRICE record is at
+> `specs/results/deferred/attribution/attribution.yaml`, and that path is a
+> compromise the file's own header explains: SI-27's conflict keys did not
+> reach `specs/results/attribution.yaml`, and a SUBDIRECTORY of the inbox is
+> the one place a `specs/results/deferred/*.yaml` glob cannot mistake it for a
+> backlog of findings. **It should move to `specs/results/attribution.yaml`
+> under a ticket whose keys allow it.** A blind agent following §4 literally went looking for the file,
 > did not find it, and was one step from creating the colliding path — it was
 > saved only by stumbling on a comment in a file nothing routes to. **That is a
 > `DOC-COULD-HAVE-SAID`, and this is the doc saying it.**
@@ -646,7 +691,15 @@ the model and quietly opening a fresh one.
   served digest and forces a version bump across 95 sealed cards for no new
   question. **Byte cost to `serve`: 0.**
 - **It builds no index.** The record is read by reading it. If answering one of
-  §2's four questions requires a tool, the schema is wrong.
+  §2's four questions requires a tool, the schema is wrong. The seeded
+  `attribution.yaml` is a FILE, not an index: it is YAML so that it parses, and
+  it is read the same way this page is.
+- **It does not make a BLIND a reason to delete a green.** Every BLIND row in
+  the seeded record annotates a case that still runs. Two of the nine describe
+  greens that are correct today and blind anyway (`validate_epic_plan.py`'s
+  wave check, shipped deliberately; the eval suite's 1.00, refused rather than
+  built on), and naming that is the whole point — a reader can now tell those
+  two apart from the seven that are defects waiting for an owner.
 
 ---
 

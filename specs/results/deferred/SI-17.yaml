@@ -1,179 +1,37 @@
-# SI-17's per-ticket deferment backlog (deferment_policy.per_ticket_backlog).
-# The cumulative specs/results/deferred_findings_final.yaml stays canonical and
-# is read-only to this ticket; the epic agent concatenates at wave close.
+# INBOX, NOT THE LEDGER.
 #
-# Budget: 5. Used: 5.
-findings:
-  - id: SI-17-DF-01
-    found_by: SI-17
-    found_at_commit: d4c91275
-    schedule_revision: 5
-    severity: minor
-    target: tla-spec-dev (issue #366 body / epic plan / dispatch brief)
-    surface: {production: [], tla: [], adapters: [], test_graph: [], workflow: []}
-    summary: >-
-      The pinned card instrument is quoted with the WRONG control value. Issue
-      #366 and the dispatch brief both say "Control: spec-double-2 = 1,839
-      words". SI-09's own evidence file (word-counts-AFTER.txt) records 1839 as
-      the BEFORE of its cut and 1499 as the AFTER. The instrument is fine and
-      reproduces 1499 exactly; the control is a pre-SI-09 number restated as if
-      it described the current tree.
-    reproduction: >-
-      awk 'BEGIN{fm=0} /^---$/{fm++; next} fm>=2' skills/spec-double-2/SKILL.md
-      | wc -w  ->  1499 at d4c91275. Compare
-      specs/results/epic-self-improvement-substrate/tickets/SI-09/word-counts-AFTER.txt,
-      whose table row reads "spec-double-2 | 82 -> 73 | 1839 -> 1499".
-    why_out_of_scope: >-
-      The issue body and the epic plan are the epic agent's to correct, not a
-      ticket's. The measurement was trusted over the brief, as instructed.
-    suggested_fix: >-
-      Correct the control to 1499 in the successor issue and in the plan, and
-      note that a control quoted from a ticket's BEFORE column silently inverts
-      the direction of every comparison made against it.
-    skill_change: "declined(the defect is in the issue body and the epic plan, which a ticket agent may not edit; corrected in this ticket's verification.md and PR body instead)"
-    blast_radius: >-
-      Any ticket that measures GOAL-progressive-disclosure against 1839 will
-      conclude every card shrank by ~340 words when nothing moved.
+# THE LEDGER IS `specs/results/deferred_findings_final.yaml` -- 119 rows, and
+# nothing else in this repository is it. This file is where SI-17 FILED, under
+# `deferment_policy.per_ticket_backlog`
+# (`skills/git-epic-workflow/references/deferment.md:47`). Filing here is still
+# correct; it is the step AFTER filing that had never happened.
+#
+# WHAT SI-27 (#382) DID, on 2026-09-23. The 5 rows below were absorbed
+# into the ledger verbatim -- every field byte-for-byte, plus a disposition
+# with evidence and an `absorbed_from: SI-17.yaml` marker -- and removed from here.
+# Before that there were two ledgers: 87 rows in `_final.yaml` and 28 across
+# this directory that nothing read, which is how a query for SI-16-DF-02 and
+# SI-16-DF-03 returned NOT FOUND for both while the epic agent was citing them
+# as the two blockers before any scored eval run.
+#
+# THE RULE, so this does not split again:
+#   * a ticket files into its own `<ticket>.yaml` here, as before;
+#   * the epic agent absorbs into `deferred_findings_final.yaml` at wave close;
+#   * a row lives in exactly one of the two places, never both;
+#   * NOTHING reads this directory as a population. Do NOT add
+#     `specs/results/deferred/*.yaml` to `improvement_ledger.py`'s `BACKLOGS`
+#     (SI-08-DF-11 proposes exactly that): after this reconciliation the glob
+#     double-counts every absorbed id.
+#
+# The ids are listed below so this file still answers "what did SI-17 file".
+# Their text is in the ledger.
 
-  - id: SI-17-DF-02
-    found_by: SI-17
-    found_at_commit: d4c91275
-    schedule_revision: 5
-    severity: major
-    target: tla-spec-dev (skills/skt/skill-project.toml)
-    surface: {production: ["skills/skt/skill-project.toml"], tla: [], adapters: [], test_graph: [], workflow: []}
-    summary: >-
-      skills/skt/skill-project.toml is TRUNCATED and has no [project] table. It
-      is one of exactly three problems check_units.py reports, and it is the only
-      one of the three that is not a deliberately-malformed eval fixture. The
-      file ends mid-sentence inside a comment block, so SI-16's demotion of skt
-      from plugin to contained skill appears to have lost the tail of the file.
-    reproduction: >-
-      uv run --python 3.13 --script skills/skt/.github/scripts/check_units.py
-      --root .  ->  "FAIL ... skills/skt/skill-project.toml: declares no
-      [project] table", exit 1. Present identically at base d4c91275 and on this
-      branch, so it is not this ticket's.
-    why_out_of_scope: >-
-      Inside this ticket's conflict key (skills/skt/**) but outside its semantic
-      delta: it is SI-16's breakage, and repairing it would move the check_units
-      baseline in the same commit that this ticket compares against it, making
-      this ticket's own evidence harder to read.
-    suggested_fix: |
-      Restore the table SI-16 dropped, e.g.:
-          [project]
-          name = "skt"
-          version = "0.8.2"
-          description = "Skill-lifecycle CLI and worktree change management, as a contained skill of the tla-spec-dev plugin."
-      and add a check that every skill-project.toml this bundle ships parses with
-      a [project] table, so the next truncation fails loudly.
-    skill_change: "proposed(skills/skt/skill-project.toml, add the [project] table shown above; not applied because the file is SI-16's and repairing it would shift this ticket's own check_units baseline)"
-    blast_radius: >-
-      `skill-manager project resolve` and any tooling that reads the manifest's
-      identity see an unnamed project for the unit that carries the CLI.
-
-  - id: SI-17-DF-03
-    found_by: SI-17
-    found_at_commit: d4c91275
-    schedule_revision: 5
-    severity: major
-    target: tla-spec-dev (skills/*/.github/workflows/ci.yml, all of them)
-    surface: {production: [], tla: [], adapters: [], test_graph: [], workflow: []}
-    summary: >-
-      NONE of the per-skill CI workflows in this repository has ever run, and
-      nothing says so. GitHub only executes workflows under the REPOSITORY root
-      .github/workflows, and this repository has no root .github directory at
-      all. skills/git-issue-workflow/.github/workflows/ci.yml and
-      skills/skt/.github/workflows/ci.yml are leftovers from when those units
-      were separate repositories. This ticket dutifully moved the `wt-smoke` job
-      from one to the other -- which is correct bookkeeping and buys ZERO
-      execution, and that needs saying rather than implying the coverage moved.
-    reproduction: >-
-      ls -d .github  ->  No such file or directory. git ls-files
-      '*.github/workflows/*' lists only per-skill files, every one of them
-      nested under skills/<unit>/.
-    why_out_of_scope: >-
-      Creating a root workflow is a repository-wide CI decision with cost and
-      secrets implications; it is the epic owner's call, not a move ticket's.
-    suggested_fix: >-
-      Either add a root .github/workflows that invokes the jobs these files
-      describe (the wt-smoke job is the cheapest and highest-value: 25
-      assertions, seconds, no network), or delete the nested workflows and say
-      in each unit's card that its CI lives in the repo that syndicates it. A
-      workflow that cannot run is the same trained-to-ignore-red problem the
-      git-issue-workflow ci.yml header already warns about for selftest.sh.
-    skill_change: "proposed(tla-spec-dev root, add .github/workflows/ci.yml running at minimum `bash skills/skt/.github/scripts/wt_smoke.sh`; not applied -- repository-wide CI is outside this ticket's conflict keys)"
-    blast_radius: >-
-      Every claim of the form "CI covers X" made about any contained skill in
-      this bundle is currently false.
-
-  - id: SI-17-DF-04
-    found_by: SI-17
-    found_at_commit: d4c91275
-    schedule_revision: 5
-    severity: minor
-    target: tla-spec-dev (skills/skt/src/skt/ticket.py)
-    surface: {production: ["skills/skt/src/skt/ticket.py"], tla: [], adapters: [], test_graph: [], workflow: []}
-    summary: >-
-      A coverage weakening THIS TICKET introduced, recorded rather than left to
-      be discovered. `_import_wrapper`'s four remedies (no home / installed
-      without the lifecycle scripts / declared but not installed / neither)
-      were triggered by a cross-unit import that could genuinely fail. After
-      this move the surface is `skt.wt`, shipped in the same unit, so that
-      import cannot realistically fail and the remedies are reached only when a
-      test injects `sys.modules["skt.wt"] = None`. The failure they describe is
-      still real -- a home with skt but no git-issue-workflow -- but it now
-      surfaces one layer down, as `wt`'s own refusal, which names a fix but not
-      the four home-specific remedies.
-    reproduction: >-
-      Read skills/skt/src/skt/ticket.py::_import_wrapper. The four refusal tests
-      in skills/skt/tests/test_ticket_publish.py still pass, but only because
-      they inject None; no production path now reaches them.
-    why_out_of_scope: >-
-      Correcting it means making the remedy fire on delegate-script absence,
-      which changes when `skt ticket` refuses and would need the happy-path
-      fixtures (which build no git-issue-workflow rung) reworked. That is a
-      behavioural change to the front door, beyond a move ticket.
-    suggested_fix: >-
-      Give `_import_wrapper` a delegate probe mirroring `_bootstrap_script`'s
-      two rungs -- resolve <unit>/scripts/lib.sh, raise `_giw_remedy` when it is
-      absent -- and add the rung to the existing fixtures so the happy path
-      still passes. Then the four remedies are reached by the case they were
-      written for.
-    skill_change: "proposed(skills/skt/src/skt/ticket.py, add a two-rung lib.sh probe to _import_wrapper and seed the rung in tests/test_ticket_publish.py's fixtures; not applied because it changes when the front door refuses)"
-    blast_radius: >-
-      A home carrying skt without git-issue-workflow gets `wt`'s one-line
-      refusal instead of the remedy that names its own state.
-
-  - id: SI-17-DF-05
-    found_by: SI-17
-    found_at_commit: d4c91275
-    schedule_revision: 5
-    severity: minor
-    target: tla-spec-dev (skill-manager-plugin.toml / plugin-repository)
-    surface: {production: [], tla: [], adapters: [], test_graph: [], workflow: []}
-    summary: >-
-      This ticket creates the bundle's first RUN-TIME dependency between two
-      contained skills -- skt's `wt` resolves git-issue-workflow's scripts/ --
-      and nothing in the unit system can express it. A `skill_references` entry
-      is the wrong tool (both are members of the same bundle, and
-      plugin-repository/references/layout.md says a reference to a fellow member
-      is "redundant at best and an install-time cycle at worst"), so the
-      coupling is documented in prose and enforced only by a runtime refusal.
-    reproduction: >-
-      skills/skt/skill-manager.toml carries an empty skill_references and a
-      comment explaining why; nothing validates that a home installing skt also
-      gets git-issue-workflow. The negative control in this ticket's
-      verification.md is exactly that state, reached by hand.
-    why_out_of_scope: >-
-      Expressing intra-bundle dependencies is a skill-manager/plugin-repository
-      schema question, not a move ticket's.
-    suggested_fix: >-
-      Either add a contained-skill-to-contained-skill dependency notion that
-      install validates, or -- cheaper -- have the plugin's own unit check
-      assert that every contained skill named by another contained skill's
-      run-time resolver is present in the bundle. The second is a few lines in
-      .github/scripts/check_units.py and needs no schema change.
-    skill_change: "proposed(skills/skt/.github/scripts/check_units.py, assert that a resolver naming plugins/*/skills/<unit> resolves to a skill this bundle actually ships; not applied -- unit-schema surface is outside this ticket's conflict keys)"
-    blast_radius: >-
-      Any future split of the bundle, or any partial install, breaks the
-      worktree front door with no install-time warning.
+absorbed_into: specs/results/deferred_findings_final.yaml
+absorbed_at: "SI-27 (#382), 2026-09-23"
+absorbed_ids:
+  - SI-17-DF-01
+  - SI-17-DF-02
+  - SI-17-DF-03
+  - SI-17-DF-04
+  - SI-17-DF-05
+findings: []

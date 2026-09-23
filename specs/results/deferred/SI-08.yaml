@@ -1,364 +1,43 @@
-# Deferred findings filed by SI-08 (Evaluation A) on epic self-improvement-substrate.
+# INBOX, NOT THE LEDGER.
 #
-# Filed to the PARTITIONED backlog, not the cumulative
-# specs/results/deferred_findings_final.yaml (79 rows, read-only to this ticket).
+# THE LEDGER IS `specs/results/deferred_findings_final.yaml` -- 119 rows, and
+# nothing else in this repository is it. This file is where SI-08 (Evaluation A) FILED, under
+# `deferment_policy.per_ticket_backlog`
+# (`skills/git-epic-workflow/references/deferment.md:47`). Filing here is still
+# correct; it is the step AFTER filing that had never happened.
 #
-# NOTE ON THE BUDGET. The assignment declares `deferment.budget: 5` and this file
-# carries 11 rows. That is deliberate and is flagged rather than trimmed: for an
-# `role: evaluation` ticket the findings ARE the deliverable, and a measurement
-# ticket that drops five of its measurements to fit a deferral budget has
-# falsified its own output. None of the ten was fixed here (rule: measurement
-# only, no behavioural delta).
+# WHAT SI-27 (#382) DID, on 2026-09-23. The 11 rows below were absorbed
+# into the ledger verbatim -- every field byte-for-byte, plus a disposition
+# with evidence and an `absorbed_from: SI-08.yaml` marker -- and removed from here.
+# Before that there were two ledgers: 87 rows in `_final.yaml` and 28 across
+# this directory that nothing read, which is how a query for SI-16-DF-02 and
+# SI-16-DF-03 returned NOT FOUND for both while the epic agent was citing them
+# as the two blockers before any scored eval run.
 #
-# Every row carries a `skill_change` field in the grammar
-# improvement_ledger.py parses (`none` | `proposed(<unit>, <what>)` |
-# `applied(<sha>)` | `declined(<reason>)`), because SI-08 measured that 94 of 121
-# records in this repository carry none, and a measurement ticket that adds ten
-# more fieldless rows makes its own number worse.
+# THE RULE, so this does not split again:
+#   * a ticket files into its own `<ticket>.yaml` here, as before;
+#   * the epic agent absorbs into `deferred_findings_final.yaml` at wave close;
+#   * a row lives in exactly one of the two places, never both;
+#   * NOTHING reads this directory as a population. Do NOT add
+#     `specs/results/deferred/*.yaml` to `improvement_ledger.py`'s `BACKLOGS`
+#     (SI-08-DF-11 proposes exactly that): after this reconciliation the glob
+#     double-counts every absorbed id.
+#
+# The ids are listed below so this file still answers "what did SI-08 (Evaluation A) file".
+# Their text is in the ledger.
 
-findings:
-  - id: SI-08-DF-01
-    found_by: SI-08
-    found_at_commit: 2131cdad
-    schedule_revision: 4
-    severity: major
-    surface: {production: [skills/spec-double-2/scripts/improvement_ledger.py], tla: [], adapters: [], test_graph: []}
-    summary: >-
-      THE GOAL'S OWN INSTRUMENT SILENTLY READS A QUARTER OF ITS POPULATION.
-      `improvement_ledger.py` decides GOAL-findings-become-changes. Run with the
-      ambient `python3` (Homebrew 3.14 on this machine), it cannot import PyYAML,
-      skips BOTH deferred backlogs, and then prints a complete-looking disposition
-      table over 36 records from 2 files. The declared metric is "findings by
-      disposition across skill_feedback.md, BOTH DEFERRED BACKLOGS, and the matrix"
-      -- 4 sources. Under `uv run --python 3.12 --with pyyaml` the same script reads
-      121 records across 4 files. The warning line is honest ("this is not an empty
-      backlog") but sits ABOVE an unmarked table, and 36 is the number a reader
-      copies. Every figure this evaluation reports is the 4-file figure.
-    reproduction: >-
-      cd <repo> && python3 skills/spec-double-2/scripts/improvement_ledger.py
-      -> "121 record(s)" is NOT printed; the header reads "36 record(s) across 2 file(s)".
-      Then: uv run --python 3.12 --with pyyaml python skills/spec-double-2/scripts/improvement_ledger.py
-      -> "improvement ledger -- 121 record(s) across 4 file(s)".
-    evidence:
-      - specs/results/epic-self-improvement-substrate/goals/GOAL-findings-become-changes/SI-08-EVALUATION-A.md
-    why_out_of_scope: >-
-      Fixing it means either vendoring a YAML reader or making the script re-exec
-      under an interpreter that has one -- a behavioural change to a script this
-      ticket is using as a measuring instrument. Rule 1 of the work order forbids
-      the delta; the defect was worked around by naming the interpreter and is
-      reported instead.
-    suggested_fix: >-
-      Make the partial read LOUD: if a declared source could not be parsed, print
-      the table with an explicit "PARTIAL: n of m sources" banner in the header
-      line itself, not only as a warning above it. Better, re-exec under
-      `uv run --with pyyaml` when PyYAML is missing.
-    skill_change: proposed(spec-double-2, mark a partial source read in the ledger's header line and/or re-exec under an interpreter with PyYAML)
-    blast_radius: >-
-      Any reader of this goal. The two numbers differ by 85 records and by a factor
-      of four on the headline "no skill_change field at all" count (23 vs 94).
-
-  - id: SI-08-DF-02
-    found_by: SI-08
-    found_at_commit: 2131cdad
-    schedule_revision: 4
-    severity: minor
-    surface: {production: [], tla: [], adapters: [], test_graph: []}
-    summary: >-
-      The assignment block names the harness for GOAL-findings-become-changes as
-      `python3 scripts/improvement_ledger.py`. There is no `scripts/` directory at
-      the repository root. The script is at
-      `skills/spec-double-2/scripts/improvement_ledger.py` -- it moved into the
-      plugin in SI-01/SI-11 and the goal's `harness` and `decided_by.harness`
-      strings were not repointed.
-    reproduction: "cd <repo> && python3 scripts/improvement_ledger.py -> [Errno 2] No such file or directory; ls scripts/ -> No such file or directory."
-    evidence:
-      - specs/results/epic-self-improvement-substrate/goals/GOAL-findings-become-changes/SI-08-EVALUATION-A.md
-    why_out_of_scope: >-
-      The goal text lives in the canonical epic plan and the issue body, both the
-      epic agent's to edit. A ticket editing a goal's harness string is one step
-      from editing a target, which rule 2 forbids outright.
-    suggested_fix: "Repoint the harness string for GOAL-findings-become-changes to skills/spec-double-2/scripts/improvement_ledger.py in the plan and in issue #341."
-    skill_change: none
-    blast_radius: "Every future reader of this goal runs a command that does not exist and may conclude the instrument was never built."
-
-  - id: SI-08-DF-03
-    found_by: SI-08
-    found_at_commit: 2131cdad
-    schedule_revision: 4
-    severity: major
-    surface: {production: [], tla: [], adapters: [], test_graph: []}
-    summary: >-
-      THE FRONT DOOR IS BROKEN BY THE VERY MIGRATION THIS EPIC PERFORMED, AND THE
-      ROOT CAUSE IS ONE LINE. `skt ticket new` resolves the bootstrap script as
-      `<home>/skills/git-issue-workflow/scripts/bootstrap-home.sh`
-      (skt/src/skt/ticket.py:150, `_bootstrap_script()`), i.e. ONLY from a
-      standalone skill install. It never looks inside `<home>/plugins/*/skills/`.
-      The project home has the file -- at
-      `.skill-manager/plugins/tla-spec-dev/skills/git-issue-workflow/scripts/bootstrap-home.sh`
-      -- so the script is PRESENT and the resolver cannot see it. Result: "error:
-      bootstrap-home.sh not found in this home; worktree rolled back", no worktree,
-      no branch. This is the 9th occurrence in this epic (SI-06-DF-02,
-      SI-11-DF-04, SI-15-DF-04 and others) and the FIRST to name the resolving
-      line rather than the symptom. Note also that the rollback still exits 0
-      through a pipe, which is how three earlier agents mis-read it.
-    reproduction: >-
-      cd /Users/hayde/IdeaProjects/tla-spec-dev &&
-      SKT="${SKILL_MANAGER_HOME:-$HOME/.skill-manager}/bin/cli/skt";
-      "$SKT" ticket new SI-08 --base 2131cdad --path ../wt-341-evaluation
-      -> "error: bootstrap-home.sh not found in this home; worktree rolled back",
-      and `test -d ../wt-341-evaluation` is false. Then:
-      find <project home> -name bootstrap-home.sh
-      -> .skill-manager/plugins/tla-spec-dev/skills/git-issue-workflow/scripts/bootstrap-home.sh
-    evidence:
-      - specs/results/epic-self-improvement-substrate/tickets/SI-08/VERDICTS.md
-    why_out_of_scope: "The fix is upstream in the skt plugin, whose source is not in this worktree. `skills/**` here does not contain skt."
-    suggested_fix: >-
-      In `_bootstrap_script()`, after the standalone `<home>/skills/<UNIT>/` probe
-      fails, glob `<home>/plugins/*/skills/<UNIT>/scripts/bootstrap-home.sh` before
-      giving up -- the plugin layout is now the SUPPORTED layout, so the resolver
-      that predates it is the bug, not the home. Independently: exit non-zero on
-      rollback.
-    skill_change: proposed(skt, resolve bootstrap-home.sh from plugins/*/skills/ as well as skills/, and exit non-zero on rollback)
-    blast_radius: >-
-      Every ticket agent in every epic that runs this repository's front door from a
-      home where the substrate is installed as the plugin -- which is the layout
-      GOAL-one-unit exists to produce. The goal and the front door are in direct
-      conflict until this is fixed.
-
-  - id: SI-08-DF-04
-    found_by: SI-08
-    found_at_commit: 2131cdad
-    schedule_revision: 4
-    severity: major
-    surface: {production: [], tla: [], adapters: [], test_graph: []}
-    summary: >-
-      GOAL-one-unit CLAUSE 1 IS NOT MET IN THE ROOT HOME. The clause reads "zero
-      standalone copies of the five migrated skills in root OR project home".
-      Measured 2026-09-20: the project home is clean (0 standalone directories, 0
-      standalone install records, plugin installed). The ROOT home
-      (~/.skill-manager) still carries all EIGHT substrate skills standalone -- as
-      directories AND as install records -- and does not have the plugin installed
-      at all: discovery, git-epic-workflow, git-integration-repo, git-issue,
-      git-issue-workflow, plugin-repository, spec-double-compiler, test-graph. The
-      baseline condition is unchanged there.
-    reproduction: "See specs/results/epic-self-improvement-substrate/tickets/SI-08/home-sweep.json -- a sweep that asserts its own population (18 skill dirs / 48 install records in root; 10 / 33 in project) before reporting."
-    evidence:
-      - specs/results/epic-self-improvement-substrate/tickets/SI-08/home-sweep.json
-      - specs/results/epic-self-improvement-substrate/goals/GOAL-one-unit/SI-08-EVALUATION-A.md
-    why_out_of_scope: "Work order rule 8: never modify the operator's root home. Closing this clause is an operator action, not a ticket action."
-    suggested_fix: >-
-      Operator decision: either install the tla-spec-dev plugin into the root home
-      and remove the eight standalone units, or amend the goal so the clause names
-      the project home only. THE SECOND IS A TARGET EDIT and must be the owner's
-      explicit call, not a ticket's -- this ticket reports the clause as NOT MET
-      rather than rewording it.
-    skill_change: none
-    blast_radius: "Any agent whose session resolves the root home -- which is every agent outside this repository -- still loads eight separately versioned copies."
-
-  - id: SI-08-DF-05
-    found_by: SI-08
-    found_at_commit: 2131cdad
-    schedule_revision: 4
-    severity: major
-    surface: {production: [evals/run.sh, evals/lib/toolchain.py], tla: [], adapters: [], test_graph: []}
-    summary: >-
-      THE TOOLCHAIN RECORD AND THE SCORE ARE NOT JOINED BY ANYTHING. The baseline
-      for GOAL-pinned-eval-toolchain complains that nothing "writes it next to a
-      score". Measured on the first scored run ever performed: the score artifact
-      `evals/results/<runstamp>/aggregate-result.json` contains ZERO occurrences of
-      `toolchain`, `pinned`, or either pinned sha, and the run record is a SIBLING
-      directory `evals/results/toolchain/<utcstamp>.json` whose stamp differs from
-      the run directory's by five seconds. They share no run id, no case name, no
-      key. Pairing them is a human reading two timestamps.
-    reproduction: >-
-      ./evals/run.sh --case use-the-front-door; then
-      grep -c -iE "toolchain|286a3694|6ffacb88|pinned" evals/results/<runstamp>/aggregate-result.json
-      -> 0. Compare ls evals/results/ (2026-09-20T16-45-12-045Z) with
-      ls evals/results/toolchain/ (20260920T164507Z).
-    evidence:
-      - specs/results/epic-self-improvement-substrate/goals/GOAL-pinned-eval-toolchain/first-scored-run/
-      - specs/results/epic-self-improvement-substrate/goals/GOAL-pinned-eval-toolchain/RUN-ATTEMPT.md
-    why_out_of_scope: "Changing what run.sh writes is a behavioural delta to the instrument this ticket is measuring with. Rule 1."
-    suggested_fix: >-
-      Write the run record INTO the run directory `claude plugin eval` creates
-      (run.sh already knows the path when it harvests results), or stamp the record
-      with the same id. A one-line copy at harvest time is enough.
-    skill_change: proposed(spec-double-2, write the toolchain run record into the eval run's own results directory so a score and its toolchain share a key)
-    blast_radius: "Every future comparison of two scores. Attributing a moved score to a moved ref is the entire purpose of the pin, and today it rests on timestamp proximity."
-
-  - id: SI-08-DF-06
-    found_by: SI-08
-    found_at_commit: 2131cdad
-    schedule_revision: 4
-    severity: minor
-    surface: {production: [.gitignore], tla: [], adapters: [], test_graph: []}
-    summary: >-
-      `.gitignore:32` ignores `evals/results/`, so the toolchain run record a
-      scored run writes is NOT committed by the run that made it. The goal's
-      harness demands "the pinned ref must appear in the repository, not only in a
-      run log" -- which the lock file satisfies -- but the per-run evidence that
-      a given score ran at a given ref does not persist in git at all.
-    reproduction: "git check-ignore -v evals/results/toolchain/20260920T164507Z.json -> .gitignore:32:evals/results/"
-    evidence:
-      - specs/results/epic-self-improvement-substrate/goals/GOAL-pinned-eval-toolchain/first-scored-run/run-record-20260920T164507Z.json
-    why_out_of_scope: "Un-ignoring a results tree is a repository-policy change with blast radius well outside an evaluation ticket's slice."
-    suggested_fix: >-
-      Negate the ignore for the record only -- `!evals/results/toolchain/` -- so
-      scores stay untracked while the toolchain provenance is committed. This
-      ticket preserved its own copies under the goal evidence root by hand.
-    skill_change: proposed(spec-double-2, un-ignore evals/results/toolchain/ so per-run toolchain provenance is committed)
-    blast_radius: "Any attempt to audit, after the fact, which ref a past score ran at."
-
-  - id: SI-08-DF-07
-    found_by: SI-08
-    found_at_commit: 2131cdad
-    schedule_revision: 4
-    severity: minor
-    surface: {production: [], tla: [], adapters: [], test_graph: []}
-    summary: >-
-      GOAL-one-unit's clause 2 names a population that no longer exists. The target
-      says "every listed graph and EVAL CASE green", the harness says "the plugin's
-      own eval cases (SI-10)", and the issue's regression section says
-      "`examples/agent_integration/eval-plugin` BOTH CASES". That directory does not
-      exist at this base -- SI-15 moved the suite to `evals/`, which holds 61 cases,
-      of which 6 are UNDECIDED by construction (SI-15-DF-05) and, before this
-      ticket, 0 had ever been scored. "Both cases green" has no referent.
-    reproduction: "find examples/agent_integration/eval-plugin -> No such file or directory; find evals -name case.yaml | wc -l -> 61."
-    evidence:
-      - specs/results/epic-self-improvement-substrate/goals/GOAL-one-unit/SI-08-EVALUATION-A.md
-    why_out_of_scope: "It is a target/plan defect. Rule 2: NEVER EDIT A TARGET. Reported as unmeasurable-as-written instead, and the clause is returned UNDECIDED rather than green or red."
-    suggested_fix: >-
-      The owner restates clause 2's eval half against the suite that now exists --
-      naming which of the 61 cases must be green and at what cost -- or drops the
-      eval half and decides the clause on the graphs. Either is a target change and
-      belongs to the owner.
-    skill_change: none
-    blast_radius: "SI-23 re-reads this clause against SI-08's reading; if the population is still undefined the delta is uninterpretable."
-
-  - id: SI-08-DF-08
-    found_by: SI-08
-    found_at_commit: 2131cdad
-    schedule_revision: 4
-    severity: minor
-    surface: {production: [evals/git-issue-workflow/use-the-front-door], tla: [], adapters: [], test_graph: []}
-    summary: >-
-      THE FIRST CASE EVER SCORED IN THIS SUITE DOES NOT PASS. `use-the-front-door`
-      scored 0.67 (threshold 1) in its first real run: grader
-      `starts-at-the-front-door` (file_exists, weight 2) passed;
-      `the-first-command-is-quoted` (regex over `last_message` for
-      `skt ticket new|wt new|git worktree add`, weight 1) failed -- "pattern not
-      found in last_message". Recorded as a measured fact, not diagnosed: this
-      ticket did not open the trace, and the failure may be the agent's, the
-      grader's, or the prompt's.
-    reproduction: "./evals/run.sh --case use-the-front-door -> score 0.67, $0.54, 106s, run.sh exit 1."
-    evidence:
-      - specs/results/epic-self-improvement-substrate/goals/GOAL-pinned-eval-toolchain/first-scored-run/aggregate-result.json
-    why_out_of_scope: "Measurement only, no behavioural delta (rule 1). Diagnosing a case's grader is not this ticket's slice."
-    suggested_fix: "Re-run with --keep-temp and read the trace before concluding which of the three it is. Do not 'fix' the regex until the trace says the agent named a different command."
-    skill_change: none
-    blast_radius: "The suite's pass rate is 0% on a sample of 1. Nobody should quote that figure; the sample is one case chosen for being cheap."
-
-  - id: SI-08-DF-09
-    found_by: SI-08
-    found_at_commit: 2131cdad
-    schedule_revision: 4
-    severity: minor
-    surface: {production: [], tla: [], adapters: [], test_graph: []}
-    summary: >-
-      The project home's plugin is ONE COMMIT BEHIND the epic tip and the state
-      handed to this ticket named a different hash. Brief said the home was
-      refreshed to `gitHash c27e40b5`; the install record reads `c8dc064a`
-      (gitRef epic/self-improvement-substrate, installed 2026-09-20T16:34:12Z).
-      `c8dc064a` is an ancestor of the base `2131cdad`, exactly 1 commit behind,
-      and `skt check` says so: "new version available for tla-spec-dev".
-      The 8-skills / 0-duplicates half of the handed state reproduced exactly.
-    reproduction: "cat <project home>/installed/tla-spec-dev.json; git merge-base --is-ancestor c8dc064a 2131cdad; git rev-list --count c8dc064a..2131cdad -> 1; skt check."
-    evidence:
-      - specs/results/epic-self-improvement-substrate/goals/GOAL-one-unit/SI-08-EVALUATION-A.md
-    why_out_of_scope: "Syncing the project home is the epic agent's act at wave close; the work order forbids this ticket from syncing into it."
-    suggested_fix: "`skt sync tla-spec-dev` in the project home at wave close, and record the resulting hash beside the goal so the next evaluation compares like with like."
-    skill_change: none
-    blast_radius: "Small in itself; it matters because GOAL-one-unit is decided by reading that home, so the reading is of a tip-minus-one home."
-
-  - id: SI-08-DF-10
-    found_by: SI-08
-    found_at_commit: 2131cdad
-    schedule_revision: 4
-    severity: minor
-    surface: {production: [skills/spec-double-2/references/blind_dispatch.md], tla: [], adapters: [], test_graph: []}
-    summary: >-
-      A STANDING WARNING IN blind_dispatch.md IS NOW TOO PESSIMISTIC, MEASURED.
-      That page says the skill listing survives every mitigation and "tells a judge
-      what toolchain it is standing in", and `check`'s own scope note repeats it.
-      Measured across four `claude --safe-mode -p` judges in neutral cells: the
-      skill listing WAS delivered and carried NO project skill -- no spec-double-2,
-      no git-epic-workflow, no tla-spec-dev, only the generic harness set (dataviz,
-      update-config, code-review, schedule, init...). The judges also received no
-      MEMORY.md, no CLAUDE.md, no git-status block and no repository path but the
-      cell. The `<env>` block and scratchpad-path caveats DO still hold.
-    reproduction: >-
-      python3 examples/validation/instruments/blind_dispatch.py cell /private/tmp/blind-si08-a2;
-      cd /private/tmp/blind-si08-a2 && claude --safe-mode -p < <packet> > reply.txt;
-      then read the verbatim disclosure section (g) in the reply, and run
-      `blind_dispatch.py check` (PASS on all four).
-    evidence:
-      - specs/results/epic-self-improvement-substrate/goals/GOAL-blockers-propose/replies/
-      - specs/results/epic-self-improvement-substrate/goals/GOAL-blockers-propose/SI-08-EVALUATION-A.md
-    why_out_of_scope: >-
-      It is a correction to a reference page that four other tickets are citing
-      this wave, and overstating blindness in the OTHER direction is the error this
-      project has made most often. It belongs in one deliberate edit by the owner
-      of that page, with the four disclosures attached.
-    suggested_fix: >-
-      Amend §1/§3 of references/blind_dispatch.md to say the skill listing is
-      neutral in a cell built by `cell` and that the residual identity leak is the
-      `<env>` block, the scratchpad path, and -- decisively -- the SUBJECT itself.
-      Keep the warning for repo-rooted dispatch, where it was measured.
-    skill_change: proposed(spec-double-2, correct blind_dispatch.md's skill-listing warning for the neutral-cell path and attach the four measured disclosures)
-    blast_radius: "Every future judged round. The page is the authority the improvement card defers to for what a card may claim."
-
-  - id: SI-08-DF-11
-    found_by: SI-08
-    found_at_commit: 2131cdad
-    schedule_revision: 4
-    severity: major
-    surface: {production: [skills/spec-double-2/scripts/improvement_ledger.py], tla: [], adapters: [], test_graph: []}
-    summary: >-
-      THE EPIC PARTITIONED THE BACKLOG AND DID NOT TELL THE INSTRUMENT THAT
-      DECIDES THE GOAL. `improvement_ledger.py` hardcodes its sources at lines
-      82-83: `specs/results/deferred_findings_final.yaml` and
-      `specs/results/epic-close/deferred_findings_next.yaml`. The per-ticket
-      partition `specs/results/deferred/{ticket}.yaml` -- which
-      `git-epic-workflow/references/deferment.md:47` declares as
-      `per_ticket_backlog`, and which SI-15, the epic agent and now SI-08 all file
-      into -- is read by NOTHING. Measured: 16 rows live there today
-      (EPIC-AGENT 1, SI-15 5, SI-08 11) and are invisible to the ledger, which
-      reports a population of 121 where the true population is 137. Ten of the
-      sixteen carry a `skill_change` field, so the partition holds a
-      DISPROPORTIONATE share of exactly the field the goal is measured on, and
-      every one of them is uncounted. The goal's own number is therefore biased
-      DOWNWARD by the epic's own filing convention.
-    reproduction: >-
-      sed -n '80,86p' skills/spec-double-2/scripts/improvement_ledger.py  (BACKLOGS is a 2-tuple);
-      then: ls specs/results/deferred/*.yaml -> EPIC-AGENT.yaml SI-08.yaml SI-15.yaml;
-      count their `findings:` rows (16) and compare with the ledger's own header,
-      "improvement ledger -- 121 record(s) across 4 file(s)".
-    evidence:
-      - specs/results/epic-self-improvement-substrate/goals/GOAL-findings-become-changes/SI-08-EVALUATION-A.md
-    why_out_of_scope: >-
-      Adding a glob to the ledger changes the number the ledger reports for the
-      goal this ticket is measuring, in the middle of measuring it. That is the
-      one change an evaluation ticket may not make silently, so it is reported and
-      the biased figure is published WITH its bias named rather than quietly
-      corrected.
-    suggested_fix: >-
-      Add `specs/results/deferred/*.yaml` to `BACKLOGS` as a glob, and have SI-23
-      re-read the goal with the partition included so the corrected population
-      (137 and rising) is the one the epic closes on. Keep SI-08's 121 on the
-      record as the reading taken before the fix.
-    skill_change: proposed(spec-double-2, read specs/results/deferred/*.yaml in the ledger's BACKLOGS so the per-ticket partition is counted)
-    blast_radius: >-
-      GOAL-findings-become-changes directly, and it worsens as the epic proceeds:
-      every ticket that follows the CURRENT filing instruction files into the
-      partition, so the share of the record the instrument cannot see grows with
-      each ticket that complies.
+absorbed_into: specs/results/deferred_findings_final.yaml
+absorbed_at: "SI-27 (#382), 2026-09-23"
+absorbed_ids:
+  - SI-08-DF-01
+  - SI-08-DF-02
+  - SI-08-DF-03
+  - SI-08-DF-04
+  - SI-08-DF-05
+  - SI-08-DF-06
+  - SI-08-DF-07
+  - SI-08-DF-08
+  - SI-08-DF-09
+  - SI-08-DF-10
+  - SI-08-DF-11
+findings: []
