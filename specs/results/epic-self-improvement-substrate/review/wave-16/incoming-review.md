@@ -220,3 +220,42 @@ hardcodes a unit name that can retire.
 
 Verified: `tests/test_eval_toolchain_pin.py` **10 passed**, and
 `toolchain.py print-ref` returns `c405cba3…`, 40 hex, matching the lock.
+
+## Graphs after the pull: unchanged, and the repaired node held
+
+Run from a clean tree at `58af0470`. Build output cleared first (0 tracked,
+`.gitignore:67`), and **the tree was clean after every run** — SI-25's third
+acceptance criterion still holds against their rewritten `run.py` and the new
+sweep ledger.
+
+| graph | verdict | nodes |
+|---|---|---|
+| specWorkflow | **PASSED** | 9/9 |
+| cliWorkflow | **PASSED** | 2/2 |
+| effectProviderExamples | **PASSED** | 1/1 |
+| sktHooks | **PASSED** | 3/3 |
+| sktSurface | **ERRORED** | 4/5 |
+
+Each graph printed exactly once; the double-print fix survives their changes.
+
+**`skt.status-tiers` held: 100 assertions, 0 failed.** This is the node whose
+fixture I relocated in SI-25, and their `+88` lines in `skt/src/skt/status.py`
+land directly on it. It is green with MORE coverage than before — their
+`test_status.py` additions.
+
+**`skt.ticket-roundtrip` fails 13 of 39, and they are the SAME thirteen** as the
+SI-25 run, name for name: four worktree-creation assertions and nine refusal
+WORDING assertions whose behavioural twins all pass. `SI-25-DF-06` and
+`SI-25-DF-07` reproduce unchanged. Nothing in the 13 commits touched either,
+and nothing was expected to — they are this repository's findings, not
+skill-manager's.
+
+**One detail to add to SI-25-DF-06.** The node published
+`giwSource: clone:https://github.com/haydenrear/git-issue-workflow-skill.git`.
+That is the OLD repository name — `git-issue-workflow-skill`, which
+`49f67d2a` renamed to `git-issue-workflow` in `integration.toml`. The clone
+succeeds only through GitHub's redirect, which is exactly the invisibility that
+commit was written about. So `GIW_REMOTE` in
+`test_graph/sources/skt_ticket_roundtrip.py` carries a stale coord on top of
+resolving only one rung: fixing the rung removes the clone entirely, but if the
+fallback is kept it should name the current repository.
