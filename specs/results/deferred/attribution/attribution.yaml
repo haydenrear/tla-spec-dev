@@ -130,9 +130,19 @@ reach:
       - "specs/results/epic-close/deferred_findings_next.yaml"
     enumerated_by: >-
       Read `disposition.py`'s LEDGER and ARCHIVE_GLOBS constants, then tested
-      the live path. SI-27 then counted the population the clauses would have
-      refused on: 80 of 115 rows unsettled -- 54 `pending` and 26 with no
-      `disposition` key at all -- for an entire epic, with nothing reporting it.
+      the live path (`ls specs/desired_program_model/deferred_findings.yaml` ->
+      No such file). Then read where the policy actually points: this epic's
+      plan sets `deferment_policy.backlog:
+      "specs/results/deferred_findings_final.yaml"`
+      (ticket_plan.yaml:117), while `git-epic-workflow/references/deferment.md:44`
+      still shows the stale
+      `specs/desired_program_model/deferred_findings.yaml` as the template
+      default -- and `disposition.py` hardcodes the TEMPLATE, not the plan. So
+      the checker and the reference page agree with each other and both
+      disagree with the repository. SI-27 then counted the population the
+      clauses would have refused on: 80 of 115 rows unsettled -- 54 `pending`
+      and 26 with no `disposition` key at all -- for an entire epic, with
+      nothing reporting it.
     note: >-
       THIS IS THE REACH ROW THAT EXPLAINS SI-27'S EXISTENCE. The rule was
       written, the checker was built, and it was pointed at a path this
@@ -140,7 +150,7 @@ reach:
       indistinguishable, in every report, from one that opened it and found
       nothing wrong. Also the twin of SI-08-DF-11: the ledger's OTHER reader
       was pointed at two of the four files.
-    skill_change: "proposed(spec-double-2, SI-27: give disposition.py a resolution order that includes specs/results/deferred_findings_final.yaml, and make a ledger it cannot open a refusal rather than a fallback)"
+    skill_change: "proposed(spec-double-2, SI-27: have disposition.py read deferment_policy.backlog from the plan instead of hardcoding a path, and make a ledger it cannot open a REFUSAL rather than a fallback; separately, repoint deferment.md's template default)"
 
   - invariant: >-
       a finding anchored to a SKILL is consumed only by a change to that skill
