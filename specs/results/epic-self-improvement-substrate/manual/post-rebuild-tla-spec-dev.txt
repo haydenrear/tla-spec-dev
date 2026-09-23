@@ -1,0 +1,130 @@
+# tla-spec-dev CLI after the pull and rebuild
+# HEAD 2c21e609, 2026-09-23T15:21:14Z
+
+$ tla-spec-dev --version
+rc=0
+tla-spec-dev 0.1.0
+
+$ tla-spec-dev --help
+rc=0
+usage: tla-spec-dev [-h] [--spec-root SPEC_ROOT] [--repo-root REPO_ROOT]
+                    [--version]
+                    command ...
+
+Work with a spec-double-compiler project through the modeled spec workflow.
+
+positional arguments:
+  command
+    scaffold            Create spec workflow directories.
+    open                Open a ticket-local spec workflow.
+    run                 Run spec workflow validations.
+    analyze             Analyze model complexity against the budgets.
+    generate            Generate spec-unit case packages from a TLC state
+                        graph.
+    retire              Record an owner decision to withdraw a dispatched
+                        ticket.
+
+$ tla-spec-dev scaffold --help
+rc=0
+usage: tla-spec-dev scaffold [-h] target ...
+
+Create the modeled spec-double-compiler project or ticket workflow
+directories.
+
+positional arguments:
+  target
+    project   Create the accepted program_model baseline.
+    workflow  Create current and desired workflow directories.
+
+optional arguments:
+  -h, --help  show this help message and exit
+
+$ tla-spec-dev open --help
+rc=0
+usage: tla-spec-dev open [-h] target ...
+
+Open a ticket workspace with ticket-local current, desired, results, and Test
+Graph files.
+
+positional arguments:
+  target
+    ticket    Open a ticket by id or name.
+
+optional arguments:
+  -h, --help  show this help message and exit
+
+$ tla-spec-dev run --help
+rc=0
+usage: tla-spec-dev run [-h] target ...
+
+Run generated or adapter-backed validations from the selected spec root.
+
+positional arguments:
+  target
+    spec-unit-tests   Run generated spec-unit adapter tests.
+    effect-conformance
+                      Diff observed adapter side effects against declared
+                      effect ports.
+
+optional arguments:
+  -h, --help          show this help message and exit
+
+$ tla-spec-dev analyze --help
+rc=0
+usage: tla-spec-dev analyze [-h] target ...
+
+Analyze a spec + cfg for state-space complexity and gate it against manifest
+budgets.
+
+positional arguments:
+  target
+    complexity
+              Print the complexity descriptor: dimension table, bound, R/W
+              matrix, modularity.
+    corpus    Print the case distribution and gate it against the case caps.
+
+optional arguments:
+  -h, --help  show this help message and exit
+
+$ tla-spec-dev generate --help
+rc=0
+usage: tla-spec-dev generate [-h] target ...
+
+Generate the case corpus a view (or a case module) implies.
+
+positional arguments:
+  target
+    cases     Generate a view-aware spec-unit case package from a TLC dump.
+
+optional arguments:
+  -h, --help  show this help message and exit
+
+$ tla-spec-dev retire --help
+rc=0
+usage: tla-spec-dev retire [-h] target ...
+
+Write an append-only ticket-retirement receipt without promoting ticket
+desired/current state or claiming validation. The plan entry must already be
+marked status: retired and contain the complete retirement decision.
+
+positional arguments:
+  target
+    ticket    Write the canonical no-promotion retirement receipt for one
+              ticket.
+
+optional arguments:
+  -h, --help  show this help message and exit
+
+$ tla-spec-dev close --help
+rc=0
+usage: tla-spec-dev close [-h] target ...
+
+Close a ticket once current equals desired and validations pass.
+
+positional arguments:
+  target
+    ticket    Close a ticket by id or name.
+
+optional arguments:
+  -h, --help  show this help message and exit
+
