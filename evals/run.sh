@@ -16,14 +16,19 @@
 #      directories -- point the case at a smaller plugin directory
 #
 #    Measured on 2.1.275 at 994f650c: this checkout is 70,741 entries, and the
-#    refusal fires. It is not close -- `specs/.history` is 19,154 of it and the
-#    gitignored `.skill-manager` home another 41,169. There is no ignore file,
-#    no flag and no manifest key that excludes anything from that count (the
-#    traversal skips `.git`, `.svn`, `.hg` and nothing else), so the only way to
-#    hand the CLI a small plugin directory is to hand it a different directory.
-#    This stages one: a copy of the working tree with the record and the home
-#    left out, 6,264 entries, made fresh on every run so it cannot drift from
-#    the checkout it was copied from.
+#    refusal fires. It is not close. There is no ignore file, no flag and no
+#    manifest key that excludes anything from that count (the traversal skips
+#    `.git`, `.svn`, `.hg` and nothing else), so the only way to hand the CLI a
+#    small plugin directory is to hand it a different directory. This stages
+#    one, made fresh on every run so it cannot drift from what it was built
+#    from.
+#
+#    UPDATED 2026-09-23: it is built from a COMMIT, not from the working tree.
+#    Copying the tree with an exclude list staged everything `.gitignore` hides,
+#    because `tar` does not read it -- 360,230 entries by then, of which
+#    294,611 were `test_graph/build` and ~56,500 `examples/*/evidence`. Built
+#    from `git archive HEAD`, the same checkout is 30,849, and 8,640 once
+#    `specs/.history` is dropped. See "the view" below.
 #
 #    The previous answer was a committed symlink shim carrying one skill's
 #    surface. It could not grow to the nested skills -- it named
@@ -110,24 +115,90 @@ repo=$(CDPATH= cd -- "$here/.." && pwd)
 view="${SI10_VIEW:-/private/tmp/tla-spec-dev-eval-view}"
 
 # ---------------------------------------------------------------- the view
+#
+# THE VIEW IS A COMMIT, NOT THE WORKING TREE.
+#
+# This used to `tar` the working tree with an exclude list, and the exclude list
+# was the defect. `tar` does not read `.gitignore`, so every ignored byte on
+# disk was staged and counted: measured 2026-09-23, the working-tree view held
+# 360,230 entries against the CLI's hard 20,000 ceiling. 294,611 of those were
+# `test_graph/build` and ~56,500 were `examples/*/evidence` -- run output, not
+# repository content. `git status` reported ZERO untracked files in the latter,
+# because every one of them is ignored. An exclude list can only ever name the
+# residue somebody already tripped over; three were added that way before this.
+#
+# `git archive <commit>` enumerates TRACKED CONTENT AT THAT COMMIT and nothing
+# else, so ignored residue cannot enter the view however much of it is on disk.
+# Measured on the same checkout: 30,849 entries, and 8,640 once `specs/.history`
+# is dropped -- 11,360 under the ceiling, against 360,230 before.
+#
+# WHY IT REFUSES A DIRTY OR UNPUSHED CHECKOUT. A score is a claim about a
+# COMMIT. If the view is built from work that is uncommitted, or committed and
+# unpushed, then nobody else can reconstruct what was graded and the run record
+# names a sha that does not contain what ran. The refusal is overridable with
+# SI10_ALLOW_DIRTY=1, which says so loudly in the output and in the record,
+# because iterating on a case locally is a real thing to want -- but it is never
+# the default and never silent.
 echo "eval: staging a plugin view of $repo"
+
+# "Unpushed" asks whether ANYBODY ELSE CAN FETCH THIS COMMIT, which is not the
+# same as whether it is on this branch's configured upstream. Measured
+# 2026-09-23: this branch's `@{u}` is `origin/epic/self-improvement-substrate`
+# in the ARCHIVED tla-spec-dev repository, while delivery happens on
+# `tla-spec-dev-plugin/main`. Checking `@{u}..` therefore reported 13 unpushed
+# commits for a tip that was published and fetchable -- refusing a run that
+# should have been allowed, for a reason that was about remote bookkeeping
+# rather than reproducibility.
+#
+# `git branch -r --contains HEAD` answers the question directly: it lists every
+# remote-tracking ref that already contains this commit. Empty means no remote
+# has it and the sha in the record names something only this disk holds.
+dirty=$(git -C "$repo" status --porcelain 2>/dev/null)
+on_remote=$(git -C "$repo" branch -r --contains HEAD 2>/dev/null | sed 's/^[ *]*//' | grep -v '^$' || true)
+if [ -n "$on_remote" ]; then
+    unpushed=""
+else
+    unpushed=$(git -C "$repo" log --oneline -10 "$(git -C "$repo" rev-parse HEAD)" --not --remotes 2>/dev/null || true)
+fi
+if [ -n "$dirty" ] || [ -n "$unpushed" ]; then
+    if [ "${SI10_ALLOW_DIRTY:-0}" = "1" ]; then
+        echo "eval: WARNING -- SI10_ALLOW_DIRTY=1. The view is built from HEAD, so"
+        echo "eval:            uncommitted work is NOT in it and unpushed commits are"
+        echo "eval:            not reachable by anyone else. This score is not"
+        echo "eval:            reproducible from the recorded sha."
+        [ -n "$dirty" ]    && echo "eval:            uncommitted: $(printf '%s' "$dirty" | wc -l | tr -d ' ') path(s)"
+        [ -n "$unpushed" ] && echo "eval:            on no remote: $(printf '%s' "$unpushed" | wc -l | tr -d ' ') commit(s) only this disk holds"
+    else
+        echo "eval: REFUSING -- a score is a claim about a commit, and this checkout" >&2
+        echo "eval:   does not match one that anybody else can fetch." >&2
+        [ -n "$dirty" ] && {
+            echo "eval:   uncommitted changes:" >&2
+            printf '%s\n' "$dirty" | sed 's/^/eval:     /' >&2
+        }
+        [ -n "$unpushed" ] && {
+            echo "eval:   this commit is on NO remote -- nobody else can fetch it:" >&2
+            printf '%s\n' "$unpushed" | sed 's/^/eval:     /' >&2
+        }
+        echo "eval:   fix: commit and push, or re-run with SI10_ALLOW_DIRTY=1 to grade" >&2
+        echo "eval:        HEAD anyway and have the record say the score is not" >&2
+        echo "eval:        reproducible." >&2
+        exit 1
+    fi
+fi
+
+view_commit=$(git -C "$repo" rev-parse HEAD)
+echo "eval: the view is commit $view_commit"
 rm -rf "$view"
 mkdir -p "$view"
-tar -cf - -C "$repo" \
-    --exclude='./.git' \
-    --exclude='./.skill-manager' \
-    --exclude='./.claude' \
-    --exclude='./.codex' \
-    --exclude='./.gemini' \
-    --exclude='./.pytest_cache' \
-    --exclude='./.idea' \
-    --exclude='./specs/.history' \
-    --exclude='./evals/results' \
-    --exclude='./.toolchain' \
-    . | tar -xf - -C "$view"
+git -C "$repo" archive "$view_commit" | tar -xf - -C "$view"
+
+# specs/.history is 22,209 entries of append-only closed-epic record. It is
+# TRACKED, so `git archive` carries it and the exclude has to happen here rather
+# than in the enumeration. No case reads it.
+rm -rf "$view/specs/.history"
 
 entries=$(find "$view" | wc -l | tr -d ' ')
-echo "eval: the view holds $entries entries (the limit is 20000; this checkout is $(find "$repo" -path "$repo/.git" -prune -o -print | wc -l | tr -d ' '))"
+echo "eval: the view holds $entries entries (the limit is 20000; tracked at this commit is $(git -C "$repo" ls-tree -r --name-only "$view_commit" | wc -l | tr -d ' '), and the working tree on disk is $(find "$repo" -path "$repo/.git" -prune -o -print | wc -l | tr -d ' '))"
 if [ "$entries" -ge 20000 ]; then
     # WARN, NEVER REFUSE. The run that follows will fail with the CLI's own
     # message, which is more informative than anything this script could say;

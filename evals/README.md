@@ -242,7 +242,21 @@ tla-spec-dev** — and a fixture hook's blocking `exit 2` would be able to refus
 somebody's ordinary session.
 
 So `evals/hooks/hooks.json` is copied into the staged view by `run.sh` and
-loaded from there. The shipped plugin gains no hooks and no new way to refuse.
+loaded from there.
+
+> **CORRECTED 2026-09-23 (`SI-16-DF-02`).** This paragraph used to end "the
+> shipped plugin gains no hooks and no new way to refuse." That stopped being
+> true at SI-16, which absorbed skt and lifted its two hooks to the repository
+> root: `hooks/hooks.json` is a COMMITTED FILE now, and the `cp` above
+> OVERWRITES it inside the view rather than creating one.
+>
+> **So the shipped hooks are out of this suite's scope, deliberately.** An eval
+> run loads the fixture-placing hooks and only those. Merging skt's
+> `SessionStart` in would add a `skt status` spawn to every case and change what
+> every score measures, so the overwrite is kept and the limit is stated here
+> instead: **no score in this suite is evidence about `hooks/skt-session-start.sh`
+> or `hooks/skt-post-tool.sh`.** Those are covered by the `sktHooks` test graph,
+> which asserts the hook contract directly.
 
 Two hooks do the work that no grader can:
 
