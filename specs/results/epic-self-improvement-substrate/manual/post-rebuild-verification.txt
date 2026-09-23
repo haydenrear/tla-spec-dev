@@ -1,0 +1,91 @@
+# Manual re-verification after the 13-commit pull and the home rebuild
+# HEAD 2c21e609, recorded 2026-09-23T15:20:44Z
+# Every rc captured directly, never through a pipe.
+# SI-26's transcripts predate BOTH the pull and the rebuild; these are the
+# paths most likely to have moved.
+
+$ skt --version
+rc=0
+skt 0.8.2
+
+$ skt status            (worktree tier, rebuilt home)
+rc=0
+skt status — /Users/hayde/IdeaProjects/wt-epic-self-improvement-substrate
+checkout   integration repo, branch epic/self-improvement-substrate (epic self-improvement-substrate)
+home       /Users/hayde/IdeaProjects/wt-epic-self-improvement-substrate/.skill-manager — tier: worktree, policy: live
+parent     /Users/hayde/IdeaProjects/tla-spec-dev/.skill-manager — this home was cloned from it and syncs back to it
+publish    edited a unit here? `skt publish <unit>` — syncs it to the parent above, then publishes to the unit's own git repo. Nothing else carries an edit out of this home; git does not.
+writes     this session writes /Users/hayde/IdeaProjects/wt-epic-self-improvement-substrate/.skill-manager. Never write /Users/hayde/IdeaProjects/tla-spec-dev/.skill-manager, or any other home, by hand.
+spec       workflow 'self-improvement-substrate' active; no open tickets
+base       in sync with parent @5d05ba7f (528 commit(s) ahead)
+cli        @google/gemini-cli, claude, codex, computeq, docker, gemini-cli, gh, google, google-gemini-cli, helm +15 more
+units      19 installed (11 change-managed)
+  acp-cdc-ai-python 0.2.0 skill [loaded] [cm] 3c02dc52
+  andrej-karpathy-skills 1.0.0 plugin [cm] 43442d0f
+  cdc-agent-substrate-plugin 0.2.2 plugin [loaded]
+  code-reviewer 0.1.0 harness
+  debugging 0.1.0 skill [loaded] [cm] 3520c531
+  deploy-helm 0.1.0 skill [loaded] [cm] 5d48d0e6
+  doc-repo-devops 0.1.0 doc [loaded] [cm] 3bf44536
+  hyper-experiments-finance 0.1.0 skill [loaded] [cm] 5b3c8d2b
+  hyper-experiments 0.1.0 skill [loaded] [cm] 41b8f560
+  live-swarm-agent 0.1.0 harness
+  llm-wiki 0.1.0 skill [loaded] [cm] d4d6b11a
+  repo-coder 0.1.0 harness
+
+$ skt check             (10=NOTIFY_EXIT; was 4 stale before the rebuild)
+rc=0
+skt check: all current (11 change-managed unit(s), tier worktree)
+  artifacts not checked (timeout): skill-manager artifacts stale --json did not finish inside 6.0s
+  build: skt 0.8.2; skill-manager 0.28.1 @ artifact 641625cd3baf built 2026-09-17T17:34:42Z (skill-manager.jar)
+
+$ skt ticket list
+rc=0
+skt ticket list — /Users/hayde/IdeaProjects/tla-spec-dev
+epic       none discoverable
+target     none — containment NOT checked (pass --epic <slug> or --target <ref>)
+home       close-out destination: /Users/hayde/IdeaProjects/tla-spec-dev/.skill-manager
+  -                /Users/hayde/IdeaProjects/tla-spec-dev  [primary]
+      branch  main @5d05ba7f
+      excluded  the primary checkout — never removed
+  -                /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/base-wt  [MISSING, prunable]
+      branch  (detached) @571aad99
+      clean   no blocker — this worktree may be retired
+      note    no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+      note    prunable: gitdir file points to non-existent location — `git worktree prune` clears the entry
+  -                /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/basecheck  [MISSING, prunable]
+      branch  (detached) @571aad99
+      clean   no blocker — this worktree may be retired
+      note    no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+      note    prunable: gitdir file points to non-existent location — `git worktree prune` clears the entry
+  -                /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si17check  [MISSING, prunable]
+      branch  (detached) @569a472c
+      clean   no blocker — this worktree may be retired
+      note    no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+      note    prunable: gitdir file points to non-existent location — `git worktree prune` clears the entry
+
+$ skt ticket sweep --epic self-improvement-substrate  (dry run)
+rc=0
+skt ticket sweep (dry run) — /Users/hayde/IdeaProjects/tla-spec-dev
+epic       self-improvement-substrate (scoped to it)
+target     epic/self-improvement-substrate — commits must be contained in it
+home       close-out destination: /Users/hayde/IdeaProjects/tla-spec-dev/.skill-manager
+  excluded     -                /Users/hayde/IdeaProjects/tla-spec-dev
+      the primary checkout — never removed
+  excluded     -                /Users/hayde/IdeaProjects/wt-epic-self-improvement-substrate
+      the worktree this command is running IN — run the sweep from the primary checkout instead: git -C /Users/hayde/IdeaProjects/tla-spec-dev … / cd /Users/hayde/IdeaProjects/tla-spec-dev
+  would remove -                /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/base-wt
+      note: prunable: gitdir file points to non-existent location — `git worktree prune` clears the entry
+  would remove -                /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/basecheck
+      note: prunable: gitdir file points to non-existent location — `git worktree prune` clears the entry
+  would remove -                /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si17check
+      note: prunable: gitdir file points to non-existent location — `git worktree prune` clears the entry
+  would remove 334-plugin-migra /Users/hayde/IdeaProjects/wt-334-plugin-migration
+  would remove 335-nest-workflo /Users/hayde/IdeaProjects/wt-335-nest-workflow-skills
+  would remove 336-improvement- /Users/hayde/IdeaProjects/wt-336-improvement-card
+  would remove 337-improvement- /Users/hayde/IdeaProjects/wt-337-improvement-record
+  would remove 338-close-out-ow /Users/hayde/IdeaProjects/wt-338-close-out-owes-change
+  would remove 339-skills-propo /Users/hayde/IdeaProjects/wt-339-skills-propose
+  would remove 340-epic-owns-mo /Users/hayde/IdeaProjects/wt-340-epic-owns-model
+  would remove 341-evaluation   /Users/hayde/IdeaProjects/wt-341-evaluation
+

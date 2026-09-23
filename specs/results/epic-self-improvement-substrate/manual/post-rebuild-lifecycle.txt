@@ -1,0 +1,84 @@
+# Worktree lifecycle end to end, after the rebuild
+# repo: /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.Q80H0DRB9R/lifecycle   2026-09-23T15:21:34Z
+
+$ bootstrap-home.sh --root <repo>
+rc=0
+home:      /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.Q80H0DRB9R/lifecycle/.skill-manager
+projected: 8 of 8 into each of .claude .codex .gemini
+verified:  8 skill(s) servable — an agent launched here reads them from .claude .codex .gemini; descriptor env inside /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.Q80H0DRB9R/lifecycle; claude/codex resolve to this home's shims
+launch:    /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.Q80H0DRB9R/lifecycle/.skill-manager/bin/launch/claude
+creds:     agents launched from this home share the operator's login.
+           If one says 'Not logged in', check CLAUDE_SECURESTORAGE_CONFIG_DIR
+           is EMPTY -- a path there selects a slot nobody has written and
+           fails exactly as if it were unset (skill-manager#263).
+log:       /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/bootstrap-home-ihyFWr.log
+
+$ skt ticket new PR-1
+rc=0
+created ticket worktree for PR-1:
+worktree   /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.Q80H0DRB9R/lifecycle-PR-1
+branch     feature/PR-1 (standalone repo lifecycle)
+launch     /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.Q80H0DRB9R/lifecycle-PR-1/.skill-manager/bin/launch/claude
+if-exit-8  /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.Q80H0DRB9R/lifecycle-PR-1/.skill-manager/bin/cli/skill-manager home drift --ack
+close      skt ticket close — or: /Users/hayde/IdeaProjects/wt-epic-self-improvement-substrate/.skill-manager/plugins/tla-spec-dev/skills/skt/scripts/wt close PR-1
+
+A skill edit inside that worktree's home is in no git diff; run `skt publish` there before closing, or the close gate will refuse.
+
+$ skt ticket info PR-1
+rc=0
+worktree   /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.Q80H0DRB9R/lifecycle-PR-1
+branch     feature/PR-1 (standalone repo lifecycle)
+launch     /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.Q80H0DRB9R/lifecycle-PR-1/.skill-manager/bin/launch/claude
+if-exit-8  /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.Q80H0DRB9R/lifecycle-PR-1/.skill-manager/bin/cli/skill-manager home drift --ack
+close      skt ticket close — or: /Users/hayde/IdeaProjects/wt-epic-self-improvement-substrate/.skill-manager/plugins/tla-spec-dev/skills/skt/scripts/wt close PR-1
+base       in sync with parent @f3285bb5 (0 ahead)
+
+$ skt ticket list
+rc=0
+skt ticket list — /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.Q80H0DRB9R/lifecycle
+epic       none discoverable
+target     none — containment NOT checked (pass --epic <slug> or --target <ref>)
+home       close-out destination: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.Q80H0DRB9R/lifecycle/.skill-manager
+  -                /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.Q80H0DRB9R/lifecycle  [primary, current]
+      branch  main @f3285bb5
+      excluded  the primary checkout — never removed
+  PR-1             /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.Q80H0DRB9R/lifecycle-PR-1
+      branch  feature/PR-1 @f3285bb5
+      clean   no blocker — this worktree may be retired
+      note    no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+      note    this repository has no remote, so `pushed` has no meaning here — 1 commit(s) exist only in this clone, and its branch ref outlives the worktree
+
+1 sweepable, 1 with no blocker, 1 excluded
+next       skt ticket sweep            # the plan, nothing removed
+           skt ticket sweep --yes      # retire the unblocked ones
+
+$ skt ticket close PR-1
+rc=0
+note: edited unit(s) in this home before close: tla-spec-dev
+      (`skt publish <unit>` moves them out; the gate below enforces it)
+closed /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.Q80H0DRB9R/lifecycle-PR-1
+branch feature/PR-1 kept — delete once the change has landed
+
+$ skt ticket new DIRTY-2   (expect refusal)
+rc=1
+error: working tree is not clean: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.Q80H0DRB9R/lifecycle (commit or revert the files listed above)
+fix:   git -C /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.Q80H0DRB9R/lifecycle status --short
+
+$ WT_DIRTY_OK=1 skt ticket new DIRTY-2   (expect override)
+rc=0
+created ticket worktree for DIRTY-2:
+worktree   /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.Q80H0DRB9R/lifecycle-DIRTY-2
+branch     feature/DIRTY-2 (standalone repo lifecycle)
+launch     /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.Q80H0DRB9R/lifecycle-DIRTY-2/.skill-manager/bin/launch/claude
+if-exit-8  /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.Q80H0DRB9R/lifecycle-DIRTY-2/.skill-manager/bin/cli/skill-manager home drift --ack
+close      skt ticket close — or: /Users/hayde/IdeaProjects/wt-epic-self-improvement-substrate/.skill-manager/plugins/tla-spec-dev/skills/skt/scripts/wt close DIRTY-2
+
+A skill edit inside that worktree's home is in no git diff; run `skt publish` there before closing, or the close gate will refuse.
+
+$ skt ticket close DIRTY-2
+rc=0
+note: edited unit(s) in this home before close: tla-spec-dev
+      (`skt publish <unit>` moves them out; the gate below enforces it)
+closed /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.Q80H0DRB9R/lifecycle-DIRTY-2
+branch feature/DIRTY-2 kept — delete once the change has landed
+
